@@ -1,5 +1,12 @@
 # Deberc — Score Tracker
 
+[![pipeline status](https://git.lytvyn.org/games/deberc/badges/main/pipeline.svg)](https://git.lytvyn.org/games/deberc/-/pipelines)
+[![latest release](https://git.lytvyn.org/games/deberc/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/deberc/-/releases)
+[![coverage report](https://git.lytvyn.org/games/deberc/badges/main/coverage.svg?job=test)](https://git.lytvyn.org/games/deberc/-/pipelines)
+[![tests](https://git.lytvyn.org/games/deberc/-/jobs/artifacts/main/raw/tests.svg?job=test)](https://git.lytvyn.org/games/deberc/-/pipelines)
+[![apk size](https://git.lytvyn.org/games/deberc/-/jobs/artifacts/main/raw/apk-size.svg?job=build)](https://git.lytvyn.org/games/deberc/-/releases)
+[![build time](https://git.lytvyn.org/games/deberc/-/jobs/artifacts/main/raw/build-time.svg?job=build)](https://git.lytvyn.org/games/deberc/-/pipelines)
+
 A Flutter mobile app for tracking scores in Deberc, a traditional Ukrainian card game.
 
 ---
@@ -91,3 +98,62 @@ The game state is automatically saved after every round. When you reopen the app
 - **Dart** — programming language
 - **shared_preferences** — game state and settings persistence
 - Supported platforms: **Android**, **iOS**, **Web**, **Windows**
+
+## Delivery
+
+Every merge into `main` analyses the code, runs the tests, builds a release APK
+and AAB on the Linux runners and a Windows package on the Windows runner, and
+records the version as a git tag named `YYYY.MM.BUILD`. The build number doubles
+as the Android version code, so it only ever grows. Nothing is published at that
+point.
+
+Creating a release for one of those tags publishes it: a release webhook starts
+the publish pipeline, which rebuilds that exact tag on each platform, attaches
+the APK and the Windows `.msix` to the release for direct download, and — once
+store credentials are configured — uploads the AAB to the internal track of
+Google Play and the package to the Microsoft Store, both as drafts.
+
+### Platforms
+
+Android and the AAB build on the Kubernetes Linux runners. Windows builds on a
+self-hosted runner tagged `windows` with the Visual Studio build tools. iOS is
+not built yet: it may only be built on Apple hardware, which no runner provides.
+
+### Signing
+
+Release builds use the upload key when these CI/CD variables are set, and fall
+back to the debug key when they are not. An APK signed with the debug key can be
+installed by hand but is rejected by Google Play.
+
+| Variable | Notes |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | the upload keystore, base64-encoded |
+| `ANDROID_KEYSTORE_PASSWORD` | store password |
+| `ANDROID_KEY_ALIAS` | key alias inside the keystore |
+| `ANDROID_KEY_PASSWORD` | key password |
+
+### Google Play
+
+Uploading to Play additionally needs `GOOGLE_PLAY_SERVICE_ACCOUNT`, the JSON key
+of a service account granted access in the Play Console. Without it the publish
+pipeline still runs and still attaches the APK to the release; only the upload is
+skipped.
+
+### Microsoft Store
+
+The Windows package is submitted to Partner Center when the Store credentials
+are set. The identity fields come from the app reserved in Partner Center, and
+the submission uses an Azure AD application authorised for that account. Without
+these the Windows package is still built and attached to the release; only the
+Store submission is skipped.
+
+| Variable | Notes |
+|---|---|
+| `MSIX_IDENTITY_NAME` | Package/Identity/Name from the reserved app |
+| `MSIX_PUBLISHER` | Publisher (`CN=…`) from the reserved app |
+| `MSIX_PUBLISHER_DISPLAY_NAME` | publisher display name |
+| `MS_STORE_APP_ID` | the app's Store ID (product ID) |
+| `MS_TENANT_ID` | Azure AD tenant of the account |
+| `MS_CLIENT_ID` | Azure AD application (client) ID |
+| `MS_CLIENT_SECRET` | client secret for that application |
+| `MS_SELLER_ID` | Partner Center seller ID |

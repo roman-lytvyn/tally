@@ -47,6 +47,21 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  # Packages the Windows build into an .msix for the Microsoft Store. The Store
+  # identity (publisher, identity name) is supplied on the command line from
+  # CI/CD variables, so nothing tied to the Partner Center account lives here.
+  msix: ^3.16.7
+
+# Defaults for a local `dart run msix:create`. The release pipeline overrides
+# the identity fields on the command line with the values from Partner Center.
+msix_config:
+  display_name: Деберц
+  publisher_display_name: Roman Lytvyn
+  identity_name: com.deberc.deberc
+  msix_version: 1.0.0.0
+  logo_path: windows\runner\resources\app_icon.ico
+  capabilities: ""
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

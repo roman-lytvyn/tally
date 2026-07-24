@@ -1,0 +1,377 @@
+stages:
+  - lint
+  - test
+  - build
+  - tag
+  - deploy
+
+variables:
+  FLUTTER_IMAGE: ghcr.io/cirruslabs/flutter:stable
+  GIT_DEPTH: 1
+
+workflow:
+  rules:
+    # Pushing a version tag only records the version; publishing is driven by
+    # creating a release, so tag pushes create no pipeline of their own.
+    - if: $CI_COMMIT_TAG && $CI_PIPELINE_SOURCE != "web"
+      when: never
+    # While a branch has a merge request open, the merge request pipeline
+    # already covers its commits, so skip the branch pipeline for the same code.
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - when: always
+
+.flutter:
+  image: $FLUTTER_IMAGE
+  cache:
+    key:
+      files:
+        - pubspec.lock
+    paths:
+      - .pub-cache
+  before_script:
+    - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    - flutter pub get
+
+# ── Lint ─────────────────────────────────────────────────────────────────────
+
+analyze:
+  extends: .flutter
+  stage: lint
+  rules:
+    # A release pipeline ships a build that already passed this stage.
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+  script:
+    - flutter analyze
+
+# ── Test ─────────────────────────────────────────────────────────────────────
+
+test:
+  extends: .flutter
+  stage: test
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+  script:
+    - dart pub global activate junitreport > /dev/null
+    - export PATH="$PATH:$PUB_CACHE/bin"
+    # The machine-readable run feeds the test report; --coverage writes lcov.
+    - flutter test --coverage --machine | tojunit --output report.xml
+    - |
+      # Turn lcov into the single percentage GitLab reads from the log.
+      awk -F: '/^LF:/ {found += $2} /^LH:/ {hit += $2} END {
+        printf "All files | %.2f\n", found ? hit * 100 / found : 0
+      }' coverage/lcov.info
+  after_script:
+    # Drawn even when the tests fail, so the badge reports the failure instead
+    # of freezing on the last good number.
+    - |
+      [ -f report.xml ] || exit 0
+      total=$(grep -o 'tests="[0-9]*"' report.xml | head -1 | grep -o '[0-9]*')
+      bad=$(( $(grep -o 'failures="[0-9]*"' report.xml | head -1 | grep -o '[0-9]*') + $(grep -o 'errors="[0-9]*"' report.xml | head -1 | grep -o '[0-9]*') ))
+      if [ "$bad" -gt 0 ]; then
+        sh devops/badge.sh tests "$(( total - bad ))/$total passed" "#e05d44" tests.svg
+      else
+        sh devops/badge.sh tests "$total passed" "#4c1" tests.svg
+      fi
+  coverage: '/All files \| ([\d.]+)/'
+  artifacts:
+    # Collected on failure too: a failing run is when the report is worth having.
+    when: always
+    paths:
+      - tests.svg
+    reports:
+      junit: report.xml
+
+# ── Build ────────────────────────────────────────────────────────────────────
+# Android is the only platform that builds here: Windows needs a Windows runner
+# and iOS may only be built on Apple hardware, and this cluster has neither.
+
+.android-build:
+  extends: .flutter
+  script:
+    - BUILD_STARTED=$(date +%s)
+    # Play needs a version code that only ever grows; the pipeline number is
+    # exactly that, and the version name matches the tag the release carries.
+    - VERSION=$(date +%Y.%m).${CI_PIPELINE_IID}
+    - echo "VERSION=$VERSION" > build.env
+    # Signing details arrive as CI/CD variables. Without them Gradle falls back
+    # to the debug key, which is fine for a download link but not for Play.
+    - |
+      if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+        echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
+        cat > android/key.properties <<PROPS
+      storeFile=../upload-keystore.jks
+      storePassword=$ANDROID_KEYSTORE_PASSWORD
+      keyAlias=$ANDROID_KEY_ALIAS
+      keyPassword=$ANDROID_KEY_PASSWORD
+      PROPS
+        echo "Building signed with the upload key"
+      else
+        echo "No upload key configured, building with the debug key: not publishable to Play"
+      fi
+    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
+    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
+    - mv build/app/outputs/flutter-apk/app-release.apk "deberc-$VERSION.apk"
+    - mv build/app/outputs/bundle/release/app-release.aab "deberc-$VERSION.aab"
+    - rm -f android/key.properties android/upload-keystore.jks
+    - |
+      size=$(awk -v b="$(stat -c %s "deberc-$VERSION.apk")" 'BEGIN { printf "%.1f MB", b / 1048576 }')
+      sh devops/badge.sh apk "$size" "#007ec6" apk-size.svg
+      elapsed=$(( $(date +%s) - BUILD_STARTED ))
+      sh devops/badge.sh build "$(( elapsed / 60 ))m $(( elapsed % 60 ))s" "#007ec6" build-time.svg
+
+build:
+  extends: .android-build
+  stage: build
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+  artifacts:
+    paths:
+      - deberc-*.apk
+      - deberc-*.aab
+      - apk-size.svg
+      - build-time.svg
+    reports:
+      dotenv: build.env
+
+# The Windows build runs on a self-hosted Windows runner tagged "windows":
+# building for Windows needs the Windows toolchain, which a Linux runner cannot
+# provide. The runner keeps its own Flutter and pub cache between jobs.
+.windows-build:
+  tags:
+    - windows
+  variables:
+    PUB_CACHE: $CI_PROJECT_DIR\.pub-cache
+  before_script:
+    - flutter pub get
+
+build-windows:
+  extends: .windows-build
+  stage: build
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - $ErrorActionPreference = "Stop"
+    - $VERSION = "$(Get-Date -Format yyyy.MM).$env:CI_PIPELINE_IID"
+    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID"
+    # A self-signed .msix, installable for smoke-testing the Windows build. The
+    # Store-signed package is produced only when a release is published.
+    - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$VERSION.0"
+  artifacts:
+    paths:
+      - deberc-*.msix
+
+# ── Tag ──────────────────────────────────────────────────────────────────────
+# Tags every build that passed, so a release is picked from a list of
+# known-good versions instead of typed by hand.
+
+tag:
+  stage: tag
+  image:
+    name: alpine/git:latest
+    entrypoint: [""]
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - build
+  script:
+    # CI_JOB_TOKEN cannot write to the repository, so push over HTTPS with a
+    # project access token that carries the write_repository scope.
+    - git remote set-url origin "https://oauth2:${TAG_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    - |
+      if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" > /dev/null 2>&1; then
+        echo "Tag $VERSION already exists, nothing to do"
+        exit 0
+      fi
+    - git tag "$VERSION" "$CI_COMMIT_SHA"
+    - git push origin "refs/tags/$VERSION"
+
+# ── Deploy ───────────────────────────────────────────────────────────────────
+# Creating a release is what publishes a version: a release webhook starts this
+# pipeline with RELEASE_DEPLOY set. The published version is read back from the
+# Releases API, the tag is rebuilt, and the result is attached to the release
+# and sent to Play.
+
+release-version:
+  stage: tag
+  image: alpine:3.20
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  script:
+    - apk add --no-cache curl jq > /dev/null
+    - |
+      # A release webhook carries no version, so the released version is the tag
+      # of the most recently created release: the one just published.
+      curl -sf -H "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases?per_page=1&order_by=created_at&sort=desc" > releases.json
+      VERSION=$(jq -r '.[0].tag_name // empty' releases.json)
+      if [ -z "$VERSION" ]; then
+        # Deleting a release also reaches this pipeline; there is simply
+        # nothing to publish then.
+        echo "No release to publish"
+      else
+        echo "Publishing released version $VERSION"
+      fi
+      echo "VERSION=$VERSION" > release.env
+  artifacts:
+    reports:
+      dotenv: release.env
+
+# The tag is built again rather than reusing the artifact from main: artifacts
+# belong to the pipeline that made them, and a tag has no pipeline of its own.
+publish:
+  extends: .android-build
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  variables:
+    GIT_DEPTH: 0
+  environment:
+    name: google-play
+    url: https://play.google.com/store/apps/details?id=com.deberc.deberc
+  before_script:
+    - |
+      if [ -z "$VERSION" ]; then
+        echo "Nothing to publish"
+        exit 0
+      fi
+    - git checkout "$VERSION"
+    - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    - flutter pub get
+  after_script:
+    - |
+      [ -z "$VERSION" ] && exit 0
+      apk="deberc-$VERSION.apk"
+      [ -f "$apk" ] || exit 0
+      # Attach the build to the release so it can be downloaded from there.
+      url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$apk"
+      curl -sf -X POST -H "PRIVATE-TOKEN: $TAG_PUSH_TOKEN" \
+        --data-urlencode "name=$apk" --data-urlencode "url=$url" \
+        --data-urlencode "link_type=package" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$VERSION/assets/links" > /dev/null \
+        && echo "Attached $apk to release $VERSION" \
+        || echo "Could not attach $apk to release $VERSION"
+  artifacts:
+    paths:
+      - deberc-*.apk
+      - deberc-*.aab
+
+# Runs only once Play credentials exist, so the rest of the pipeline works
+# without them.
+google-play:
+  stage: deploy
+  image: ruby:3.3-alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true" && $GOOGLE_PLAY_SERVICE_ACCOUNT
+  needs:
+    - release-version
+    - publish
+  environment:
+    name: google-play
+    url: https://play.google.com/store/apps/details?id=com.deberc.deberc
+  script:
+    - apk add --no-cache build-base > /dev/null && gem install --silent fastlane
+    - echo "$GOOGLE_PLAY_SERVICE_ACCOUNT" > play-account.json
+    - |
+      fastlane run upload_to_play_store \
+        json_key:play-account.json \
+        package_name:com.deberc.deberc \
+        aab:"deberc-$VERSION.aab" \
+        track:internal \
+        release_status:draft \
+        skip_upload_metadata:true \
+        skip_upload_images:true \
+        skip_upload_screenshots:true
+    - rm -f play-account.json
+
+# The tag is rebuilt on Windows the same way it is on Linux for Android: a tag
+# has no pipeline of its own, so the release pipeline checks the tag out and
+# builds it. The Store identity comes from Partner Center via CI/CD variables.
+publish-windows:
+  extends: .windows-build
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  variables:
+    GIT_DEPTH: 0
+    PUB_CACHE: $CI_PROJECT_DIR\.pub-cache
+  needs:
+    - release-version
+  environment:
+    name: microsoft-store
+    url: https://apps.microsoft.com/detail/deberc
+  before_script:
+    - $ErrorActionPreference = "Stop"
+    - if (-not $env:VERSION) { Write-Host "Nothing to publish"; exit 0 }
+    - git checkout "$env:VERSION"
+    - flutter pub get
+  script:
+    - if (-not $env:VERSION) { exit 0 }
+    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID"
+    # --store makes a package the Store signs; the identity fields identify the
+    # app reserved in Partner Center. Without them msix keeps the pubspec values,
+    # which is enough to produce an artifact but not to submit to the Store.
+    - |
+      $args = @(
+        "run", "msix:create", "--store",
+        "--output-path", ".",
+        "--output-name", "deberc-$env:VERSION",
+        "--version", "$env:VERSION.0"
+      )
+      if ($env:MSIX_IDENTITY_NAME)         { $args += @("--identity-name", $env:MSIX_IDENTITY_NAME) }
+      if ($env:MSIX_PUBLISHER)             { $args += @("--publisher", $env:MSIX_PUBLISHER) }
+      if ($env:MSIX_PUBLISHER_DISPLAY_NAME){ $args += @("--publisher-display-name", $env:MSIX_PUBLISHER_DISPLAY_NAME) }
+      dart @args
+  after_script:
+    # Attach the Windows package to the release next to the Android build.
+    - |
+      if (-not $env:VERSION) { exit 0 }
+      $msix = "deberc-$env:VERSION.msix"
+      if (-not (Test-Path $msix)) { exit 0 }
+      $url = "$env:CI_PROJECT_URL/-/jobs/$env:CI_JOB_ID/artifacts/raw/$msix"
+      try {
+        Invoke-RestMethod -Method Post -Uri "$env:CI_API_V4_URL/projects/$env:CI_PROJECT_ID/releases/$env:VERSION/assets/links" `
+          -Headers @{ "PRIVATE-TOKEN" = $env:TAG_PUSH_TOKEN } `
+          -Body @{ name = $msix; url = $url; link_type = "package" } | Out-Null
+        Write-Host "Attached $msix to release $env:VERSION"
+      } catch {
+        Write-Host "Could not attach $msix to release $env:VERSION"
+      }
+  artifacts:
+    paths:
+      - deberc-*.msix
+
+# Submits the Store package to Partner Center. Runs only once the Store
+# credentials exist, so the rest of the pipeline works without them.
+microsoft-store:
+  extends: .windows-build
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true" && $MS_STORE_APP_ID
+  needs:
+    - release-version
+    - publish-windows
+  before_script: []
+  environment:
+    name: microsoft-store
+    url: https://apps.microsoft.com/detail/deberc
+  script:
+    - $ErrorActionPreference = "Stop"
+    - if (-not $env:VERSION) { Write-Host "Nothing to submit"; exit 0 }
+    - dotnet tool install --global MSStore.CLI 2>$null; $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+    - msstore reconfigure --tenantId $env:MS_TENANT_ID --clientId $env:MS_CLIENT_ID --clientSecret $env:MS_CLIENT_SECRET --sellerId $env:MS_SELLER_ID
+    # Uploads the package and creates a draft submission; a human still presses
+    # "publish" in Partner Center, mirroring the Play draft on the Android side.
+    - msstore publish "deberc-$env:VERSION.msix" --appId $env:MS_STORE_APP_ID --noCommit
