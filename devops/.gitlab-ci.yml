@@ -194,10 +194,14 @@ build-windows:
   script:
     - $ErrorActionPreference = "Stop"
     - $VERSION = "$(Get-Date -Format yyyy.MM).$env:CI_PIPELINE_IID"
+    # An MSIX version is four dot-separated numbers with no leading zeros, so the
+    # padded month in $VERSION is reparsed as plain integers and a fourth part
+    # is appended.
+    - $MSIX_VERSION = (($VERSION.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
     - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID"
     # A self-signed .msix, installable for smoke-testing the Windows build. The
     # Store-signed package is produced only when a release is published.
-    - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$VERSION.0"
+    - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$MSIX_VERSION"
   artifacts:
     paths:
       - deberc-*.msix
@@ -356,11 +360,14 @@ publish-windows:
     # app reserved in Partner Center. Without them msix keeps the pubspec values,
     # which is enough to produce an artifact but not to submit to the Store.
     - |
+      # MSIX versions carry no leading zeros, so the padded month in the tag is
+      # reparsed as plain integers and a fourth part is appended.
+      $msixVersion = (($env:VERSION.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
       $args = @(
         "run", "msix:create", "--store",
         "--output-path", ".",
         "--output-name", "deberc-$env:VERSION",
-        "--version", "$env:VERSION.0"
+        "--version", $msixVersion
       )
       if ($env:MSIX_IDENTITY_NAME)         { $args += @("--identity-name", $env:MSIX_IDENTITY_NAME) }
       if ($env:MSIX_PUBLISHER)             { $args += @("--publisher", $env:MSIX_PUBLISHER) }
