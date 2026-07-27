@@ -162,6 +162,14 @@ build:
           exit 1
         }
       }
+    - |
+      # Flutter runs git inside its own SDK folder to read the engine version.
+      # When the runner service account differs from the folder's owner, git
+      # refuses until the folder is marked safe; register it once for this account.
+      $sdk = ((Split-Path (Get-Command flutter).Source -Parent | Split-Path -Parent) -replace '\\', '/')
+      if (((git config --global --get-all safe.directory) 2>$null) -notcontains $sdk) {
+        git config --global --add safe.directory $sdk
+      }
     - flutter --version
 
 # The Windows build runs on a self-hosted Windows runner tagged "windows":
