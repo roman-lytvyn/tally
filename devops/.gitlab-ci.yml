@@ -201,7 +201,9 @@ build-windows:
     - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID"
     # A self-signed .msix, installable for smoke-testing the Windows build. The
     # Store-signed package is produced only when a release is published.
-    - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$MSIX_VERSION"
+    # --install-certificate false keeps the test certificate out of the machine
+    # trust store, which also avoids the interactive prompt that would hang CI.
+    - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$MSIX_VERSION" --install-certificate false
   artifacts:
     paths:
       - deberc-*.msix
