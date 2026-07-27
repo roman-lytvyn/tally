@@ -98,7 +98,9 @@ test:
     - BUILD_STARTED=$(date +%s)
     # Play needs a version code that only ever grows; the pipeline number is
     # exactly that, and the version name matches the tag the release carries.
-    - VERSION=$(date +%Y.%m).${CI_PIPELINE_IID}
+    # A release pipeline passes the published tag in as VERSION, so the built
+    # package is named for the released version; a normal build derives its own.
+    - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
     - echo "VERSION=$VERSION" > build.env
     # Signing details arrive as CI/CD variables. Without them Gradle falls back
     # to the debug key, which is fine for a download link but not for Play.
@@ -358,22 +360,29 @@ publish-windows:
   script:
     - if (-not $env:VERSION) { exit 0 }
     - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID"
-    # --store makes a package the Store signs; the identity fields identify the
-    # app reserved in Partner Center. Without them msix keeps the pubspec values,
-    # which is enough to produce an artifact but not to submit to the Store.
+    # Always produce a downloadable package to attach to the release. When a
+    # Store publisher identity is configured, build the variant the Store signs
+    # (--store plus the identity reserved in Partner Center); otherwise a
+    # self-signed package, enough to download and install for smoke-testing.
     - |
       # MSIX versions carry no leading zeros, so the padded month in the tag is
       # reparsed as plain integers and a fourth part is appended.
       $msixVersion = (($env:VERSION.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
       $args = @(
-        "run", "msix:create", "--store",
+        "run", "msix:create",
         "--output-path", ".",
         "--output-name", "deberc-$env:VERSION",
         "--version", $msixVersion
       )
-      if ($env:MSIX_IDENTITY_NAME)         { $args += @("--identity-name", $env:MSIX_IDENTITY_NAME) }
-      if ($env:MSIX_PUBLISHER)             { $args += @("--publisher", $env:MSIX_PUBLISHER) }
-      if ($env:MSIX_PUBLISHER_DISPLAY_NAME){ $args += @("--publisher-display-name", $env:MSIX_PUBLISHER_DISPLAY_NAME) }
+      if ($env:MSIX_PUBLISHER) {
+        $args += @("--store", "--publisher", $env:MSIX_PUBLISHER)
+        if ($env:MSIX_IDENTITY_NAME)         { $args += @("--identity-name", $env:MSIX_IDENTITY_NAME) }
+        if ($env:MSIX_PUBLISHER_DISPLAY_NAME){ $args += @("--publisher-display-name", $env:MSIX_PUBLISHER_DISPLAY_NAME) }
+      } else {
+        # --install-certificate false keeps the test certificate out of the
+        # machine trust store and avoids the interactive prompt that hangs CI.
+        $args += @("--install-certificate", "false")
+      }
       dart @args
   after_script:
     # Attach the Windows package to the release next to the Android build.
