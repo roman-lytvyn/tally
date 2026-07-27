@@ -142,6 +142,28 @@ build:
     reports:
       dotenv: build.env
 
+# The GitLab Runner service runs under its own account, so a Flutter that was
+# added to a user's PATH is invisible to it. This puts Flutter on PATH for the
+# job from FLUTTER_HOME or a handful of common install folders, and fails with
+# a clear message if it cannot be found.
+.find-flutter:
+  script:
+    - |
+      if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
+        $roots = @()
+        if ($env:FLUTTER_HOME) { $roots += $env:FLUTTER_HOME }
+        $roots += @("C:\flutter", "C:\src\flutter", "$env:USERPROFILE\flutter", "$env:LOCALAPPDATA\flutter", "C:\tools\flutter", "C:\dev\flutter")
+        $bin = $roots | ForEach-Object { Join-Path $_ "bin" } | Where-Object { Test-Path (Join-Path $_ "flutter.bat") } | Select-Object -First 1
+        if ($bin) {
+          $env:PATH = "$bin;$env:PATH"
+          Write-Host "Using Flutter at $bin"
+        } else {
+          Write-Host "Flutter was not found on this runner. Add its bin folder to the machine PATH and restart the GitLab Runner service, or set a FLUTTER_HOME CI/CD variable pointing to the Flutter folder."
+          exit 1
+        }
+      }
+    - flutter --version
+
 # The Windows build runs on a self-hosted Windows runner tagged "windows":
 # building for Windows needs the Windows toolchain, which a Linux runner cannot
 # provide. The runner keeps its own Flutter and pub cache between jobs.
@@ -151,6 +173,7 @@ build:
   variables:
     PUB_CACHE: $CI_PROJECT_DIR\.pub-cache
   before_script:
+    - !reference [.find-flutter, script]
     - flutter pub get
 
 build-windows:
@@ -316,6 +339,7 @@ publish-windows:
     - $ErrorActionPreference = "Stop"
     - if (-not $env:VERSION) { Write-Host "Nothing to publish"; exit 0 }
     - git checkout "$env:VERSION"
+    - !reference [.find-flutter, script]
     - flutter pub get
   script:
     - if (-not $env:VERSION) { exit 0 }
