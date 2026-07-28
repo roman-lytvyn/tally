@@ -63,28 +63,15 @@ test:
     # The machine-readable run feeds the test report; --coverage writes lcov.
     - flutter test --coverage --machine | tojunit --output report.xml
     - |
-      # Turn lcov into the single percentage GitLab reads from the log.
+      # Turn lcov into the single percentage GitLab reads from the log and shows
+      # on the pipeline and in the merge request coverage widget.
       awk -F: '/^LF:/ {found += $2} /^LH:/ {hit += $2} END {
         printf "All files | %.2f\n", found ? hit * 100 / found : 0
       }' coverage/lcov.info
-  after_script:
-    # Drawn even when the tests fail, so the badge reports the failure instead
-    # of freezing on the last good number.
-    - |
-      [ -f report.xml ] || exit 0
-      total=$(grep -o 'tests="[0-9]*"' report.xml | head -1 | grep -o '[0-9]*')
-      bad=$(( $(grep -o 'failures="[0-9]*"' report.xml | head -1 | grep -o '[0-9]*') + $(grep -o 'errors="[0-9]*"' report.xml | head -1 | grep -o '[0-9]*') ))
-      if [ "$bad" -gt 0 ]; then
-        sh devops/badge.sh tests "$(( total - bad ))/$total passed" "#e05d44" tests.svg
-      else
-        sh devops/badge.sh tests "$total passed" "#4c1" tests.svg
-      fi
   coverage: '/All files \| ([\d.]+)/'
   artifacts:
     # Collected on failure too: a failing run is when the report is worth having.
     when: always
-    paths:
-      - tests.svg
     reports:
       junit: report.xml
 
@@ -95,7 +82,6 @@ test:
 .android-build:
   extends: .flutter
   script:
-    - BUILD_STARTED=$(date +%s)
     # Play needs a version code that only ever grows; the pipeline number is
     # exactly that, and the version name matches the tag the release carries.
     # A release pipeline passes the published tag in as VERSION, so the built
@@ -122,11 +108,6 @@ test:
     - mv build/app/outputs/flutter-apk/app-release.apk "deberc-$VERSION.apk"
     - mv build/app/outputs/bundle/release/app-release.aab "deberc-$VERSION.aab"
     - rm -f android/key.properties android/upload-keystore.jks
-    - |
-      size=$(awk -v b="$(stat -c %s "deberc-$VERSION.apk")" 'BEGIN { printf "%.1f MB", b / 1048576 }')
-      sh devops/badge.sh apk "$size" "#007ec6" apk-size.svg
-      elapsed=$(( $(date +%s) - BUILD_STARTED ))
-      sh devops/badge.sh build "$(( elapsed / 60 ))m $(( elapsed % 60 ))s" "#007ec6" build-time.svg
 
 build:
   extends: .android-build
@@ -139,8 +120,6 @@ build:
     paths:
       - deberc-*.apk
       - deberc-*.aab
-      - apk-size.svg
-      - build-time.svg
     reports:
       dotenv: build.env
 
