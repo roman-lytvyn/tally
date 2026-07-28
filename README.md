@@ -2,10 +2,6 @@
 
 [![pipeline status](https://git.lytvyn.org/games/deberc/badges/main/pipeline.svg)](https://git.lytvyn.org/games/deberc/-/pipelines)
 [![latest release](https://git.lytvyn.org/games/deberc/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/deberc/-/releases)
-[![coverage report](https://git.lytvyn.org/games/deberc/badges/main/coverage.svg?job=test)](https://git.lytvyn.org/games/deberc/-/pipelines)
-[![tests](https://git.lytvyn.org/games/deberc/-/jobs/artifacts/main/raw/tests.svg?job=test)](https://git.lytvyn.org/games/deberc/-/pipelines)
-[![apk size](https://git.lytvyn.org/games/deberc/-/jobs/artifacts/main/raw/apk-size.svg?job=build)](https://git.lytvyn.org/games/deberc/-/releases)
-[![build time](https://git.lytvyn.org/games/deberc/-/jobs/artifacts/main/raw/build-time.svg?job=build)](https://git.lytvyn.org/games/deberc/-/pipelines)
 
 A Flutter mobile app for tracking scores in Deberc, a traditional Ukrainian card game.
 
