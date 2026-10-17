@@ -9,6 +9,8 @@ class SetupScreen extends StatelessWidget {
   final int scoreLimit;
   final int firstDealer;
   final bool hasSavedGame;
+  final bool dealerMustPlay;
+  final void Function(bool) onDealerMustPlayChanged;
   final void Function(List<String>) onTeamNamesChanged;
   final void Function(int) onScoreLimitChanged;
   final void Function(int) onFirstDealerChanged;
@@ -19,6 +21,7 @@ class SetupScreen extends StatelessWidget {
   const SetupScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
     required this.scoreLimit, required this.firstDealer, required this.hasSavedGame,
+    required this.dealerMustPlay, required this.onDealerMustPlayChanged,
     required this.onTeamNamesChanged, required this.onScoreLimitChanged,
     required this.onFirstDealerChanged, required this.onNewGame,
     required this.onContinue, required this.onSettings,
@@ -33,7 +36,13 @@ class SetupScreen extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(gradient: t.setupGradient),
         child: SafeArea(
-          child: Padding(
+          // Scrolls on short screens while the buttons stay pinned to the
+          // bottom whenever everything fits.
+          child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: box.maxHeight),
+            child: IntrinsicHeight(
+            child: Padding(
             padding: const EdgeInsets.fromLTRB(22, 28, 22, 30),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -82,6 +91,12 @@ class SetupScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(child: _segBtn('1001', scoreLimit == 1001, -1, () => onScoreLimitChanged(1001))),
                 ]),
+                const SizedBox(height: 20),
+
+                // rules
+                _label(strings.rules),
+                _toggle(strings.dealerMustPlay, strings.dealerMustPlayDesc, dealerMustPlay, onDealerMustPlayChanged),
+                const SizedBox(height: 24),
 
                 const Spacer(),
 
@@ -98,11 +113,33 @@ class SetupScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
+            ),
+            ),
+            ),
+          )),
         ),
       ),
     );
   }
+
+  Widget _toggle(String title, String desc, bool value, void Function(bool) onChanged) => GestureDetector(
+    onTap: () => onChanged(!value),
+    child: Container(
+      padding: const EdgeInsets.fromLTRB(15, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: t.surf, border: Border.all(color: t.bdr, width: 1.5),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Row(children: [
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: t.tx)),
+          const SizedBox(height: 2),
+          Text(desc, style: TextStyle(fontSize: 11, color: t.tx2)),
+        ])),
+        Switch(value: value, onChanged: onChanged, activeThumbColor: t.acc),
+      ]),
+    ),
+  );
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),

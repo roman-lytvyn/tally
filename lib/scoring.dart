@@ -15,7 +15,7 @@ class Tally {
 List<int> scoreRound(Round r) {
   if (r.isBait) {
     final earned = [0, 0];
-    earned[1 - r.dealer] = r.gv;
+    earned[1 - r.taker] = r.gv;
     return earned;
   }
   return [r.score[0], r.score[1]];

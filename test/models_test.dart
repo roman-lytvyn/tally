@@ -4,7 +4,7 @@ import 'package:deberc/models.dart';
 
 void main() {
   group('Round', () {
-    const round = Round(gv: 182, dealer: 1, score: [90, 92], isBait: true);
+    const round = Round(gv: 182, dealer: 1, taker: 1, score: [90, 92], isBait: true);
 
     test('survives being saved and read back', () {
       final restored = Round.fromJson(round.toJson());
@@ -23,6 +23,14 @@ void main() {
 
       expect(restored.score, [81, 81]);
       expect(restored.isTie, isTrue);
+      // Earlier versions assumed the dealing side always played.
+      expect(restored.taker, 0);
+    });
+
+    test('remembers which side took the trump', () {
+      const r = Round(gv: 162, dealer: 0, taker: 1, score: [62, 100]);
+
+      expect(Round.fromJson(r.toJson()).taker, 1);
     });
   });
 
@@ -31,15 +39,17 @@ void main() {
       teamNames: ['Наші', 'Інші'],
       scoreLimit: 501,
       rounds: [
-        Round(gv: 162, dealer: 0, score: [100, 62]),
-        Round(gv: 202, dealer: 1, score: [0, 0], isBait: true),
+        Round(gv: 162, dealer: 0, taker: 0, score: [100, 62]),
+        Round(gv: 202, dealer: 1, taker: 1, score: [0, 0], isBait: true),
       ],
       firstDealer: 0,
+      dealerMustPlay: true,
     );
 
     test('survives being saved and read back', () {
       final restored = GameState.fromJson(game.toJson());
 
+      expect(restored.dealerMustPlay, isTrue);
       expect(restored.teamNames, game.teamNames);
       expect(restored.scoreLimit, game.scoreLimit);
       expect(restored.firstDealer, game.firstDealer);
@@ -57,6 +67,12 @@ void main() {
       });
 
       expect(restored.firstDealer, 1);
+      expect(restored.dealerMustPlay, isFalse);
+    });
+
+    test('gives the first right to the trump to the side left of the dealer', () {
+      expect(game.firstToBid(0), 1);
+      expect(game.firstToBid(1), 0);
     });
 
     test('is stored under the game screen, so a saved game reopens there', () {

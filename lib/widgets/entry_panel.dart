@@ -10,6 +10,8 @@ class EntryPanel extends StatefulWidget {
   final AppStrings strings;
   final List<String> teamNames;
   final int dealer;
+  final int firstToBid;
+  final bool dealerMustPlay;
   final bool open;
   final Round? initial;
   final int? number;
@@ -20,7 +22,8 @@ class EntryPanel extends StatefulWidget {
 
   const EntryPanel({
     super.key, required this.theme, required this.strings,
-    required this.teamNames, required this.dealer, required this.open,
+    required this.teamNames, required this.dealer, required this.firstToBid,
+    required this.dealerMustPlay, required this.open,
     this.initial, this.number,
     required this.onOpen, required this.onCancel, required this.onSave, this.onDelete,
   });
@@ -33,17 +36,19 @@ class _EntryPanelState extends State<EntryPanel> {
   int _gv = 162;
   String _raw = '';
   late int _activeInput;
+  late int _taker;
 
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
 
   @override
   void initState() {
     super.initState();
-    _activeInput = _dealer;
     final r = widget.initial;
+    _taker = r?.taker ?? widget.firstToBid;
+    _activeInput = _taker;
     if (r != null) {
       _gv = r.gv;
-      if (!r.isBait) _raw = '${r.score[_dealer]}';
+      if (!r.isBait) _raw = '${r.score[_taker]}';
     }
   }
 
@@ -73,11 +78,11 @@ class _EntryPanelState extends State<EntryPanel> {
   void _save() {
     if (_parsed == null) return;
     final s = _score;
-    widget.onSave(Round(gv: _gv, dealer: _dealer, score: [s[0] ?? 0, s[1] ?? 0]));
+    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: [s[0] ?? 0, s[1] ?? 0]));
   }
 
   void _bait() {
-    widget.onSave(Round(gv: _gv, dealer: _dealer, score: const [0, 0], isBait: true));
+    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: const [0, 0], isBait: true));
   }
 
   AppTheme get t => widget.theme;
@@ -114,6 +119,12 @@ class _EntryPanelState extends State<EntryPanel> {
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.teamColor(_dealer))),
             ],
           ),
+          const SizedBox(height: 8),
+          _takerRow(),
+          if (widget.dealerMustPlay) ...[
+            const SizedBox(height: 3),
+            Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3)),
+          ],
           const SizedBox(height: 8),
           // GV selector
           SizedBox(
@@ -186,6 +197,34 @@ class _EntryPanelState extends State<EntryPanel> {
             Expanded(child: _saveBtn()),
           ]),
         ],
+      ),
+    );
+  }
+
+  Widget _takerRow() => Row(children: [
+    Text(s.trumpTakenBy, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+    const SizedBox(width: 8),
+    for (var i = 0; i < widget.teamNames.length; i++) ...[
+      if (i > 0) const SizedBox(width: 6),
+      Expanded(child: _takerChip(i)),
+    ],
+  ]);
+
+  Widget _takerChip(int i) {
+    final on = _taker == i;
+    return GestureDetector(
+      onTap: () => setState(() { _taker = i; _activeInput = i; _raw = ''; }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: on ? t.teamDim(i) : Colors.transparent,
+          border: Border.all(color: on ? t.teamColor(i) : t.bdr, width: 1.5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        alignment: Alignment.center,
+        child: Text('${on ? '♠ ' : ''}${widget.teamNames[i]}', maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.teamColor(i) : t.tx2)),
       ),
     );
   }

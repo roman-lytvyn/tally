@@ -128,8 +128,12 @@ or **1001**.
 Each deal has a **game value (GV)**: 162 plus the declarations. You enter the
 points of one side and the app gives the rest of the GV to the other side.
 
-- **Bait** — the «Bait» button gives the whole GV to the opponents of the
-  dealing side, which scores 0.
+- **Who took the trump** — every deal records which side took the trump. The
+  side to the dealer's left has the first right to it and is preselected; tap
+  the other side if they took it instead. With the **«Dealer must play»** rule
+  the dealer takes the trump when everyone else passes.
+- **Bait** — the «Bait» button gives the whole GV to the opponents of the side
+  that took the trump, which scores 0.
 - **Eggs** — when both sides are entered with the same points the deal is
   marked with an «Eggs» badge.
 
@@ -143,6 +147,7 @@ On the home screen, configure:
 - **Team names** — or leave the defaults «Us» / «Them»
 - **First dealer** — which team deals the first round
 - **Point limit** — 501 or 1001
+- **Rules** — whether the dealer must play when everyone else passes
 
 Tap **«New game»** to start.
 
@@ -152,11 +157,14 @@ Tap **«New game»** to start.
 
 After each round, tap **«+ New round»** at the bottom of the screen:
 
-1. **Select the GV** — scroll the horizontal list and pick the game value for this round
-2. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering
-3. If the scores are equal, an «Eggs» hint appears automatically
-4. If the dealing side lost the deal, tap **«Bait»**
-5. Tap **«Save»** to record the round
+1. **Who took the trump** — the side to the dealer's left is preselected; tap the other side if they took it
+2. **Select the GV** — scroll the horizontal list and pick the game value for this round
+3. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering
+4. If the scores are equal, an «Eggs» hint appears automatically
+5. If the side that took the trump lost the deal, tap **«Bait»**
+6. Tap **«Save»** to record the round
+
+In the history the side that took the trump is marked with **♠**.
 
 ### 3. Following the Game
 

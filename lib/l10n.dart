@@ -14,6 +14,11 @@ class AppStrings {
   String get settingsBtn     => isUk ? '⚙ Налаштування'                     : '⚙ Settings';
   String get ourTeamHint     => isUk ? 'Наша команда'                       : 'Our team';
   String get otherTeamHint   => isUk ? 'Інша команда'                       : 'Other team';
+  String get rules           => isUk ? 'Правила'                            : 'Rules';
+  String get dealerMustPlay  => isUk ? 'Роздавач зобов\'язаний грати'        : 'Dealer must play';
+  String get dealerMustPlayDesc => isUk
+      ? 'Якщо всі спасували, козир бере той, хто роздавав'
+      : 'If everyone passes, the dealer has to take the trump';
 
   // Game
   String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
@@ -50,6 +55,10 @@ class AppStrings {
   // Entry panel
   String get newRound        => isUk ? '+ Нова роздача'                     : '+ New round';
   String get dealsNow        => isUk ? '🃏 Роздає зараз:'                   : '🃏 Deals now:';
+  String get trumpTakenBy    => isUk ? 'Козир узяли:'                       : 'Trump taken by:';
+  String get dealerPlaysIfAllPass => isUk
+      ? 'Якщо всі спасували — грає роздавач'
+      : 'If everyone passed, the dealer plays';
   String eggsMsg(int a, int b) => isUk
       ? 'Яйця! Однакова кількість очок — $a:$b'
       : 'Eggs! Equal points — $a:$b';
