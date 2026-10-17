@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'theme.dart';
 import 'models.dart';
+import 'scoring.dart';
 import 'l10n.dart';
 import 'screens/setup_screen.dart';
 import 'screens/game_screen.dart';
@@ -50,13 +51,15 @@ class _AppRootState extends State<AppRoot> {
   int _scoreLimit = 1001;
   int _firstDealer = 0;
   List<Round> _rounds = [];
-  List<int> _scores = [0, 0];
-  int _dealer = 0;
-  int? _winner;
   GameState? _savedGame;
 
   SharedPreferences? _prefs;
   bool _ready = false;
+
+  GameState get _game => GameState(
+    teamNames: _teamNames, scoreLimit: _scoreLimit,
+    rounds: _rounds, firstDealer: _firstDealer,
+  );
 
   @override
   void initState() {
@@ -95,20 +98,17 @@ class _AppRootState extends State<AppRoot> {
   }
 
   void _persist() {
-    if (_screen == AppScreen.game) {
-      _prefs?.setString(_storeKey, jsonEncode(GameState(
-        teamNames: _teamNames, scoreLimit: _scoreLimit,
-        rounds: _rounds, scores: _scores, dealer: _dealer,
-      ).toJson()));
+    if (tally(_game).winner != null) {
+      _prefs?.remove(_storeKey);
+    } else {
+      _prefs?.setString(_storeKey, jsonEncode(_game.toJson()));
     }
   }
 
   void _goTo(AppScreen s) => setState(() { _prevScreen = _screen; _screen = s; });
 
   void _startNew() {
-    setState(() {
-      _rounds = []; _scores = [0, 0]; _dealer = _firstDealer; _winner = null; _savedGame = null;
-    });
+    setState(() { _rounds = []; _savedGame = null; });
     _prefs?.remove(_storeKey);
     _goTo(AppScreen.game);
     WidgetsBinding.instance.addPostFrameCallback((_) => _persist());
@@ -119,23 +119,30 @@ class _AppRootState extends State<AppRoot> {
     if (g == null) return;
     setState(() {
       _teamNames = g.teamNames; _scoreLimit = g.scoreLimit;
-      _rounds = g.rounds; _scores = g.scores; _dealer = g.dealer;
+      _rounds = g.rounds; _firstDealer = g.firstDealer;
       _savedGame = null;
     });
     _goTo(AppScreen.game);
   }
 
-  void _addRound(Round rd) {
-    final ns = [_scores[0] + rd.earned[0], _scores[1] + rd.earned[1]];
-    setState(() { _rounds = [..._rounds, rd]; _scores = ns; _dealer = 1 - _dealer; });
+  /// Replaces the list of deals and moves to whichever screen the new score
+  /// calls for, so adding, correcting and removing a deal all end the same way.
+  void _setRounds(List<Round> rounds) {
+    setState(() => _rounds = rounds);
+    _persist();
+    final over = tally(_game).winner != null;
+    if (over && _screen != AppScreen.win) _goTo(AppScreen.win);
+    if (!over && _screen == AppScreen.win) _goTo(AppScreen.game);
+  }
 
-    if (ns[0] >= _scoreLimit || ns[1] >= _scoreLimit) {
-      setState(() => _winner = ns[0] >= ns[1] ? 0 : 1);
-      _prefs?.remove(_storeKey);
-      _goTo(AppScreen.win);
-    } else {
-      _persist();
-    }
+  void _addRound(Round rd) => _setRounds([..._rounds, rd]);
+
+  void _replaceRound(int index, Round rd) => _setRounds([..._rounds]..[index] = rd);
+
+  void _removeRound(int index) => _setRounds([..._rounds]..removeAt(index));
+
+  void _undoLast() {
+    if (_rounds.isNotEmpty) _removeRound(_rounds.length - 1);
   }
 
   @override
@@ -181,16 +188,13 @@ class _AppRootState extends State<AppRoot> {
         return GameScreen(
           key: const ValueKey('game'),
           theme: theme, strings: strings,
-          teamNames: _teamNames, scores: _scores,
-          scoreLimit: _scoreLimit, rounds: _rounds, dealer: _dealer,
-          scoreStyle: _scoreStyle, onAddRound: _addRound,
+          teamNames: _teamNames, scoreLimit: _scoreLimit,
+          rounds: _rounds, tally: tally(_game),
+          scoreStyle: _scoreStyle,
+          onAddRound: _addRound, onReplaceRound: _replaceRound, onRemoveRound: _removeRound,
+          onUndo: _undoLast,
           onBack: () {
-            if (_rounds.isNotEmpty) {
-              setState(() => _savedGame = GameState(
-                teamNames: _teamNames, scoreLimit: _scoreLimit,
-                rounds: _rounds, scores: _scores, dealer: _dealer,
-              ));
-            }
+            if (_rounds.isNotEmpty) setState(() => _savedGame = _game);
             _goTo(AppScreen.setup);
           },
           onSettings: () => _goTo(AppScreen.settings),
@@ -212,11 +216,14 @@ class _AppRootState extends State<AppRoot> {
           onBack: () => _goTo(_prevScreen),
         );
       case AppScreen.win:
+        final t = tally(_game);
         return WinScreen(
           key: const ValueKey('win'),
           theme: theme, strings: strings,
-          teamNames: _teamNames, scores: _scores,
-          winner: _winner ?? 0, onNewGame: () => _goTo(AppScreen.setup),
+          teamNames: _teamNames, scores: t.totals,
+          winner: t.winner ?? 0,
+          onUndo: _undoLast,
+          onNewGame: () => _goTo(AppScreen.setup),
         );
     }
   }

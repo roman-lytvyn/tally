@@ -166,7 +166,17 @@ The game screen shows:
 - Which team is currently dealing (a «deals» badge)
 - Full round history with **BAIT** and **EGGS** badges
 
-### 4. Settings
+### 4. Correcting a Mistake
+
+- **Undo** — the **↶** button in the header removes the last recorded deal.
+- **Edit or remove any deal** — tap a deal in the history to open it in the
+  entry panel, change the GV, the points or the bait flag and tap **«Save»**,
+  or tap **«Delete»** to remove it. Totals, the dealer and the winner are
+  recalculated from the remaining deals.
+- **Undo a win** — if the last deal ended the game by mistake, the win screen
+  offers **«Undo the last round»** and returns to the game.
+
+### 5. Settings
 
 Accessible via the ⚙ button:
 - **Theme** — light, system (follows device setting), or dark
@@ -176,7 +186,7 @@ Accessible via the ⚙ button:
 
 ## Game State Persistence
 
-The game state is automatically saved after every round. When you reopen the app, the **«Continue previous»** button lets you pick up right where you left off. Finishing a game clears the saved state.
+The game state is automatically saved after every change. Only the recorded deals are stored; scores and the dealer are always recalculated from them, so an edit can never leave the totals out of step. When you reopen the app, the **«Continue previous»** button lets you pick up right where you left off. Finishing a game clears the saved state.
 
 ---
 
