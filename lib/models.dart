@@ -20,6 +20,10 @@ class Round {
 
   bool get isTie => !isBait && score[0] == score[1];
 
+  /// The side that took the trump scored less than its opponents, either by
+  /// the points entered or because the deal was recorded straight as bait.
+  bool get isBaited => isBait || score[taker] < score[1 - taker];
+
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
   };

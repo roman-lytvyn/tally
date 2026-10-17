@@ -79,4 +79,18 @@ void main() {
     expect(find.text('♠ Вони'), findsOneWidget);
   });
 
+  testWidgets('warns about bait as soon as the trump-taker is entered with fewer points', (tester) async {
+    await openApp(tester);
+    await tester.tap(find.text(uk.newGame));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(uk.newRound));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('5'));
+    await tester.tap(find.text('0').last);
+    await tester.pump();
+
+    expect(find.text(uk.baitMsg('Ми', 162)), findsOneWidget);
+  });
+
 }
