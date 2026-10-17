@@ -44,12 +44,14 @@ void main() {
       ],
       firstDealer: 0,
       dealerMustPlay: true,
+      tieRule: TieRule.opponentsTakeAll,
     );
 
     test('survives being saved and read back', () {
       final restored = GameState.fromJson(game.toJson());
 
       expect(restored.dealerMustPlay, isTrue);
+      expect(restored.tieRule, TieRule.opponentsTakeAll);
       expect(restored.teamNames, game.teamNames);
       expect(restored.scoreLimit, game.scoreLimit);
       expect(restored.firstDealer, game.firstDealer);
@@ -68,6 +70,8 @@ void main() {
 
       expect(restored.firstDealer, 1);
       expect(restored.dealerMustPlay, isFalse);
+      // Its ties keep being split the way they were when it was played.
+      expect(restored.tieRule, TieRule.eachKeepsOwn);
     });
 
     test('gives the first right to the trump to the side left of the dealer', () {

@@ -138,7 +138,12 @@ points of one side and the app gives the rest of the GV to the other side.
   entry panel as soon as the entered points mean bait. When nobody counted
   the points, the «Bait» button records it straight away.
 - **Eggs** — when both sides are entered with the same points the deal is
-  marked with an «Eggs» badge.
+  marked with an «Eggs» badge and scored by the tie rule chosen for the game:
+  - **Held over** (default) — the opponents score their points; the
+    trump-taker's points are held and go to whoever wins the next deal. While
+    points are held, the game screen shows how many.
+  - **To opponents** — a tie counts as bait and the opponents get the whole GV.
+  - **Each keeps own** — both sides score what they took.
 
 ---
 
@@ -150,7 +155,8 @@ On the home screen, configure:
 - **Team names** — or leave the defaults «Us» / «Them»
 - **First dealer** — which team deals the first round
 - **Point limit** — 501 or 1001
-- **Rules** — whether the dealer must play when everyone else passes
+- **Rules** — whether the dealer must play when everyone else passes, and
+  what happens to a tied deal («eggs»)
 
 Tap **«New game»** to start.
 

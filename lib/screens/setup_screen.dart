@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
+import '../models.dart';
 
 class SetupScreen extends StatelessWidget {
   final AppTheme theme;
@@ -11,6 +12,8 @@ class SetupScreen extends StatelessWidget {
   final bool hasSavedGame;
   final bool dealerMustPlay;
   final void Function(bool) onDealerMustPlayChanged;
+  final TieRule tieRule;
+  final void Function(TieRule) onTieRuleChanged;
   final void Function(List<String>) onTeamNamesChanged;
   final void Function(int) onScoreLimitChanged;
   final void Function(int) onFirstDealerChanged;
@@ -22,6 +25,7 @@ class SetupScreen extends StatelessWidget {
     super.key, required this.theme, required this.strings, required this.teamNames,
     required this.scoreLimit, required this.firstDealer, required this.hasSavedGame,
     required this.dealerMustPlay, required this.onDealerMustPlayChanged,
+    required this.tieRule, required this.onTieRuleChanged,
     required this.onTeamNamesChanged, required this.onScoreLimitChanged,
     required this.onFirstDealerChanged, required this.onNewGame,
     required this.onContinue, required this.onSettings,
@@ -96,6 +100,18 @@ class SetupScreen extends StatelessWidget {
                 // rules
                 _label(strings.rules),
                 _toggle(strings.dealerMustPlay, strings.dealerMustPlayDesc, dealerMustPlay, onDealerMustPlayChanged),
+                const SizedBox(height: 12),
+                Text(strings.tieRuleTitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.tx2)),
+                const SizedBox(height: 6),
+                Row(children: [
+                  for (final rule in TieRule.values) ...[
+                    if (rule != TieRule.values.first) const SizedBox(width: 6),
+                    Expanded(child: _segBtn(strings.tieRuleName(rule), tieRule == rule, -1,
+                        () => onTieRuleChanged(rule), fontSize: 12)),
+                  ],
+                ]),
+                const SizedBox(height: 4),
+                Text(strings.tieRuleDesc(tieRule), style: TextStyle(fontSize: 11, color: t.tx2)),
                 const SizedBox(height: 24),
 
                 const Spacer(),
@@ -147,7 +163,7 @@ class SetupScreen extends StatelessWidget {
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1, color: t.tx2)),
   );
 
-  Widget _segBtn(String label, bool active, int teamIdx, VoidCallback onTap) {
+  Widget _segBtn(String label, bool active, int teamIdx, VoidCallback onTap, {double fontSize = 15}) {
     final color = teamIdx >= 0 ? t.teamColor(teamIdx) : t.acc;
     final dim   = teamIdx >= 0 ? t.teamDim(teamIdx)   : t.accDim;
     return GestureDetector(
@@ -161,8 +177,8 @@ class SetupScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(11),
         ),
         alignment: Alignment.center,
-        child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600,
-            color: active ? color : t.tx2)),
+        child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: fontSize,
+            fontWeight: FontWeight.w600, color: active ? color : t.tx2)),
       ),
     );
   }

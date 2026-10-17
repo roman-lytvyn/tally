@@ -12,6 +12,7 @@ class EntryPanel extends StatefulWidget {
   final int dealer;
   final int firstToBid;
   final bool dealerMustPlay;
+  final TieRule tieRule;
   final bool open;
   final Round? initial;
   final int? number;
@@ -23,7 +24,7 @@ class EntryPanel extends StatefulWidget {
   const EntryPanel({
     super.key, required this.theme, required this.strings,
     required this.teamNames, required this.dealer, required this.firstToBid,
-    required this.dealerMustPlay, required this.open,
+    required this.dealerMustPlay, required this.tieRule, required this.open,
     this.initial, this.number,
     required this.onOpen, required this.onCancel, required this.onSave, this.onDelete,
   });
@@ -172,7 +173,7 @@ class _EntryPanelState extends State<EntryPanel> {
           ),
           if (_yaytsia && parsed != null) ...[
             const SizedBox(height: 6),
-            _hint('🥚', s.eggsMsg(score[0] ?? 0, score[1] ?? 0), t.egg, t.eggDim),
+            _hint('🥚', s.eggsMsg(widget.tieRule, score[0] ?? 0, widget.teamNames[1 - _taker]), t.egg, t.eggDim),
           ],
           if (_baited) ...[
             const SizedBox(height: 6),

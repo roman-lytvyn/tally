@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:deberc/main.dart';
 import 'package:deberc/l10n.dart';
+import 'package:deberc/models.dart';
 
 void main() {
   const uk = AppStrings('uk');
@@ -23,6 +24,20 @@ void main() {
 
     await tester.pumpWidget(const DebertsApp());
     await tester.pumpAndSettle();
+  }
+
+  /// Taps a piece of text, scrolling it into view first.
+  Future<void> tapText(WidgetTester tester, String text) async {
+    await tester.ensureVisible(find.text(text));
+    await tester.tap(find.text(text));
+    await tester.pumpAndSettle();
+  }
+
+  /// Starts a new game and opens the panel for its first deal.
+  Future<void> openRound(WidgetTester tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.newGame);
+    await tapText(tester, uk.newRound);
   }
 
   testWidgets('opens on the setup screen', (tester) async {
@@ -61,18 +76,13 @@ void main() {
     final toggle = find.byType(Switch);
     expect(tester.widget<Switch>(toggle).value, isFalse);
 
-    await tester.tap(find.text(uk.dealerMustPlay));
-    await tester.pump();
+    await tapText(tester, uk.dealerMustPlay);
 
     expect(tester.widget<Switch>(toggle).value, isTrue);
   });
 
   testWidgets('asks who took the trump, offering it first to the player left of the dealer', (tester) async {
-    await openApp(tester);
-    await tester.tap(find.text(uk.newGame));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(uk.newRound));
-    await tester.pumpAndSettle();
+    await openRound(tester);
 
     expect(find.text(uk.trumpTakenBy), findsOneWidget);
     // The first team deals first, so the second team has the first right.
@@ -80,11 +90,7 @@ void main() {
   });
 
   testWidgets('warns about bait as soon as the trump-taker is entered with fewer points', (tester) async {
-    await openApp(tester);
-    await tester.tap(find.text(uk.newGame));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(uk.newRound));
-    await tester.pumpAndSettle();
+    await openRound(tester);
 
     await tester.tap(find.text('5'));
     await tester.tap(find.text('0').last);
@@ -93,4 +99,10 @@ void main() {
     expect(find.text(uk.baitMsg('Ми', 162)), findsOneWidget);
   });
 
+  testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));
+
+    expect(find.text(uk.tieRuleDesc(TieRule.opponentsTakeAll)), findsOneWidget);
+  });
 }

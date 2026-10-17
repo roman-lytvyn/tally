@@ -3,9 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:deberc/models.dart';
 import 'package:deberc/scoring.dart';
 
-GameState game(List<Round> rounds, {int limit = 501, int firstDealer = 0}) => GameState(
+GameState game(List<Round> rounds, {
+  int limit = 501, int firstDealer = 0, TieRule tieRule = TieRule.hanging,
+}) => GameState(
   teamNames: const ['A', 'B'], scoreLimit: limit, rounds: rounds, firstDealer: firstDealer,
+  tieRule: tieRule,
 );
+
+const tie = Round(gv: 182, dealer: 0, taker: 1, score: [91, 91]);
 
 void main() {
   test('a game with no deals has no score and the first dealer deals', () {
@@ -56,6 +61,50 @@ void main() {
     final t = tally(game(const [Round(gv: 202, dealer: 0, taker: 1, score: [0, 0], isBait: true)]));
 
     expect(t.totals, [202, 0]);
+  });
+
+  group('a tied deal', () {
+    test('by default holds the trump-taker\'s points while the opponents keep theirs', () {
+      final t = tally(game(const [tie]));
+
+      expect(t.totals, [91, 0]);
+      expect(t.held, 91);
+    });
+
+    test('hands the held points to whoever wins the next deal', () {
+      final t = tally(game(const [tie, Round(gv: 162, dealer: 1, taker: 1, score: [62, 100])]));
+
+      expect(t.earned.last, [62, 191]);
+      expect(t.totals, [153, 191]);
+      expect(t.held, 0);
+    });
+
+    test('hands the held points to the opponents when the next deal is bait', () {
+      final t = tally(game(const [tie, Round(gv: 162, dealer: 1, taker: 0, score: [0, 0], isBait: true)]));
+
+      expect(t.earned.last, [0, 253]);
+    });
+
+    test('keeps holding the points through several ties in a row', () {
+      final t = tally(game(const [tie, tie]));
+
+      expect(t.totals, [182, 0]);
+      expect(t.held, 182);
+    });
+
+    test('can give the whole deal to the opponents instead', () {
+      final t = tally(game(const [tie], tieRule: TieRule.opponentsTakeAll));
+
+      expect(t.totals, [182, 0]);
+      expect(t.held, 0);
+    });
+
+    test('can let each side keep its own points instead', () {
+      final t = tally(game(const [tie], tieRule: TieRule.eachKeepsOwn));
+
+      expect(t.totals, [91, 91]);
+      expect(t.held, 0);
+    });
   });
 
   test('ends the game once a side reaches the target', () {

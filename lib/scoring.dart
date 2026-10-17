@@ -7,15 +7,25 @@ class Tally {
   final List<int> totals;
   final int? winner;
   final int dealer;
+  /// Points from tied deals still waiting for the winner of the next deal.
+  final int held;
 
-  const Tally({required this.earned, required this.totals, required this.winner, required this.dealer});
+  const Tally({
+    required this.earned, required this.totals, required this.winner,
+    required this.dealer, this.held = 0,
+  });
 }
 
-/// What each side earns from a single deal.
-List<int> scoreRound(Round r) {
-  if (r.isBaited) {
+/// What each side earns from a single deal, before any held points.
+List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
+  if (r.isBaited || (r.isTie && tieRule == TieRule.opponentsTakeAll)) {
     final earned = [0, 0];
     earned[1 - r.taker] = r.gv;
+    return earned;
+  }
+  if (r.isTie && tieRule == TieRule.hanging) {
+    final earned = [r.score[0], r.score[1]];
+    earned[r.taker] = 0;
     return earned;
   }
   return [r.score[0], r.score[1]];
@@ -24,10 +34,17 @@ List<int> scoreRound(Round r) {
 Tally tally(GameState game) {
   final earned = <List<int>>[];
   final totals = [0, 0];
+  var held = 0;
   int? winner;
 
   for (final r in game.rounds) {
-    final e = scoreRound(r);
+    final e = scoreRound(r, tieRule: game.tieRule);
+    if (r.isTie && game.tieRule == TieRule.hanging) {
+      held += r.score[r.taker];
+    } else if (held > 0) {
+      e[e[0] > e[1] ? 0 : 1] += held;
+      held = 0;
+    }
     earned.add(e);
     totals[0] += e[0];
     totals[1] += e[1];
@@ -42,5 +59,6 @@ Tally tally(GameState game) {
     totals: totals,
     winner: winner,
     dealer: (game.firstDealer + game.rounds.length) % 2,
+    held: held,
   );
 }
