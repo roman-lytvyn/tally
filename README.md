@@ -3,43 +3,135 @@
 [![pipeline status](https://git.lytvyn.org/games/deberc/badges/main/pipeline.svg)](https://git.lytvyn.org/games/deberc/-/pipelines)
 [![latest release](https://git.lytvyn.org/games/deberc/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/deberc/-/releases)
 
-A Flutter mobile app for tracking scores in Deberc, a traditional Ukrainian card game.
+A Flutter app for keeping the score in Deberc (Деберц), a trick-taking card
+game of the Klaverjas / Klabberjass family that is especially popular in
+Ukraine.
 
 ---
 
-## About the Game
+## Where the Game Comes From
 
-**Deberc** is a trick-taking card game for four players split into two teams of two. It is played with a **32-card deck** (7s through Aces — 6s are not used). Each round, one team acts as the **dealers**: they name the trump suit and are obligated to score more points than their opponents.
+Deberc has no single inventor and no documented birthday. What can be traced
+is the family it belongs to and the path that family took across Europe.
 
-The goal is to be the first team to reach **501** or **1001** points (chosen before the game starts).
+- **The Klaverjas family.** Deberc is one of the *Jass* or *jack–nine* games,
+  where the jack and the nine are the highest trumps. The family comes from the
+  Low Countries: the Dutch *klaverjassen* is recorded in the 18th century, and
+  *jas* was originally the name of the trump jack. Protestant mercenaries in
+  Dutch service carried the game to Switzerland in the late 18th century, where
+  the first record of *Jassen* dates from 1796. Its relatives include the Swiss
+  Jass, the French Belote, the Bulgarian Bela, the Cypriot Pilotta and the
+  Armenian Bazar Blot. Belote is a sibling of Deberc, not its ancestor.
+- **Central and Eastern Europe.** Under names such as *Klabberjass*,
+  *Kalabriás* and *Klabrias* the game spread through the German lands and
+  Austria-Hungary. It became a particular favourite in Jewish communities: in
+  1890 Vienna staged a popular farce, *Die Klabriaspartie*, about friends playing
+  it in a café, and emigrants later took the two-handed form (*Clobyosh*,
+  *Klob*, *Bela*) to Britain, the United States, South Africa and Israel.
+- **Ukrainian lands.** A large part of that Jewish world lived in today's
+  Ukraine — Odesa, Galicia, Podillia, the Kyiv region — and this is where the
+  game took the form known as Deberc. Its vocabulary still shows the route:
+  the Odesa variant is called *klabor* (from *Klabber*), the trump nine is the
+  *manela* (the *Nell* / *Menel* of Jass), and a lost deal is *bet* or *bait*,
+  matching the *bête* of Klaberjass. During the 20th century the game spread
+  across the whole Soviet Union, which is why "Moscow" and "Kharkiv" variants
+  also exist; that spread does not make it a Russian game.
+
+**Legends without sources.** Stories that Deberc was invented by convicts on
+Sakhalin in the early 20th century, or in the village of Kybyntsi in the
+1870s, are repeated online but are not backed by any document, and the
+Sakhalin story contradicts the much older history of the family. They are
+legends, not history. The origin of the word *Deberc* itself is not
+established.
 
 ---
 
-## Scoring System
+## The Rules in Brief
 
-### Game Value (GV)
+Local rules differ from table to table; this is the common core.
 
-Every round has a **Game Value (GV)** — the total number of points that can be won in that round. It depends on the trump suit and any declared combinations (belote, tierce, quart, etc.) and ranges from **162 to 512 points**.
+### Players and cards
 
-The base GV with no combinations is **162 points**. Each declared combination adds to the pool. The scores of both teams in a round always sum to the GV.
+Deberc is played by two players, by three players each for themselves, or by
+four players in two teams of two. It uses a **32-card deck**, seven to ace in
+each suit.
 
-### Regular Round
+### Taking the trump
 
-The dealing team must score **more points** than their opponents. If they succeed, each team keeps what they earned. The first team to reach the point limit wins the game.
+After the first cards are dealt, one card is turned face up. The player on the
+dealer's left has the first right to take its suit as trump or to pass; the
+right then goes round the table. If everybody passes, another suit may be
+named in a second round, and if everybody passes again the cards go to the
+next dealer. Some tables play "with obligation", where the dealer must play
+when everybody else passes.
 
-### Special Situations
+The player who takes the trump, together with their partner, **must score more
+points than the opponents** in that deal.
 
-#### FELL (УПАВ)
+### Card values
 
-If the dealers score **equal to or less than** their opponents, they *fall*. Their points are forfeited and the opponents receive the **full GV** — their own points plus the dealers' points.
+| Card | Trump | Other suits |
+|---|---|---|
+| Jack | 20 | 2 |
+| Nine | 14 | 0 |
+| Ace | 11 | 11 |
+| Ten | 10 | 10 |
+| King | 4 | 4 |
+| Queen | 3 | 3 |
+| Eight, seven | 0 | 0 |
 
-#### EGGS (ЯЙЦЯ)
+The cards are worth 152 points in total and the last trick adds 10, so **every
+deal is worth 162 points** before declarations.
 
-If both teams score the **exact same number of points**, the dealers are also considered to have fallen. The opponents receive the full GV. This situation gets its own badge in the round history.
+### Declarations
 
-#### BAIT (БАЙТ)
+| Declaration | Points |
+|---|---|
+| Tierce — three cards of a suit in sequence | 20 |
+| Four in a row (*kopa*, "fifty") | 50 |
+| Bella — king and queen of trumps | 20 |
+| **Deberc** — seven trumps in a row | wins the whole game at once |
 
-A situation where the dealers **fail to win a single trick**. The opponents receive the full GV and the dealers score 0. Recorded via a dedicated button in the round entry panel.
+Only the side holding the highest sequence scores its sequences. The deal's
+total value is 162 plus every declaration that is scored.
+
+### Special outcomes
+
+- **Bait (байт).** If the trump-taker scores **less** than the opponents, the
+  opponents receive the whole value of the deal and the trump-taker gets
+  nothing. In a three-player game the points go to the opponent who scored
+  more.
+- **Tied deal (яйця).** If both sides score exactly the same, the most common
+  rule is a "hanging bait": the opponents keep their points and the
+  trump-taker's points are put on hold for whichever side wins the next deal.
+  Some tables give the whole deal to the opponents instead.
+
+### Winning
+
+The first side to reach the agreed target wins: **301** (short game), **501**
+or **1001**.
+
+### Sources
+
+- [Wikipedia — Jass](https://en.wikipedia.org/wiki/Jass)
+- [Wikipedia — Klaverjas](https://en.wikipedia.org/wiki/Klaverjas)
+- [Wikipedia — Klaberjass](https://en.wikipedia.org/wiki/Klaberjass)
+- [Swiss National Museum — before Jass](https://blog.nationalmuseum.ch/en/2017/10/before-jass/)
+- [Pagat — Jass group](https://pagat.com/jass) and [Card games in Ukraine](https://pagat.com/national/ukraine.html)
+- [Tablet Magazine — In the cards: Klaberjass](https://www.tabletmag.com/sections/community/articles/in-the-cards-klaberjass)
+- [Ukrainian Wikipedia — Деберць](https://uk.wikipedia.org/wiki/Деберц)
+
+---
+
+## How the App Scores a Deal
+
+Each deal has a **game value (GV)**: 162 plus the declarations. You enter the
+points of one side and the app gives the rest of the GV to the other side.
+
+- **Bait** — the «Bait» button gives the whole GV to the opponents of the
+  dealing side, which scores 0.
+- **Eggs** — when both sides are entered with the same points the deal is
+  marked with an «Eggs» badge.
 
 ---
 
@@ -63,7 +155,7 @@ After each round, tap **«+ New round»** at the bottom of the screen:
 1. **Select the GV** — scroll the horizontal list and pick the game value for this round
 2. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering
 3. If the scores are equal, an «Eggs» hint appears automatically
-4. If the dealers won no tricks at all, tap **«Bait»**
+4. If the dealing side lost the deal, tap **«Bait»**
 5. Tap **«Save»** to record the round
 
 ### 3. Following the Game
@@ -72,7 +164,7 @@ The game screen shows:
 - Current score for both teams
 - Progress toward the point limit (as a bar or numerically, depending on display style)
 - Which team is currently dealing (a «deals» badge)
-- Full round history with **BAIT**, **EGGS**, and **FELL** badges
+- Full round history with **BAIT** and **EGGS** badges
 
 ### 4. Settings
 
@@ -93,7 +185,7 @@ The game state is automatically saved after every round. When you reopen the app
 - **Flutter** — cross-platform UI framework
 - **Dart** — programming language
 - **shared_preferences** — game state and settings persistence
-- Supported platforms: **Android**, **iOS**, **Web**, **Windows**
+- Supported platforms: **Android**, **iOS**, **Windows**
 
 ## Delivery
 
