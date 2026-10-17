@@ -1,4 +1,43 @@
-const kGV = [162, 182, 202, 212, 222, 232, 252, 262, 282, 302, 332, 362, 412, 462, 512];
+/// The points in every deal before declarations: the cards plus the last trick.
+const kBaseGV = 162;
+
+/// The combinations declared in a deal, which raise its game value.
+class Declarations {
+  /// Three cards in a row of one suit, worth 20 each.
+  final int tierces;
+  /// Four cards in a row of one suit, worth 50 each.
+  final int fifties;
+  /// King and queen of trumps, worth 20; there is only one per deal.
+  final bool bella;
+
+  const Declarations({this.tierces = 0, this.fifties = 0, this.bella = false});
+
+  int get value => tierces * 20 + fifties * 50 + (bella ? 20 : 0);
+  int get gv => kBaseGV + value;
+
+  Declarations copyWith({int? tierces, int? fifties, bool? bella}) => Declarations(
+    tierces: tierces ?? this.tierces,
+    fifties: fifties ?? this.fifties,
+    bella: bella ?? this.bella,
+  );
+
+  /// Splits a game value saved without its declarations back into them.
+  /// Bella and a tierce are worth the same, so both count as tierces.
+  factory Declarations.fromGv(int gv) {
+    final extra = gv - kBaseGV;
+    for (var fifties = extra ~/ 50; fifties >= 0; fifties--) {
+      final rest = extra - fifties * 50;
+      if (rest % 20 == 0) return Declarations(tierces: rest ~/ 20, fifties: fifties);
+    }
+    return const Declarations();
+  }
+
+  Map<String, dynamic> toJson() => {'tierces': tierces, 'fifties': fifties, 'bella': bella};
+
+  factory Declarations.fromJson(Map<String, dynamic> j) => Declarations(
+    tierces: j['tierces'] ?? 0, fifties: j['fifties'] ?? 0, bella: j['bella'] ?? false,
+  );
+}
 
 /// What happens to the points of a tied deal ("eggs"), where the side that
 /// took the trump scored exactly as much as its opponents.
@@ -21,6 +60,7 @@ class Round {
   final int taker;
   final List<int> score;
   final bool isBait;
+  final Declarations? _declarations;
 
   const Round({
     required this.gv,
@@ -28,7 +68,12 @@ class Round {
     required this.taker,
     required this.score,
     this.isBait = false,
-  });
+    Declarations? declarations,
+  }) : _declarations = declarations;
+
+  /// What was declared in the deal; for deals saved with only a game value
+  /// it is worked back out of that value.
+  Declarations get declarations => _declarations ?? Declarations.fromGv(gv);
 
   bool get isTie => !isBait && score[0] == score[1];
 
@@ -38,6 +83,7 @@ class Round {
 
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
+    if (_declarations != null) 'declarations': _declarations.toJson(),
   };
 
   factory Round.fromJson(Map<String, dynamic> j) => Round(
@@ -46,6 +92,9 @@ class Round {
     taker: j['taker'] ?? j['dealer'],
     score: List<int>.from(j['score']),
     isBait: j['isBait'] ?? false,
+    declarations: j['declarations'] == null
+        ? null
+        : Declarations.fromJson(j['declarations'] as Map<String, dynamic>),
   );
 }
 

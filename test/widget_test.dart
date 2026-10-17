@@ -99,6 +99,18 @@ void main() {
     expect(find.text(uk.baitMsg('Ми', 162)), findsOneWidget);
   });
 
+  testWidgets('builds the value of the deal from the declarations', (tester) async {
+    await openRound(tester);
+    expect(find.text(uk.dealValue(162)), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('tierce.+')));
+    await tester.tap(find.byKey(const ValueKey('fifty.+')));
+    await tester.tap(find.byKey(const ValueKey('bella')));
+    await tester.pump();
+
+    expect(find.text(uk.dealValue(252)), findsOneWidget);
+  });
+
   testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
     await openApp(tester);
     await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));

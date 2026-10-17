@@ -84,16 +84,36 @@ void main() {
     });
   });
 
-  group('game values', () {
-    test('start at the lowest deal and only ever grow', () {
-      expect(kGV.first, 162);
-      for (var i = 1; i < kGV.length; i++) {
-        expect(kGV[i], greaterThan(kGV[i - 1]), reason: 'value at $i');
-      }
+  group('Declarations', () {
+    test('a deal with nothing declared is worth the 162 points of the cards', () {
+      expect(const Declarations().gv, 162);
     });
 
-    test('are all even, as every deal in this game is', () {
-      expect(kGV.where((value) => value.isOdd), isEmpty);
+    test('add 20 for each tierce, 50 for each fifty and 20 for bella', () {
+      expect(const Declarations(tierces: 2, fifties: 1, bella: true).gv, 162 + 40 + 50 + 20);
+    });
+
+    test('can reach any value players declare, not only a fixed list', () {
+      expect(const Declarations(tierces: 1, fifties: 3).gv, 332);
+      expect(const Declarations(fifties: 2, bella: true).gv, 282);
+    });
+
+    test('are worked back out of a deal saved with only its value', () {
+      final d = Round.fromJson({'gv': 252, 'dealer': 0, 'score': [152, 100]}).declarations;
+
+      expect(d.gv, 252);
+      expect(d.fifties, 1);
+      expect(d.tierces, 2);
+    });
+
+    test('are kept when a deal is saved and read back', () {
+      const r = Round(gv: 232, dealer: 0, taker: 0, score: [132, 100],
+          declarations: Declarations(fifties: 1, bella: true));
+      final d = Round.fromJson(r.toJson()).declarations;
+
+      expect(d.fifties, 1);
+      expect(d.bella, isTrue);
+      expect(d.tierces, 0);
     });
   });
 }

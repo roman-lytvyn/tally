@@ -34,12 +34,13 @@ class EntryPanel extends StatefulWidget {
 }
 
 class _EntryPanelState extends State<EntryPanel> {
-  int _gv = 162;
+  Declarations _decl = const Declarations();
   String _raw = '';
   late int _activeInput;
   late int _taker;
 
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
+  int get _gv => _decl.gv;
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class _EntryPanelState extends State<EntryPanel> {
     _taker = r?.taker ?? widget.firstToBid;
     _activeInput = _taker;
     if (r != null) {
-      _gv = r.gv;
+      _decl = r.declarations;
       if (!r.isBait) _raw = '${r.score[_taker]}';
     }
   }
@@ -84,11 +85,13 @@ class _EntryPanelState extends State<EntryPanel> {
   void _save() {
     if (_parsed == null) return;
     final s = _score;
-    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: [s[0] ?? 0, s[1] ?? 0]));
+    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: [s[0] ?? 0, s[1] ?? 0],
+        declarations: _decl));
   }
 
   void _bait() {
-    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: const [0, 0], isBait: true));
+    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: const [0, 0], isBait: true,
+        declarations: _decl));
   }
 
   AppTheme get t => widget.theme;
@@ -106,7 +109,6 @@ class _EntryPanelState extends State<EntryPanel> {
 
     final score = _score;
     final parsed = _parsed;
-    final gvs = kGV.contains(_gv) ? kGV : ([...kGV, _gv]..sort());
 
     return Container(
       decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
@@ -132,32 +134,7 @@ class _EntryPanelState extends State<EntryPanel> {
             Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3)),
           ],
           const SizedBox(height: 8),
-          // GV selector
-          SizedBox(
-            height: 34,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: gvs.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 6),
-              itemBuilder: (_, i) {
-                final v = gvs[i];
-                final on = _gv == v;
-                return GestureDetector(
-                  onTap: () => setState(() { _gv = v; _raw = ''; }),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: on ? t.accDim : Colors.transparent,
-                      border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text('$v', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                        color: on ? t.acc : t.tx2)),
-                  ),
-                );
-              },
-            ),
-          ),
+          _declarationsRow(),
           const SizedBox(height: 8),
           // score input row
           Container(
@@ -236,6 +213,77 @@ class _EntryPanelState extends State<EntryPanel> {
         alignment: Alignment.center,
         child: Text('${on ? '♠ ' : ''}${widget.teamNames[i]}', maxLines: 1, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.teamColor(i) : t.tx2)),
+      ),
+    );
+  }
+
+  /// The declarations made in the deal, which together with the 162 points
+  /// of the cards make up its value.
+  Widget _declarationsRow() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(s.declarations, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+          Text(s.dealValue(_gv), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc)),
+        ],
+      ),
+      const SizedBox(height: 5),
+      Row(children: [
+        Expanded(child: _counter('tierce', s.tierce, _decl.tierces,
+            (n) => _decl.copyWith(tierces: n))),
+        const SizedBox(width: 6),
+        Expanded(child: _counter('fifty', s.fifty, _decl.fifties,
+            (n) => _decl.copyWith(fifties: n))),
+        const SizedBox(width: 6),
+        Expanded(child: _bellaChip()),
+      ]),
+    ],
+  );
+
+  Widget _counter(String id, String label, int count, Declarations Function(int) change) {
+    final on = count > 0;
+    Widget step(String sign, int to, bool enabled) => GestureDetector(
+      key: ValueKey('$id.$sign'),
+      behavior: HitTestBehavior.opaque,
+      onTap: enabled ? () => setState(() => _decl = change(to)) : null,
+      child: SizedBox(width: 26, height: 30, child: Center(child: Text(sign,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
+    );
+    return Container(
+      decoration: BoxDecoration(
+        color: on ? t.accDim : Colors.transparent,
+        border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(children: [
+        step('−', count - 1, on),
+        Expanded(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx3)),
+          Text('$count', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: on ? t.acc : t.tx2)),
+        ])),
+        step('+', count + 1, count < 9),
+      ]),
+    );
+  }
+
+  Widget _bellaChip() {
+    final on = _decl.bella;
+    return GestureDetector(
+      key: const ValueKey('bella'),
+      onTap: () => setState(() => _decl = _decl.copyWith(bella: !on)),
+      child: Container(
+        height: 33,
+        decoration: BoxDecoration(
+          color: on ? t.accDim : Colors.transparent,
+          border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: Text('${on ? '✓ ' : ''}${s.bella}', maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
       ),
     );
   }

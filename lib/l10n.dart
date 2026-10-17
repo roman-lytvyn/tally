@@ -94,6 +94,11 @@ class AppStrings {
   String baitMsg(String opponents, int gv) => isUk
       ? 'Байт! Усі $gv отримують $opponents'
       : 'Bait! $opponents get all $gv';
+  String get declarations    => isUk ? 'Комбінації'                         : 'Declarations';
+  String get tierce          => isUk ? 'Терц'                               : 'Tierce';
+  String get fifty           => isUk ? 'П\'ятдесят'                         : 'Fifty';
+  String get bella           => isUk ? 'Бела'                               : 'Bella';
+  String dealValue(int gv)   => isUk ? 'Гра: $gv'                           : 'Deal: $gv';
   String get inputting       => isUk ? '▼ вводиш'                           : '▼ input';
   String get auto            => isUk ? 'авто'                               : 'auto';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';
