@@ -125,6 +125,14 @@ void main() {
     expect(find.text(uk.newRound), findsNothing);
   });
 
+  testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {
+    await openApp(tester);
+
+    for (final limit in ['301', '501', '1001']) {
+      expect(find.text(limit), findsOneWidget);
+    }
+  });
+
   testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
     await openApp(tester);
     await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));

@@ -91,9 +91,10 @@ class SetupScreen extends StatelessWidget {
                 // score limit
                 _label(strings.playTo),
                 Row(children: [
-                  Expanded(child: _segBtn('501', scoreLimit == 501, -1, () => onScoreLimitChanged(501))),
-                  const SizedBox(width: 8),
-                  Expanded(child: _segBtn('1001', scoreLimit == 1001, -1, () => onScoreLimitChanged(1001))),
+                  for (final limit in kScoreLimits) ...[
+                    if (limit != kScoreLimits.first) const SizedBox(width: 8),
+                    Expanded(child: _segBtn('$limit', scoreLimit == limit, -1, () => onScoreLimitChanged(limit))),
+                  ],
                 ]),
                 const SizedBox(height: 20),
 
