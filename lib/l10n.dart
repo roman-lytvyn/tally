@@ -99,6 +99,12 @@ class AppStrings {
   String get fifty           => isUk ? 'П\'ятдесят'                         : 'Fifty';
   String get bella           => isUk ? 'Бела'                               : 'Bella';
   String dealValue(int gv)   => isUk ? 'Гра: $gv'                           : 'Deal: $gv';
+  String get deberc          => isUk ? 'Деберц — сім козирів підряд'        : 'Deberc — seven trumps in a row';
+  String get debercBy        => isUk ? 'Деберц у'                           : 'Deberc held by';
+  String debercWins(String side) => isUk
+      ? 'Деберц! $side виграють гру'
+      : 'Deberc! $side win the game';
+  String get badgeDeberc     => isUk ? 'ДЕБЕРЦ'                             : 'DEBERC';
   String get inputting       => isUk ? '▼ вводиш'                           : '▼ input';
   String get auto            => isUk ? 'авто'                               : 'auto';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';
