@@ -22,6 +22,7 @@ class SetupScreen extends StatelessWidget {
   final VoidCallback onNewGame;
   final VoidCallback onContinue;
   final VoidCallback onSettings;
+  final VoidCallback onRules;
 
   const SetupScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
@@ -31,7 +32,7 @@ class SetupScreen extends StatelessWidget {
     required this.tieRule, required this.onTieRuleChanged,
     required this.onTeamNamesChanged, required this.onScoreLimitChanged,
     required this.onFirstDealerChanged, required this.onNewGame,
-    required this.onContinue, required this.onSettings,
+    required this.onContinue, required this.onSettings, required this.onRules,
   });
 
   AppTheme get t => theme;
@@ -139,10 +140,16 @@ class SetupScreen extends StatelessWidget {
                   _ghostBtn(strings.continuePrev, onContinue),
                 ],
                 const SizedBox(height: 10),
-                TextButton(
-                  onPressed: onSettings,
-                  child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-                ),
+                Wrap(alignment: WrapAlignment.center, children: [
+                  TextButton(
+                    onPressed: onRules,
+                    child: Text(strings.rulesBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
+                  ),
+                  TextButton(
+                    onPressed: onSettings,
+                    child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
+                  ),
+                ]),
               ],
             ),
             ),

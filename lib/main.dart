@@ -10,13 +10,14 @@ import 'screens/setup_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/win_screen.dart';
+import 'screens/rules_screen.dart';
 
 const _storeKey = 'deberc_v2';
 const _themeKey = 'deberc_theme';
 const _styleKey = 'deberc_style';
 const _langKey  = 'deberc_lang';
 
-enum AppScreen { setup, game, settings, win }
+enum AppScreen { setup, game, settings, win, rules }
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -231,6 +232,13 @@ class _AppRootState extends State<AppRoot> {
           onFirstDealerChanged: (v) => setState(() => _firstDealer = v),
           onNewGame: _startNew, onContinue: _continueSaved,
           onSettings: () => _goTo(AppScreen.settings),
+          onRules: () => _goTo(AppScreen.rules),
+        );
+      case AppScreen.rules:
+        return RulesScreen(
+          key: const ValueKey('rules'),
+          theme: theme, strings: strings,
+          onBack: () => _goTo(AppScreen.setup),
         );
       case AppScreen.game:
         return GameScreen(

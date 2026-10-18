@@ -14,6 +14,8 @@ class AppStrings {
   String get newGame         => isUk ? 'Нова гра ♠'                         : 'New game ♠';
   String get continuePrev    => isUk ? 'Продовжити попередню →'             : 'Continue previous →';
   String get settingsBtn     => isUk ? '⚙ Налаштування'                     : '⚙ Settings';
+  String get rulesBtn        => isUk ? '📖 Правила та історія'              : '📖 Rules and history';
+  String get rulesTitle      => isUk ? 'Правила та історія'                 : 'Rules and history';
   String get ourTeamHint     => isUk ? 'Наша команда'                       : 'Our team';
   String get otherTeamHint   => isUk ? 'Інша команда'                       : 'Other team';
   String get players         => isUk ? 'Гравці'                             : 'Players';

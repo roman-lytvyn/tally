@@ -173,6 +173,10 @@ Tap **«New game»** to start.
 
 > If there is an unfinished game saved, a **«Continue previous»** button will appear below «New game».
 
+The **«📖 Rules and history»** button on the home screen opens the rules and
+the story of the game inside the app, in the chosen language, so a new player
+can learn them at the table without going online.
+
 ### 2. Recording a Round
 
 After each round, tap **«+ New round»** at the bottom of the screen:
@@ -215,7 +219,11 @@ The game screen shows:
 
 Accessible via the ⚙ button:
 - **Theme** — light, system (follows device setting), or dark
-- **Score display** — traditional style (circles and sticks, like pen-and-paper notation) or plain numbers
+- **Score display** — traditional style (circles and sticks, like pen-and-paper notation) or plain numbers.
+  In the traditional style a crossed circle is 100, a circle 50 and a stick
+  20; ten points or more past the last stick are written as one more stick
+  with what it lacks noted beside it (36 is two sticks and «−4»), and smaller
+  remainders as «+N» (44 is two sticks and «+4»)
 - **Language** — English or Ukrainian. Until one is chosen the app follows
   the device: Ukrainian on a Ukrainian device, English everywhere else. Team
   names still at their defaults switch along with it

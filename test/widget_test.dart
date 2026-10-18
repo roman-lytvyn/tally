@@ -109,6 +109,19 @@ void main() {
     });
   });
 
+  testWidgets('explains the rules and where the game comes from', (tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.rulesBtn);
+
+    expect(find.text(uk.rulesTitle), findsOneWidget);
+    expect(find.text('ЗВІДКИ ПОХОДИТЬ ГРА'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('ЯЙЦЯ — НІЧИЯ'), 300);
+    expect(find.text('ЯЙЦЯ — НІЧИЯ'), findsOneWidget);
+
+    await tapText(tester, uk.backBtn);
+    expect(find.text(uk.newGame), findsOneWidget);
+  });
+
   testWidgets('offers no way to continue when nothing was played', (tester) async {
     await openApp(tester);
 
