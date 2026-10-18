@@ -1,3 +1,5 @@
+import 'models.dart';
+
 class AppStrings {
   final String lang;
   const AppStrings(this.lang);
@@ -19,6 +21,23 @@ class AppStrings {
   String get dealerMustPlayDesc => isUk
       ? 'Якщо всі спасували, козир бере той, хто роздавав'
       : 'If everyone passes, the dealer has to take the trump';
+  String get tieRuleTitle    => isUk ? 'Яйця (нічия)'                       : 'Eggs (a tied deal)';
+  String tieRuleName(TieRule r) => switch (r) {
+    TieRule.hanging          => isUk ? 'Висять'                             : 'Held over',
+    TieRule.opponentsTakeAll => isUk ? 'Суперникам'                         : 'To opponents',
+    TieRule.eachKeepsOwn     => isUk ? 'Кожному своє'                       : 'Each keeps own',
+  };
+  String tieRuleDesc(TieRule r) => switch (r) {
+    TieRule.hanging => isUk
+        ? 'Суперники записують свої очки, а очки тих, хто грав, переходять до переможця наступної роздачі'
+        : 'The opponents score their points; the trump-taker\'s points go to whoever wins the next deal',
+    TieRule.opponentsTakeAll => isUk
+        ? 'Нічия — як байт: суперники отримують усю гру'
+        : 'A tie counts as bait: the opponents get the whole deal',
+    TieRule.eachKeepsOwn => isUk
+        ? 'Кожна сторона записує те, що набрала'
+        : 'Each side scores what it took',
+  };
 
   // Game
   String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
@@ -58,9 +77,20 @@ class AppStrings {
   String get dealerPlaysIfAllPass => isUk
       ? 'Якщо всі спасували — грає роздавач'
       : 'If everyone passed, the dealer plays';
-  String eggsMsg(int a, int b) => isUk
-      ? 'Яйця! Однакова кількість очок — $a:$b'
-      : 'Eggs! Equal points — $a:$b';
+  String eggsMsg(TieRule rule, int points, String opponents) => switch (rule) {
+    TieRule.hanging => isUk
+        ? 'Яйця! $points очок висять до наступної роздачі'
+        : 'Eggs! $points points are held until the next deal',
+    TieRule.opponentsTakeAll => isUk
+        ? 'Яйця! Усю гру отримують $opponents'
+        : 'Eggs! $opponents get the whole deal',
+    TieRule.eachKeepsOwn => isUk
+        ? 'Яйця! Кожному по $points'
+        : 'Eggs! $points each',
+  };
+  String heldMsg(int points) => isUk
+      ? '🥚 $points очок чекають на переможця наступної роздачі'
+      : '🥚 $points points go to the winner of the next deal';
   String baitMsg(String opponents, int gv) => isUk
       ? 'Байт! Усі $gv отримують $opponents'
       : 'Bait! $opponents get all $gv';

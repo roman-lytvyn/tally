@@ -1,5 +1,17 @@
 const kGV = [162, 182, 202, 212, 222, 232, 252, 262, 282, 302, 332, 362, 412, 462, 512];
 
+/// What happens to the points of a tied deal ("eggs"), where the side that
+/// took the trump scored exactly as much as its opponents.
+enum TieRule {
+  /// The opponents keep their half; the trump-taker's half is held and goes
+  /// to whoever wins the next deal.
+  hanging,
+  /// A tie counts as a loss for the trump-taker: the opponents get it all.
+  opponentsTakeAll,
+  /// Each side keeps the points it scored.
+  eachKeepsOwn,
+}
+
 /// One deal exactly as the players entered it; what each side earns from it
 /// is worked out by the scoring rules, never stored.
 class Round {
@@ -44,11 +56,13 @@ class GameState {
   final int firstDealer;
   /// When nobody else takes the trump the dealer has to play the deal.
   final bool dealerMustPlay;
+  final TieRule tieRule;
 
   const GameState({
     required this.teamNames, required this.scoreLimit,
     required this.rounds, required this.firstDealer,
     this.dealerMustPlay = false,
+    this.tieRule = TieRule.hanging,
   });
 
   Map<String, dynamic> toJson() => {
@@ -58,6 +72,7 @@ class GameState {
     'rounds': rounds.map((r) => r.toJson()).toList(),
     'firstDealer': firstDealer,
     'dealerMustPlay': dealerMustPlay,
+    'tieRule': tieRule.name,
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) {
@@ -70,6 +85,8 @@ class GameState {
       // dealer instead; the deal alternates, so the first one follows from it.
       firstDealer: j['firstDealer'] ?? ((j['dealer'] as int) + rounds.length) % 2,
       dealerMustPlay: j['dealerMustPlay'] ?? false,
+      // Games saved before the rule was chosen kept each side's own points.
+      tieRule: TieRule.values.asNameMap()[j['tieRule']] ?? TieRule.eachKeepsOwn,
     );
   }
 

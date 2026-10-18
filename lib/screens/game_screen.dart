@@ -12,6 +12,7 @@ class GameScreen extends StatefulWidget {
   final List<String> teamNames;
   final int scoreLimit;
   final bool dealerMustPlay;
+  final TieRule tieRule;
   final List<Round> rounds;
   final Tally tally;
   final String scoreStyle;
@@ -24,7 +25,7 @@ class GameScreen extends StatefulWidget {
 
   const GameScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
-    required this.scoreLimit, required this.dealerMustPlay, required this.rounds, required this.tally,
+    required this.scoreLimit, required this.dealerMustPlay, required this.tieRule, required this.rounds, required this.tally,
     required this.scoreStyle, required this.onAddRound, required this.onReplaceRound,
     required this.onRemoveRound, required this.onUndo,
     required this.onBack, required this.onSettings,
@@ -79,11 +80,12 @@ class _GameScreenState extends State<GameScreen> {
             _buildHeader(),
             _buildScoreSection(),
             if (!isTraditional) _buildProgressBars(),
+            if (widget.tally.held > 0) _buildHeld(),
             Expanded(child: _buildRoundsList()),
             EntryPanel(
               key: ValueKey(_session),
               theme: t, strings: strings, teamNames: teamNames, dealer: dealer,
-              firstToBid: 1 - dealer, dealerMustPlay: widget.dealerMustPlay,
+              firstToBid: 1 - dealer, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
               open: _entryOpen,
               initial: editing != null ? rounds[editing] : null,
               number: editing != null ? editing + 1 : null,
@@ -231,6 +233,16 @@ class _GameScreenState extends State<GameScreen> {
     ),
   );
 
+  Widget _buildHeld() => Padding(
+    padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      decoration: BoxDecoration(color: t.eggDim, borderRadius: BorderRadius.circular(10)),
+      child: Text(strings.heldMsg(widget.tally.held), textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.egg)),
+    ),
+  );
+
   Widget _buildRoundsList() {
     if (rounds.isEmpty) {
       // Shrinks rather than overflows while the entry panel takes up the space.
@@ -303,9 +315,10 @@ class _GameScreenState extends State<GameScreen> {
   );
 
   Widget _roundScore(Round r, List<int> earned, int i) {
-    final lost = r.isTie && r.taker == i;
+    // On a tie the trump-taker's own points, when not scored, show crossed out.
+    final lost = r.isTie && r.taker == i && earned[i] < r.score[i];
     // The trump-taker's points carry a ♠ on the side facing away from the divider.
-    final value = '${earned[i]}';
+    final value = '${lost ? r.score[i] : earned[i]}';
     final label = r.taker != i ? value : (i == 0 ? '♠ $value' : '$value ♠');
     return Align(
       alignment: i == 0 ? Alignment.centerRight : Alignment.centerLeft,
