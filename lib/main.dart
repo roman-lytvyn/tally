@@ -60,7 +60,7 @@ class _AppRootState extends State<AppRoot> {
   bool _ready = false;
 
   GameState get _game => GameState(
-    teamNames: _teamNames, scoreLimit: _scoreLimit,
+    teamNames: AppStrings(_lang).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
     dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, players: _players,
   );
@@ -129,7 +129,7 @@ class _AppRootState extends State<AppRoot> {
   void _goTo(AppScreen s) => setState(() { _prevScreen = _screen; _screen = s; });
 
   void _startNew() {
-    setState(() { _rounds = []; _savedGame = null; });
+    setState(() { _teamNames = _game.teamNames; _rounds = []; _savedGame = null; });
     _prefs?.remove(_storeKey);
     _goTo(AppScreen.game);
     WidgetsBinding.instance.addPostFrameCallback((_) => _persist());
@@ -216,7 +216,7 @@ class _AppRootState extends State<AppRoot> {
         return GameScreen(
           key: const ValueKey('game'),
           theme: theme, strings: strings,
-          teamNames: _teamNames, scoreLimit: _scoreLimit, players: _players,
+          teamNames: _game.teamNames, scoreLimit: _scoreLimit, players: _players,
           dealerMustPlay: _dealerMustPlay, tieRule: _tieRule,
           rounds: _rounds, tally: tally(_game),
           scoreStyle: _scoreStyle,
@@ -249,7 +249,7 @@ class _AppRootState extends State<AppRoot> {
         return WinScreen(
           key: const ValueKey('win'),
           theme: theme, strings: strings,
-          teamNames: _teamNames, scores: t.totals, players: _players,
+          teamNames: _game.teamNames, scores: t.totals, players: _players,
           winner: t.winner ?? 0,
           onUndo: _undoLast,
           onNewGame: () => _goTo(AppScreen.setup),

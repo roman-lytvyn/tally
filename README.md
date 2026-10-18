@@ -162,7 +162,8 @@ one side and the app gives the rest of the GV to the other side.
 On the home screen, configure:
 - **How many play** — **2** or **3** each for themselves, or **2 × 2** in two teams
 - **Team or player names** — or leave the defaults («Us» / «Them» for teams,
-  «Player 1», «Player 2», … otherwise)
+  «Player 1», «Player 2», … otherwise); a name left blank falls back to its
+  default
 - **First dealer** — which team or player deals the first round
 - **Point limit** — 301 (short game), 501 or 1001
 - **Rules** — whether the dealer must play when everyone else passes, and

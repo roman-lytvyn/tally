@@ -178,6 +178,20 @@ void main() {
     expect(find.text('#2'), findsOneWidget);
   });
 
+  testWidgets('uses the default name for a team whose name was left blank', (tester) async {
+    await openApp(tester);
+    await tester.enterText(find.byType(TextField).last, '   ');
+    await tester.pump();
+
+    // The dealer choice already reads the default name.
+    expect(find.text('Вони'), findsOneWidget);
+
+    await tapText(tester, uk.newGame);
+    await tapText(tester, uk.newRound);
+
+    expect(find.text('♠ Вони'), findsOneWidget);
+  });
+
   testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
     await openApp(tester);
     await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));
