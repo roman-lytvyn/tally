@@ -43,6 +43,10 @@ class AppStrings {
   String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
   String get undoBtn         => '↶';
   String get deals           => isUk ? 'роздає'                             : 'deals';
+  /// Which of the team's two players deals: 1 for the one who dealt first.
+  String dealsSeat(int player) => isUk ? 'роздає гравець $player'           : 'player $player deals';
+  String get badgeRedeal     => isUk ? 'ПЕРЕЗДАЧА'                          : 'REDEAL';
+  String get allPassed       => isUk ? 'Усі пасували — перездача'           : 'Everyone passed — redeal';
   String get noRoundsYet     => isUk ? 'Ще немає роздач'                    : 'No rounds yet';
   String get tapNewRound     => isUk ? 'Натисни «Нова роздача» нижче'       : 'Tap "New round" below';
   String get badgeBait       => isUk ? 'БАЙТ'                               : 'BAIT';
@@ -99,11 +103,11 @@ class AppStrings {
   String get fifty           => isUk ? 'П\'ятдесят'                         : 'Fifty';
   String get bella           => isUk ? 'Бела'                               : 'Bella';
   String dealValue(int gv)   => isUk ? 'Гра: $gv'                           : 'Deal: $gv';
-  String get deberc          => isUk ? 'Деберц — сім козирів підряд'        : 'Deberc — seven trumps in a row';
+  String get deberc          => isUk ? 'Деберц'                             : 'Deberc';
   String get debercBy        => isUk ? 'Деберц у'                           : 'Deberc held by';
   String debercWins(String side) => isUk
-      ? 'Деберц! $side виграють гру'
-      : 'Deberc! $side win the game';
+      ? 'Сім козирів підряд — $side виграють гру'
+      : 'Seven trumps in a row — $side win the game';
   String get badgeDeberc     => isUk ? 'ДЕБЕРЦ'                             : 'DEBERC';
   String get inputting       => isUk ? '▼ вводиш'                           : '▼ input';
   String get auto            => isUk ? 'авто'                               : 'auto';

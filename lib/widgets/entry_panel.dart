@@ -137,14 +137,23 @@ class _EntryPanelState extends State<EntryPanel> {
           ),
           const SizedBox(height: 8),
           _takerRow(),
-          if (widget.dealerMustPlay) ...[
-            const SizedBox(height: 3),
-            Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3)),
-          ],
+          const SizedBox(height: 6),
+          Row(children: [
+            Expanded(child: widget.dealerMustPlay
+                ? Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3))
+                : Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => widget.onSave(Round.redeal(dealer: _dealer)),
+                      child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                          color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
+                    ),
+                  )),
+            const SizedBox(width: 8),
+            _debercToggle(),
+          ]),
           const SizedBox(height: 8),
           _declarationsRow(),
-          const SizedBox(height: 6),
-          _debercToggle(),
           if (_debercBy != null) ...[
             const SizedBox(height: 6),
             _sideRow(s.debercBy, _debercBy!, '✦', (i) => setState(() => _debercBy = i)),
@@ -227,14 +236,13 @@ class _EntryPanelState extends State<EntryPanel> {
       key: const ValueKey('deberc'),
       onTap: () => setState(() => _debercBy = on ? null : _taker),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
         decoration: BoxDecoration(
           color: on ? t.accDim : Colors.transparent,
           border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
           borderRadius: BorderRadius.circular(12),
         ),
-        alignment: Alignment.center,
-        child: Text('${on ? '✓ ' : '✦ '}${s.deberc}', maxLines: 1, overflow: TextOverflow.ellipsis,
+        child: Text('${on ? '✓ ' : '✦ '}${s.deberc}', maxLines: 1,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
       ),
     );
