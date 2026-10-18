@@ -35,6 +35,7 @@ class SetupScreen extends StatelessWidget {
   });
 
   AppTheme get t => theme;
+  List<String> get shownNames => strings.namesOrDefaults(teamNames, players);
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +98,7 @@ class SetupScreen extends StatelessWidget {
                 Row(children: [
                   for (var i = 0; i < teamNames.length; i++) ...[
                     if (i > 0) const SizedBox(width: 8),
-                    Expanded(child: _segBtn(teamNames[i], firstDealer == i, i, () => onFirstDealerChanged(i))),
+                    Expanded(child: _segBtn(shownNames[i], firstDealer == i, i, () => onFirstDealerChanged(i))),
                   ],
                 ]),
                 const SizedBox(height: 20),

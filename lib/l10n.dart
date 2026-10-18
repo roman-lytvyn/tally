@@ -24,6 +24,11 @@ class AppStrings {
   List<String> defaultNames(int players) => players == 4
       ? (isUk ? ['Ми', 'Вони'] : ['Us', 'Them'])
       : [for (var i = 1; i <= players; i++) player(i)];
+  /// The [names] as typed, with the default in place of any left blank.
+  List<String> namesOrDefaults(List<String> names, int players) {
+    final defaults = defaultNames(players);
+    return [for (var i = 0; i < names.length; i++) names[i].trim().isEmpty ? defaults[i] : names[i].trim()];
+  }
   String nameHint(int players, int side) => players == 4
       ? (side == 0 ? ourTeamHint : otherTeamHint)
       : player(side + 1);
