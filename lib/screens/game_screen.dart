@@ -11,6 +11,7 @@ class GameScreen extends StatefulWidget {
   final AppStrings strings;
   final List<String> teamNames;
   final int scoreLimit;
+  final int players;
   final bool dealerMustPlay;
   final TieRule tieRule;
   final List<Round> rounds;
@@ -25,7 +26,7 @@ class GameScreen extends StatefulWidget {
 
   const GameScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
-    required this.scoreLimit, required this.dealerMustPlay, required this.tieRule, required this.rounds, required this.tally,
+    required this.scoreLimit, this.players = 4, required this.dealerMustPlay, required this.tieRule, required this.rounds, required this.tally,
     required this.scoreStyle, required this.onAddRound, required this.onReplaceRound,
     required this.onRemoveRound, required this.onUndo,
     required this.onBack, required this.onSettings,
@@ -48,7 +49,10 @@ class _GameScreenState extends State<GameScreen> {
   int get dealer => widget.tally.dealer;
   List<Round> get rounds => widget.rounds;
   bool get isTraditional => widget.scoreStyle == 'traditional';
-  String get _dealsLabel => strings.dealsSeat(widget.tally.dealerSeat + 1);
+  int get sides => teamNames.length;
+  // Only a team has two players to tell apart.
+  String get _dealsLabel =>
+      widget.players == 4 ? strings.dealsSeat(widget.tally.dealerSeat + 1) : strings.deals;
 
   void _openEntry([int? index]) => setState(() { _entryOpen = true; _editing = index; _session++; });
 
@@ -86,7 +90,7 @@ class _GameScreenState extends State<GameScreen> {
             EntryPanel(
               key: ValueKey(_session),
               theme: t, strings: strings, teamNames: teamNames, dealer: dealer,
-              firstToBid: 1 - dealer, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
+              firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
               open: _entryOpen,
               initial: editing != null ? rounds[editing] : null,
               number: editing != null ? editing + 1 : null,
@@ -140,7 +144,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildTraditionalScores() => Padding(
     padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
     child: Column(
-      children: List.generate(2, (i) => Padding(
+      children: List.generate(sides, (i) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
@@ -171,7 +175,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          TraditionalScore(value: scores[i], u: 30, color: t.teamColor(i)),
+          TraditionalScore(value: scores[i], u: sides > 2 ? 22 : 30, color: t.teamColor(i)),
         ]),
       )),
     ),
@@ -180,7 +184,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildNumericScores() => Padding(
     padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
     child: Column(children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: List.generate(2, (i) => Column(children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: List.generate(sides, (i) => Column(children: [
         Text(teamNames[i], style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
             letterSpacing: 0.4, color: t.teamColor(i))),
         const SizedBox(height: 2),
@@ -196,28 +200,32 @@ class _GameScreenState extends State<GameScreen> {
       ]))),
       const SizedBox(height: 2),
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text('${scores[0]}', style: TextStyle(fontSize: 56, fontWeight: FontWeight.w800, height: 1,
-            letterSpacing: -2, color: scores[0] > scores[1] ? t.t0 : t.tx)),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(':', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: t.tx3))),
-        Text('${scores[1]}', style: TextStyle(fontSize: 56, fontWeight: FontWeight.w800, height: 1,
-            letterSpacing: -2, color: scores[1] > scores[0] ? t.t1 : t.tx)),
+        for (var i = 0; i < sides; i++) ...[
+          if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(':', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: t.tx3))),
+          Text('${scores[i]}', style: TextStyle(fontSize: sides > 2 ? 40 : 56, fontWeight: FontWeight.w800,
+              height: 1, letterSpacing: -2, color: _leads(i) ? t.teamColor(i) : t.tx)),
+        ],
       ]),
     ]),
   );
+
+  /// Whether side [i] is ahead of every other side.
+  bool _leads(int i) => [for (var j = 0; j < sides; j++) if (j != i) scores[j]].every((s) => scores[i] > s);
 
   Widget _buildProgressBars() => Padding(
     padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
     child: Column(children: [
       Row(children: [
-        Expanded(child: _progressBar(0)),
-        Container(width: 1, height: 10, color: t.bdr, margin: const EdgeInsets.symmetric(horizontal: 4)),
-        Expanded(child: _progressBar(1)),
+        for (var i = 0; i < sides; i++) ...[
+          if (i > 0) Container(width: 1, height: 10, color: t.bdr, margin: const EdgeInsets.symmetric(horizontal: 4)),
+          Expanded(child: _progressBar(i)),
+        ],
       ]),
       const SizedBox(height: 4),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('${scores[0]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3)),
-        Text('${scores[1]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3)),
+        for (var i = 0; i < sides; i++)
+          Text('${scores[i]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3)),
       ]),
     ]),
   );
@@ -283,11 +291,12 @@ class _GameScreenState extends State<GameScreen> {
                   SizedBox(width: 26,
                       child: Center(child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 11, color: t.tx3, fontWeight: FontWeight.w700)))),
-                  Expanded(child: _roundScore(r, earned, 0)),
-                  Container(
-                      width: 1, color: t.bdr,
-                      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
-                  Expanded(child: _roundScore(r, earned, 1)),
+                  for (var i = 0; i < sides; i++) ...[
+                    if (i > 0) Container(
+                        width: 1, color: t.bdr,
+                        margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
+                    Expanded(child: _roundScore(r, earned, i)),
+                  ],
                   SizedBox(
                     width: 72,
                     child: Align(
@@ -322,9 +331,11 @@ class _GameScreenState extends State<GameScreen> {
     final lost = r.isTie && r.taker == i && earned[i] < r.score[i];
     // The trump-taker's points carry a ♠ on the side facing away from the divider.
     final value = r.isRedeal ? '—' : '${lost ? r.score[i] : earned[i]}';
-    final label = r.taker != i || r.isRedeal ? value : (i == 0 ? '♠ $value' : '$value ♠');
+    // With three sides every column is centred and the ♠ follows the points.
+    final first = i == 0 && sides == 2;
+    final label = r.taker != i || r.isRedeal ? value : (first ? '♠ $value' : '$value ♠');
     return Align(
-      alignment: i == 0 ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: sides > 2 ? Alignment.center : first ? Alignment.centerRight : Alignment.centerLeft,
       child: Text(
         label,
         style: TextStyle(

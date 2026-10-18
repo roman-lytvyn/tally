@@ -100,7 +100,8 @@ total value is 162 plus every declaration that is scored.
 - **Bait (байт).** If the trump-taker scores **less** than the opponents, the
   opponents receive the whole value of the deal and the trump-taker gets
   nothing. In a three-player game the points go to the opponent who scored
-  more.
+  more, and two opponents level on the most share them; the app does this
+  automatically.
 - **Tied deal (яйця).** If both sides score exactly the same, the most common
   rule is a "hanging bait": the opponents keep their points and the
   trump-taker's points are put on hold for whichever side wins the next deal.
@@ -159,8 +160,10 @@ one side and the app gives the rest of the GV to the other side.
 ### 1. Set Up a Game
 
 On the home screen, configure:
-- **Team names** — or leave the defaults «Us» / «Them»
-- **First dealer** — which team deals the first round
+- **How many play** — **2** or **3** each for themselves, or **2 × 2** in two teams
+- **Team or player names** — or leave the defaults («Us» / «Them» for teams,
+  «Player 1», «Player 2», … otherwise)
+- **First dealer** — which team or player deals the first round
 - **Point limit** — 301 (short game), 501 or 1001
 - **Rules** — whether the dealer must play when everyone else passes, and
   what happens to a tied deal («eggs»)
@@ -175,7 +178,7 @@ After each round, tap **«+ New round»** at the bottom of the screen:
 
 1. **Who took the trump** — the side to the dealer's left is preselected; tap the other side if they took it
 2. **Declarations** — use **−** / **+** to count the tierces (20) and fifties (50) and tap **«Bella»** (20) if it was declared; the deal's value is shown next to them
-3. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering
+3. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering. With three players, type two of the scores and the third is worked out
 4. If the scores are equal, an «Eggs» hint appears automatically
 5. If the side that took the trump has fewer points, the app warns that this is bait and gives the whole GV to the opponents; tap **«Bait»** to record bait without entering points
 6. Tap **«Save»** to record the round
@@ -190,11 +193,11 @@ hidden when the dealer must play.
 ### 3. Following the Game
 
 The game screen shows:
-- Current score for both teams
+- Current score for every team or player
 - Progress toward the point limit (as a bar or numerically, depending on display style)
-- Which team is currently dealing and which of its two players — the one who
-  dealt the team's first deal or the partner — since the deal goes round the
-  table (a «player 1 deals» / «player 2 deals» badge)
+- Who is currently dealing; in a team game also which of the team's two
+  players — the one who dealt the team's first deal or the partner — since the
+  deal goes round the table (a «player 1 deals» / «player 2 deals» badge)
 - Full round history with **BAIT**, **EGGS** and **DEBERC** badges
 
 ### 4. Correcting a Mistake

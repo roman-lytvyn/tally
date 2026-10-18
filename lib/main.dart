@@ -52,6 +52,7 @@ class _AppRootState extends State<AppRoot> {
   int _firstDealer = 0;
   bool _dealerMustPlay = false;
   TieRule _tieRule = TieRule.hanging;
+  int _players = 4;
   List<Round> _rounds = [];
   GameState? _savedGame;
 
@@ -61,8 +62,24 @@ class _AppRootState extends State<AppRoot> {
   GameState get _game => GameState(
     teamNames: _teamNames, scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
-    dealerMustPlay: _dealerMustPlay, tieRule: _tieRule,
+    dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, players: _players,
   );
+
+  /// Switches between team and individual play, starting from the default
+  /// names whenever the number of sides changes.
+  void _setPlayers(int players) {
+    if (players == _players) return;
+    final strings = AppStrings(_lang);
+    setState(() {
+      final wasTeams = _players == 4;
+      _players = players;
+      final defaults = strings.defaultNames(players);
+      _teamNames = wasTeams == (players == 4)
+          ? [for (var i = 0; i < defaults.length; i++) i < _teamNames.length ? _teamNames[i] : defaults[i]]
+          : defaults;
+      if (_firstDealer >= sidesFor(players)) _firstDealer = 0;
+    });
+  }
 
   @override
   void initState() {
@@ -95,6 +112,7 @@ class _AppRootState extends State<AppRoot> {
       _scoreStyle  = style == 'normal' ? 'normal' : 'traditional';
       _lang        = resolvedLang;
       _teamNames   = saved?.teamNames ?? defaultNames;
+      _players     = saved?.players ?? 4;
       _savedGame   = saved;
       _ready       = true;
     });
@@ -124,6 +142,7 @@ class _AppRootState extends State<AppRoot> {
       _teamNames = g.teamNames; _scoreLimit = g.scoreLimit;
       _rounds = g.rounds; _firstDealer = g.firstDealer;
       _dealerMustPlay = g.dealerMustPlay; _tieRule = g.tieRule;
+      _players = g.players;
       _savedGame = null;
     });
     _goTo(AppScreen.game);
@@ -181,6 +200,7 @@ class _AppRootState extends State<AppRoot> {
           key: const ValueKey('setup'),
           theme: theme, strings: strings,
           teamNames: _teamNames,
+          players: _players, onPlayersChanged: _setPlayers,
           scoreLimit: _scoreLimit, firstDealer: _firstDealer, hasSavedGame: _savedGame != null,
           dealerMustPlay: _dealerMustPlay,
           onDealerMustPlayChanged: (v) => setState(() => _dealerMustPlay = v),
@@ -196,7 +216,7 @@ class _AppRootState extends State<AppRoot> {
         return GameScreen(
           key: const ValueKey('game'),
           theme: theme, strings: strings,
-          teamNames: _teamNames, scoreLimit: _scoreLimit,
+          teamNames: _teamNames, scoreLimit: _scoreLimit, players: _players,
           dealerMustPlay: _dealerMustPlay, tieRule: _tieRule,
           rounds: _rounds, tally: tally(_game),
           scoreStyle: _scoreStyle,
@@ -229,7 +249,7 @@ class _AppRootState extends State<AppRoot> {
         return WinScreen(
           key: const ValueKey('win'),
           theme: theme, strings: strings,
-          teamNames: _teamNames, scores: t.totals,
+          teamNames: _teamNames, scores: t.totals, players: _players,
           winner: t.winner ?? 0,
           onUndo: _undoLast,
           onNewGame: () => _goTo(AppScreen.setup),

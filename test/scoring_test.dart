@@ -143,17 +143,17 @@ void main() {
 
   group('a thrown-in deal', () {
     test('scores nothing but passes the deal on', () {
-      final t = tally(game(const [Round.redeal(dealer: 0)]));
+      final t = tally(game([Round.redeal(dealer: 0)]));
 
       expect(t.totals, [0, 0]);
       expect(t.dealer, 1);
     });
 
     test('leaves held points waiting for the next deal that is won', () {
-      final t = tally(game(const [
+      final t = tally(game([
         tie,
         Round.redeal(dealer: 1),
-        Round(gv: 162, dealer: 0, taker: 1, score: [62, 100]),
+        const Round(gv: 162, dealer: 0, taker: 1, score: [62, 100]),
       ]));
 
       expect(t.earned[1], [0, 0]);
@@ -162,7 +162,7 @@ void main() {
     });
 
     test('is neither bait nor a tie, and is remembered when saved', () {
-      const r = Round.redeal(dealer: 1);
+      final r = Round.redeal(dealer: 1);
 
       expect(r.isBaited, isFalse);
       expect(r.isTie, isFalse);
@@ -202,6 +202,45 @@ void main() {
       final t = tally(game(const [start], tieRule: TieRule.eachKeepsOwn));
 
       expect(t.winner, isNull);
+    });
+  });
+
+  group('three players each for themselves', () {
+    GameState three(List<Round> rounds, {int firstDealer = 0}) => GameState(
+      teamNames: const ['A', 'B', 'C'], scoreLimit: 501, rounds: rounds,
+      firstDealer: firstDealer, tieRule: TieRule.eachKeepsOwn, players: 3,
+    );
+
+    test('each keeps what they took when the trump-taker scores the most', () {
+      final t = tally(three(const [Round(gv: 162, dealer: 0, taker: 1, score: [40, 82, 40])]));
+
+      expect(t.totals, [40, 82, 40]);
+    });
+
+    test('a trump-taker who is outscored gives the whole deal to the best opponent', () {
+      final t = tally(three(const [Round(gv: 162, dealer: 0, taker: 1, score: [30, 60, 72])]));
+
+      expect(t.totals, [0, 0, 162]);
+    });
+
+    test('opponents level on the most share the bait', () {
+      final t = tally(three(const [Round(gv: 162, dealer: 0, taker: 0, score: [42, 60, 60])]));
+
+      expect(t.totals, [0, 81, 81]);
+    });
+
+    test('the deal and the first bid go round all three', () {
+      const r = Round(gv: 162, dealer: 0, taker: 0, score: [100, 31, 31]);
+
+      expect([for (var n = 0; n < 4; n++) tally(three(List.filled(n, r), firstDealer: 2)).dealer], [2, 0, 1, 2]);
+      expect(three(const []).firstToBid(2), 0);
+    });
+
+    test('is remembered when the game is saved', () {
+      final g = three(const []);
+
+      expect(GameState.fromJson(g.toJson()).players, 3);
+      expect(GameState.fromJson({...g.toJson()}..remove('players')).players, 4);
     });
   });
 

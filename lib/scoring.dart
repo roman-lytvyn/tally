@@ -24,18 +24,23 @@ class Tally {
 List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
   // A deberc decides the game on its own and a thrown-in deal is not played;
   // neither adds any points.
-  if (!r.isPlayed) return [0, 0];
+  if (!r.isPlayed) return List.filled(r.score.length, 0);
   if (r.isBaited || (r.isTie && tieRule == TieRule.opponentsTakeAll)) {
-    final earned = [0, 0];
-    earned[1 - r.taker] = r.gv;
+    // The deal goes to the opponent who scored the most; opponents level on
+    // the most share it.
+    final earned = List.filled(r.score.length, 0);
+    final takers = r.baitTakers;
+    for (final i in takers) {
+      earned[i] = r.gv ~/ takers.length;
+    }
     return earned;
   }
   if (r.isTie && tieRule == TieRule.hanging) {
-    final earned = [r.score[0], r.score[1]];
+    final earned = [...r.score];
     earned[r.taker] = 0;
     return earned;
   }
-  return [r.score[0], r.score[1]];
+  return [...r.score];
 }
 
 /// The side that wins once the [totals] after a deal reach the [limit].
@@ -51,9 +56,17 @@ int? _finisher(List<int> totals, int limit, int taker) {
   return totals[passed[0]] == totals[passed[1]] ? null : passed[0];
 }
 
+int _best(List<int> values) {
+  var best = 0;
+  for (var i = 1; i < values.length; i++) {
+    if (values[i] > values[best]) best = i;
+  }
+  return best;
+}
+
 Tally tally(GameState game) {
   final earned = <List<int>>[];
-  final totals = [0, 0];
+  final totals = List.filled(game.sides, 0);
   var held = 0;
   int? winner;
 
@@ -72,12 +85,13 @@ Tally tally(GameState game) {
     if (r.isTie && game.tieRule == TieRule.hanging) {
       held += r.score[r.taker];
     } else if (held > 0) {
-      e[e[0] > e[1] ? 0 : 1] += held;
+      e[_best(e)] += held;
       held = 0;
     }
     earned.add(e);
-    totals[0] += e[0];
-    totals[1] += e[1];
+    for (var i = 0; i < totals.length; i++) {
+      totals[i] += e[i];
+    }
     winner = _finisher(totals, game.scoreLimit, r.taker);
     if (winner != null) break;
   }
@@ -86,8 +100,8 @@ Tally tally(GameState game) {
     earned: earned,
     totals: totals,
     winner: winner,
-    dealer: (game.firstDealer + game.rounds.length) % 2,
-    dealerSeat: (game.rounds.length ~/ 2) % 2,
+    dealer: (game.firstDealer + game.rounds.length) % game.sides,
+    dealerSeat: game.players == 4 ? (game.rounds.length ~/ 2) % 2 : 0,
     held: held,
   );
 }

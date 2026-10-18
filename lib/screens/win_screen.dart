@@ -8,12 +8,13 @@ class WinScreen extends StatelessWidget {
   final List<String> teamNames;
   final List<int> scores;
   final int winner;
+  final int players;
   final VoidCallback onUndo;
   final VoidCallback onNewGame;
 
   const WinScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
-    required this.scores, required this.winner, required this.onUndo, required this.onNewGame,
+    required this.scores, required this.winner, this.players = 4, required this.onUndo, required this.onNewGame,
   });
 
   AppTheme get t => theme;
@@ -36,7 +37,7 @@ class WinScreen extends StatelessWidget {
                 Text(teamNames[winner], textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: t.teamColor(winner))),
                 const SizedBox(height: 4),
-                Text(strings.winLabel, textAlign: TextAlign.center,
+                Text(players == 4 ? strings.winLabel : strings.winLabelOne, textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: t.acc)),
                 const SizedBox(height: 20),
                 Text(strings.finalScore, textAlign: TextAlign.center,
@@ -50,12 +51,13 @@ class WinScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      _scoreItem(0),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Text(':', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: t.tx3)),
-                      ),
-                      _scoreItem(1),
+                      for (var i = 0; i < scores.length; i++) ...[
+                        if (i > 0) Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Text(':', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: t.tx3)),
+                        ),
+                        _scoreItem(i),
+                      ],
                     ]),
                   ),
                 ),

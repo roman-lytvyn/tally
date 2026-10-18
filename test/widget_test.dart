@@ -152,6 +152,32 @@ void main() {
     }
   });
 
+  testWidgets('sets up a game for three players and works out the third score', (tester) async {
+    await openApp(tester);
+    await tester.tap(find.byKey(const ValueKey('players.3')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TextField), findsNWidgets(3));
+
+    await tapText(tester, uk.newGame);
+    await tapText(tester, uk.newRound);
+    // The first player deals, so the second has the first right to the trump.
+    expect(find.text('♠ ${uk.player(2)}'), findsOneWidget);
+
+    // Two of the three scores are typed; the last one follows from the deal.
+    await tester.tap(find.text('8'));
+    await tester.tap(find.text('2'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('score.2')));
+    await tester.tap(find.text('4'));
+    await tester.tap(find.text('0').last);
+    await tester.pump();
+
+    expect(find.text('40'), findsWidgets);
+    await tapText(tester, uk.save);
+    expect(find.text('#2'), findsOneWidget);
+  });
+
   testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
     await openApp(tester);
     await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));
