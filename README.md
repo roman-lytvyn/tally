@@ -161,7 +161,7 @@ one side and the app gives the rest of the GV to the other side.
 On the home screen, configure:
 - **Team names** — or leave the defaults «Us» / «Them»
 - **First dealer** — which team deals the first round
-- **Point limit** — 501 or 1001
+- **Point limit** — 301 (short game), 501 or 1001
 - **Rules** — whether the dealer must play when everyone else passes, and
   what happens to a tied deal («eggs»)
 

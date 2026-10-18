@@ -1,6 +1,9 @@
 /// The points in every deal before declarations: the cards plus the last trick.
 const kBaseGV = 162;
 
+/// The targets a game can be played to: the short game, the usual and the long one.
+const kScoreLimits = [301, 501, 1001];
+
 /// The combinations declared in a deal, which raise its game value.
 class Declarations {
   /// Three cards in a row of one suit, worth 20 each.
