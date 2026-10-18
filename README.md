@@ -109,7 +109,9 @@ total value is 162 plus every declaration that is scored.
 ### Winning
 
 The first side to reach the agreed target wins: **301** (short game), **501**
-or **1001**.
+or **1001**. When both sides pass the target in the same deal, the side that
+took the trump in that deal goes out first, even if the other side has more
+points; the app applies this rule automatically.
 
 ### Sources
 
