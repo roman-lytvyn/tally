@@ -13,7 +13,7 @@ class Tally {
 
 /// What each side earns from a single deal.
 List<int> scoreRound(Round r) {
-  if (r.isBait) {
+  if (r.isBaited) {
     final earned = [0, 0];
     earned[1 - r.taker] = r.gv;
     return earned;

@@ -28,7 +28,6 @@ class AppStrings {
   String get tapNewRound     => isUk ? 'Натисни «Нова роздача» нижче'       : 'Tap "New round" below';
   String get badgeBait       => isUk ? 'БАЙТ'                               : 'BAIT';
   String get badgeEggs       => isUk ? 'ЯЙЦЯ'                               : 'EGGS';
-  String get badgeFell       => isUk ? 'ПАВ'                                : 'FELL';
   String get pts             => isUk ? 'оч'                                 : 'pts';
 
   // Win
@@ -62,6 +61,9 @@ class AppStrings {
   String eggsMsg(int a, int b) => isUk
       ? 'Яйця! Однакова кількість очок — $a:$b'
       : 'Eggs! Equal points — $a:$b';
+  String baitMsg(String opponents, int gv) => isUk
+      ? 'Байт! Усі $gv отримують $opponents'
+      : 'Bait! $opponents get all $gv';
   String get inputting       => isUk ? '▼ вводиш'                           : '▼ input';
   String get auto            => isUk ? 'авто'                               : 'auto';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';

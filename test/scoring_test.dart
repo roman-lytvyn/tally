@@ -36,6 +36,22 @@ void main() {
     expect(t.totals, [0, 202]);
   });
 
+  test('the side that took the trump and scored less is baited automatically', () {
+    const r = Round(gv: 182, dealer: 0, taker: 1, score: [100, 82]);
+    final t = tally(game(const [r]));
+
+    expect(r.isBaited, isTrue);
+    expect(t.totals, [182, 0]);
+  });
+
+  test('the side that took the trump and scored more keeps its points', () {
+    const r = Round(gv: 182, dealer: 0, taker: 1, score: [82, 100]);
+    final t = tally(game(const [r]));
+
+    expect(r.isBaited, isFalse);
+    expect(t.totals, [82, 100]);
+  });
+
   test('bait goes to the dealing side when the other side took the trump', () {
     final t = tally(game(const [Round(gv: 202, dealer: 0, taker: 1, score: [0, 0], isBait: true)]));
 

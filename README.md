@@ -132,8 +132,11 @@ points of one side and the app gives the rest of the GV to the other side.
   side to the dealer's left has the first right to it and is preselected; tap
   the other side if they took it instead. With the **«Dealer must play»** rule
   the dealer takes the trump when everyone else passes.
-- **Bait** — the «Bait» button gives the whole GV to the opponents of the side
-  that took the trump, which scores 0.
+- **Bait** — when the side that took the trump ends up with fewer points than
+  its opponents, the app records the deal as bait on its own: the opponents
+  get the whole GV and the trump-taker scores 0. A warning appears in the
+  entry panel as soon as the entered points mean bait. When nobody counted
+  the points, the «Bait» button records it straight away.
 - **Eggs** — when both sides are entered with the same points the deal is
   marked with an «Eggs» badge.
 
@@ -161,7 +164,7 @@ After each round, tap **«+ New round»** at the bottom of the screen:
 2. **Select the GV** — scroll the horizontal list and pick the game value for this round
 3. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering
 4. If the scores are equal, an «Eggs» hint appears automatically
-5. If the side that took the trump lost the deal, tap **«Bait»**
+5. If the side that took the trump has fewer points, the app warns that this is bait and gives the whole GV to the opponents; tap **«Bait»** to record bait without entering points
 6. Tap **«Save»** to record the round
 
 In the history the side that took the trump is marked with **♠**.

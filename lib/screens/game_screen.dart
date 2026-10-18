@@ -233,14 +233,15 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildRoundsList() {
     if (rounds.isEmpty) {
+      // Shrinks rather than overflows while the entry panel takes up the space.
       return Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
+        child: FittedBox(fit: BoxFit.scaleDown, child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('🃏', style: TextStyle(fontSize: 34)),
           const SizedBox(height: 10),
           Text(strings.noRoundsYet, style: TextStyle(fontSize: 13, color: t.tx3)),
           const SizedBox(height: 3),
           Text(strings.tapNewRound, style: TextStyle(fontSize: 12, color: t.tx3)),
-        ]),
+        ])),
       );
     }
 
@@ -294,9 +295,9 @@ class _GameScreenState extends State<GameScreen> {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      if (r.isBait) _badge(strings.badgeBait, t.t1, t.t1.withValues(alpha: 0.13)),
+      if (r.isBaited) _badge(strings.badgeBait, t.danger, t.dangerDim),
       if (r.isTie) _badge(strings.badgeEggs, t.egg, t.eggDim),
-      if (r.isBait || r.isTie) const SizedBox(width: 3),
+      if (r.isBaited || r.isTie) const SizedBox(width: 3),
       Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );

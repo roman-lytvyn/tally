@@ -75,6 +75,11 @@ class _EntryPanelState extends State<EntryPanel> {
     return _parsed != null && s[0] != null && s[1] != null && s[0] == s[1];
   }
 
+  bool get _baited {
+    final s = _score;
+    return _parsed != null && s[_taker]! < s[1 - _taker]!;
+  }
+
   void _save() {
     if (_parsed == null) return;
     final s = _score;
@@ -167,18 +172,11 @@ class _EntryPanelState extends State<EntryPanel> {
           ),
           if (_yaytsia && parsed != null) ...[
             const SizedBox(height: 6),
-            Container(
-              decoration: BoxDecoration(color: t.eggDim,
-                  border: Border.all(color: t.egg.withValues(alpha: 0.25)),
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-              child: Row(children: [
-                const Text('🥚', style: TextStyle(fontSize: 13)),
-                const SizedBox(width: 6),
-                Expanded(child: Text(s.eggsMsg(score[0] ?? 0, score[1] ?? 0),
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.egg))),
-              ]),
-            ),
+            _hint('🥚', s.eggsMsg(score[0] ?? 0, score[1] ?? 0), t.egg, t.eggDim),
+          ],
+          if (_baited) ...[
+            const SizedBox(height: 6),
+            _hint('⚠', s.baitMsg(widget.teamNames[1 - _taker], _gv), t.danger, t.dangerDim),
           ],
           const SizedBox(height: 8),
           // numpad
@@ -200,6 +198,18 @@ class _EntryPanelState extends State<EntryPanel> {
       ),
     );
   }
+
+  Widget _hint(String icon, String text, Color color, Color bg) => Container(
+    decoration: BoxDecoration(color: bg,
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+        borderRadius: BorderRadius.circular(10)),
+    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+    child: Row(children: [
+      Text(icon, style: TextStyle(fontSize: 13, color: color)),
+      const SizedBox(width: 6),
+      Expanded(child: Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color))),
+    ]),
+  );
 
   Widget _takerRow() => Row(children: [
     Text(s.trumpTakenBy, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
@@ -322,11 +332,11 @@ class _EntryPanelState extends State<EntryPanel> {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: t.t1.withValues(alpha: 0.13),
-        border: Border.all(color: t.t1.withValues(alpha: 0.3), width: 1.5),
+        color: t.dangerDim,
+        border: Border.all(color: t.danger.withValues(alpha: 0.3), width: 1.5),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(s.bait, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.t1)),
+      child: Text(s.bait, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.danger)),
     ),
   );
 
