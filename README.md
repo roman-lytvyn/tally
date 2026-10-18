@@ -216,6 +216,9 @@ The game screen shows:
 Accessible via the ⚙ button:
 - **Theme** — light, system (follows device setting), or dark
 - **Score display** — traditional style (circles and sticks, like pen-and-paper notation) or plain numbers
+- **Language** — English or Ukrainian. Until one is chosen the app follows
+  the device: Ukrainian on a Ukrainian device, English everywhere else. Team
+  names still at their defaults switch along with it
 
 ---
 

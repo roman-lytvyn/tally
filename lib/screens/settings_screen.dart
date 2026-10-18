@@ -10,12 +10,13 @@ class SettingsScreen extends StatelessWidget {
   final String themeMode;
   final void Function(String) onThemeModeChanged;
   final void Function(String) onScoreStyleChanged;
+  final void Function(String) onLangChanged;
   final VoidCallback onBack;
 
   const SettingsScreen({
     super.key, required this.theme, required this.strings, required this.scoreStyle,
     required this.lang, required this.themeMode, required this.onThemeModeChanged,
-    required this.onScoreStyleChanged, required this.onBack,
+    required this.onScoreStyleChanged, required this.onLangChanged, required this.onBack,
   });
 
   AppTheme get t => theme;
@@ -43,8 +44,11 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(strings.settingsTitle,
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: t.tx)),
+                  Flexible(child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(strings.settingsTitle,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: t.tx)),
+                  )),
                 ]),
               ),
             ),
@@ -93,12 +97,9 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 14),
                 _groupLabel(strings.language),
                 _group([
-                  _langRow('🇺🇦', 'Українська', strings.activeLang, true),
+                  _langRow('🇺🇦', 'Українська', 'uk'),
                   _divider(),
-                  Opacity(
-                    opacity: 0.38,
-                    child: _langRow('🇬🇧', 'English', strings.activeLang, false),
-                  ),
+                  _langRow('🇬🇧', 'English', 'en'),
                 ]),
               ],
             ),
@@ -168,8 +169,12 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _langRow(String flag, String name, String activeLabelText, bool active) =>
-      Padding(
+  Widget _langRow(String flag, String name, String code) {
+    final active = lang == code;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onLangChanged(code),
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
         child: Row(children: [
           Text(flag, style: const TextStyle(fontSize: 18)),
@@ -177,9 +182,11 @@ class SettingsScreen extends StatelessWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
             if (active)
-              Text(activeLabelText, style: TextStyle(fontSize: 12, color: t.tx2)),
+              Text(strings.activeLang, style: TextStyle(fontSize: 12, color: t.tx2)),
           ])),
           if (active) Text('✓', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.acc)),
         ]),
-      );
+      ),
+    );
+  }
 }
