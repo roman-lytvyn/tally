@@ -55,4 +55,28 @@ void main() {
     expect(find.widgetWithText(TextField, uk.otherTeamHint), findsOneWidget);
   });
 
+  testWidgets('lets players agree that the dealer must play', (tester) async {
+    await openApp(tester);
+
+    final toggle = find.byType(Switch);
+    expect(tester.widget<Switch>(toggle).value, isFalse);
+
+    await tester.tap(find.text(uk.dealerMustPlay));
+    await tester.pump();
+
+    expect(tester.widget<Switch>(toggle).value, isTrue);
+  });
+
+  testWidgets('asks who took the trump, offering it first to the player left of the dealer', (tester) async {
+    await openApp(tester);
+    await tester.tap(find.text(uk.newGame));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(uk.newRound));
+    await tester.pumpAndSettle();
+
+    expect(find.text(uk.trumpTakenBy), findsOneWidget);
+    // The first team deals first, so the second team has the first right.
+    expect(find.text('♠ Вони'), findsOneWidget);
+  });
+
 }

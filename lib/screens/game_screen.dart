@@ -11,6 +11,7 @@ class GameScreen extends StatefulWidget {
   final AppStrings strings;
   final List<String> teamNames;
   final int scoreLimit;
+  final bool dealerMustPlay;
   final List<Round> rounds;
   final Tally tally;
   final String scoreStyle;
@@ -23,7 +24,7 @@ class GameScreen extends StatefulWidget {
 
   const GameScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
-    required this.scoreLimit, required this.rounds, required this.tally,
+    required this.scoreLimit, required this.dealerMustPlay, required this.rounds, required this.tally,
     required this.scoreStyle, required this.onAddRound, required this.onReplaceRound,
     required this.onRemoveRound, required this.onUndo,
     required this.onBack, required this.onSettings,
@@ -82,6 +83,7 @@ class _GameScreenState extends State<GameScreen> {
             EntryPanel(
               key: ValueKey(_session),
               theme: t, strings: strings, teamNames: teamNames, dealer: dealer,
+              firstToBid: 1 - dealer, dealerMustPlay: widget.dealerMustPlay,
               open: _entryOpen,
               initial: editing != null ? rounds[editing] : null,
               number: editing != null ? editing + 1 : null,
@@ -300,11 +302,14 @@ class _GameScreenState extends State<GameScreen> {
   );
 
   Widget _roundScore(Round r, List<int> earned, int i) {
-    final lost = r.isTie && r.dealer == i;
+    final lost = r.isTie && r.taker == i;
+    // The trump-taker's points carry a ♠ on the side facing away from the divider.
+    final value = '${earned[i]}';
+    final label = r.taker != i ? value : (i == 0 ? '♠ $value' : '$value ♠');
     return Align(
       alignment: i == 0 ? Alignment.centerRight : Alignment.centerLeft,
       child: Text(
-        '${earned[i]}',
+        label,
         style: TextStyle(
           fontSize: 14, fontWeight: FontWeight.w700,
           color: lost ? t.danger : t.teamColor(i),

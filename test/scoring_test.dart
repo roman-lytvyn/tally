@@ -18,8 +18,8 @@ void main() {
 
   test('adds up what each side earned', () {
     final t = tally(game(const [
-      Round(gv: 162, dealer: 0, score: [100, 62]),
-      Round(gv: 182, dealer: 1, score: [52, 130]),
+      Round(gv: 162, dealer: 0, taker: 0, score: [100, 62]),
+      Round(gv: 182, dealer: 1, taker: 1, score: [52, 130]),
     ]));
 
     expect(t.earned, [[100, 62], [52, 130]]);
@@ -27,19 +27,25 @@ void main() {
   });
 
   test('passes the deal to the other side after every deal', () {
-    expect(tally(game(const [Round(gv: 162, dealer: 0, score: [100, 62])])).dealer, 1);
+    expect(tally(game(const [Round(gv: 162, dealer: 0, taker: 0, score: [100, 62])])).dealer, 1);
   });
 
-  test('bait gives the whole deal to the opponents of the dealing side', () {
-    final t = tally(game(const [Round(gv: 202, dealer: 0, score: [0, 0], isBait: true)]));
+  test('bait gives the whole deal to the opponents of the side that took the trump', () {
+    final t = tally(game(const [Round(gv: 202, dealer: 0, taker: 0, score: [0, 0], isBait: true)]));
 
     expect(t.totals, [0, 202]);
   });
 
+  test('bait goes to the dealing side when the other side took the trump', () {
+    final t = tally(game(const [Round(gv: 202, dealer: 0, taker: 1, score: [0, 0], isBait: true)]));
+
+    expect(t.totals, [202, 0]);
+  });
+
   test('ends the game once a side reaches the target', () {
     final t = tally(game(const [
-      Round(gv: 512, dealer: 0, score: [400, 112]),
-      Round(gv: 162, dealer: 1, score: [120, 42]),
+      Round(gv: 512, dealer: 0, taker: 0, score: [400, 112]),
+      Round(gv: 162, dealer: 1, taker: 1, score: [120, 42]),
     ]));
 
     expect(t.winner, 0);
@@ -47,8 +53,8 @@ void main() {
 
   test('a removed deal no longer counts', () {
     final rounds = [
-      const Round(gv: 512, dealer: 0, score: [400, 112]),
-      const Round(gv: 162, dealer: 1, score: [120, 42]),
+      const Round(gv: 512, dealer: 0, taker: 0, score: [400, 112]),
+      const Round(gv: 162, dealer: 1, taker: 1, score: [120, 42]),
     ]..removeLast();
 
     final t = tally(game(rounds));

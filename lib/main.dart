@@ -50,6 +50,7 @@ class _AppRootState extends State<AppRoot> {
   List<String> _teamNames = ['', ''];
   int _scoreLimit = 1001;
   int _firstDealer = 0;
+  bool _dealerMustPlay = false;
   List<Round> _rounds = [];
   GameState? _savedGame;
 
@@ -59,6 +60,7 @@ class _AppRootState extends State<AppRoot> {
   GameState get _game => GameState(
     teamNames: _teamNames, scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
+    dealerMustPlay: _dealerMustPlay,
   );
 
   @override
@@ -120,6 +122,7 @@ class _AppRootState extends State<AppRoot> {
     setState(() {
       _teamNames = g.teamNames; _scoreLimit = g.scoreLimit;
       _rounds = g.rounds; _firstDealer = g.firstDealer;
+      _dealerMustPlay = g.dealerMustPlay;
       _savedGame = null;
     });
     _goTo(AppScreen.game);
@@ -178,6 +181,8 @@ class _AppRootState extends State<AppRoot> {
           theme: theme, strings: strings,
           teamNames: _teamNames,
           scoreLimit: _scoreLimit, firstDealer: _firstDealer, hasSavedGame: _savedGame != null,
+          dealerMustPlay: _dealerMustPlay,
+          onDealerMustPlayChanged: (v) => setState(() => _dealerMustPlay = v),
           onTeamNamesChanged: (v) => setState(() => _teamNames = v),
           onScoreLimitChanged: (v) => setState(() => _scoreLimit = v),
           onFirstDealerChanged: (v) => setState(() => _firstDealer = v),
@@ -189,6 +194,7 @@ class _AppRootState extends State<AppRoot> {
           key: const ValueKey('game'),
           theme: theme, strings: strings,
           teamNames: _teamNames, scoreLimit: _scoreLimit,
+          dealerMustPlay: _dealerMustPlay,
           rounds: _rounds, tally: tally(_game),
           scoreStyle: _scoreStyle,
           onAddRound: _addRound, onReplaceRound: _replaceRound, onRemoveRound: _removeRound,
