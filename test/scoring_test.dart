@@ -141,6 +141,36 @@ void main() {
     });
   });
 
+  group('when both sides pass the target in the same deal', () {
+    const start = Round(gv: 900, dealer: 0, taker: 0, score: [450, 450]);
+
+    test('the side that took the trump goes out, even with fewer points', () {
+      final t = tally(game(const [
+        Round(gv: 900, dealer: 0, taker: 0, score: [460, 440]),
+        Round(gv: 162, dealer: 1, taker: 1, score: [62, 100]),
+      ], tieRule: TieRule.eachKeepsOwn));
+
+      expect(t.totals, [522, 540]);
+      expect(t.winner, 1);
+    });
+
+    test('the side that took the trump goes out, even when it had more points before', () {
+      final t = tally(game(const [
+        Round(gv: 900, dealer: 0, taker: 0, score: [480, 420]),
+        Round(gv: 162, dealer: 1, taker: 0, score: [81, 81]),
+      ], tieRule: TieRule.eachKeepsOwn));
+
+      expect(t.totals, [561, 501]);
+      expect(t.winner, 0);
+    });
+
+    test('nobody wins while neither has reached the target', () {
+      final t = tally(game(const [start], tieRule: TieRule.eachKeepsOwn));
+
+      expect(t.winner, isNull);
+    });
+  });
+
   test('a removed deal no longer counts', () {
     final rounds = [
       const Round(gv: 512, dealer: 0, taker: 0, score: [400, 112]),
