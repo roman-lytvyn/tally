@@ -28,7 +28,7 @@ class DebertsApp extends StatelessWidget {
   const DebertsApp({super.key});
   @override
   Widget build(BuildContext context) => const MaterialApp(
-    title: 'Деберц',
+    title: 'Deberc',
     debugShowCheckedModeBanner: false,
     home: AppRoot(),
   );
@@ -91,7 +91,10 @@ class _AppRootState extends State<AppRoot> {
     final prefs = await SharedPreferences.getInstance();
     final theme = prefs.getString(_themeKey) ?? 'system';
     final style = prefs.getString(_styleKey) ?? 'traditional';
-    final lang  = prefs.getString(_langKey)  ?? 'uk';
+    // Until a language is chosen, Ukrainian devices get Ukrainian and every
+    // other device English.
+    final lang  = prefs.getString(_langKey)
+        ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     final raw   = prefs.getString(_storeKey);
 
     GameState? saved;
@@ -102,8 +105,8 @@ class _AppRootState extends State<AppRoot> {
       } catch (_) {}
     }
 
-    final resolvedLang = lang == 'en' ? 'en' : 'uk';
-    final defaultNames = resolvedLang == 'en' ? ['Us', 'Them'] : ['Ми', 'Вони'];
+    final resolvedLang = lang == 'uk' ? 'uk' : 'en';
+    final defaultNames = AppStrings(resolvedLang).defaultNames(4);
 
     if (!mounted) return;
     setState(() {
@@ -124,6 +127,18 @@ class _AppRootState extends State<AppRoot> {
     } else {
       _prefs?.setString(_storeKey, jsonEncode(_game.toJson()));
     }
+  }
+
+  /// Switches the language; names still at their defaults follow it.
+  void _setLang(String lang) {
+    final before = AppStrings(_lang).defaultNames(_players);
+    final after = AppStrings(lang).defaultNames(_players);
+    setState(() {
+      _lang = lang;
+      _teamNames = [for (var i = 0; i < _teamNames.length; i++) _teamNames[i] == before[i] ? after[i] : _teamNames[i]];
+    });
+    _prefs?.setString(_langKey, lang);
+    if (_rounds.isNotEmpty) _persist();
   }
 
   void _goTo(AppScreen s) => setState(() { _prevScreen = _screen; _screen = s; });
@@ -187,9 +202,14 @@ class _AppRootState extends State<AppRoot> {
       systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
-      child: _buildScreen(theme, strings),
+    // The name the system shows for the app follows the chosen language.
+    return Title(
+      title: strings.appTitle,
+      color: theme.acc,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: _buildScreen(theme, strings),
+      ),
     );
   }
 
@@ -242,6 +262,7 @@ class _AppRootState extends State<AppRoot> {
             setState(() => _scoreStyle = v);
             _prefs?.setString(_styleKey, v);
           },
+          onLangChanged: _setLang,
           onBack: () => _goTo(_prevScreen),
         );
       case AppScreen.win:

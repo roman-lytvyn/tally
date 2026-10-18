@@ -12,7 +12,7 @@ void main() {
   setUp(() {
     // The app reads the saved game and settings on startup; without this the
     // plugin has no platform to talk to and the app never finishes loading.
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'deberc_lang': 'uk'});
   });
 
   /// The app is locked to portrait on a phone, while the default test surface is
@@ -53,8 +53,60 @@ void main() {
   testWidgets('names the app for the system', (tester) async {
     await openApp(tester);
 
-    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
-    expect(app.title, uk.appTitle);
+    expect(tester.widget<Title>(find.byType(Title).last).title, uk.appTitle);
+  });
+
+  group('language', () {
+    const en = AppStrings('en');
+
+    testWidgets('follows a Ukrainian device until one is chosen', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.platformDispatcher.localeTestValue = const Locale('uk', 'UA');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      await openApp(tester);
+
+      expect(find.text(uk.newGame), findsOneWidget);
+    });
+
+    testWidgets('is English on any other device', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.platformDispatcher.localeTestValue = const Locale('de', 'DE');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      await openApp(tester);
+
+      expect(find.text(en.newGame), findsOneWidget);
+      expect(find.text('Us'), findsWidgets);
+    });
+
+    testWidgets('lays out a whole deal in English', (tester) async {
+      SharedPreferences.setMockInitialValues({'deberc_lang': 'en'});
+      await openApp(tester);
+      await tapText(tester, en.newGame);
+      await tapText(tester, en.newRound);
+
+      expect(find.text(en.allPassed), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('deberc')));
+      await tester.pump();
+      expect(find.text(en.debercWins('Them')), findsOneWidget);
+
+      await tapText(tester, en.save);
+      expect(find.text(en.winLabel), findsOneWidget);
+    });
+
+    testWidgets('can be switched in the settings and is remembered', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      await tapText(tester, 'English');
+
+      expect(find.text(en.settingsTitle), findsOneWidget);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('deberc_lang'), 'en');
+
+      await tapText(tester, en.backBtn);
+      expect(find.text(en.newGame), findsOneWidget);
+      // Names left at their defaults follow the language.
+      expect(find.text('Them'), findsWidgets);
+    });
   });
 
   testWidgets('offers no way to continue when nothing was played', (tester) async {
