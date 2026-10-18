@@ -1,5 +1,35 @@
 import 'package:flutter/material.dart';
 
+/// A score as it is written on a score sheet: crossed circles for 100,
+/// circles for 50 and sticks for 20. Ten points or more beyond the last
+/// stick are written as one more stick with what it still lacks noted above
+/// it; anything smaller is added after the sticks.
+class TraditionalMarks {
+  final int hundreds;
+  final int fifties;
+  final int sticks;
+  /// Points the last stick lacks: 36 is two sticks short of 4.
+  final int short;
+  /// Points left over after the sticks: 44 is two sticks and 4.
+  final int extra;
+
+  const TraditionalMarks({
+    this.hundreds = 0, this.fifties = 0, this.sticks = 0, this.short = 0, this.extra = 0,
+  });
+
+  factory TraditionalMarks.of(int value) {
+    var s = value.clamp(0, 99999);
+    final hundreds = s ~/ 100; s %= 100;
+    final fifties  = s ~/ 50;  s %= 50;
+    final sticks   = s ~/ 20;  s %= 20;
+    return s >= 10
+        ? TraditionalMarks(hundreds: hundreds, fifties: fifties, sticks: sticks + 1, short: 20 - s)
+        : TraditionalMarks(hundreds: hundreds, fifties: fifties, sticks: sticks, extra: s);
+  }
+
+  int get value => hundreds * 100 + fifties * 50 + sticks * 20 - short + extra;
+}
+
 class TraditionalScore extends StatelessWidget {
   final int value;
   final double u;
@@ -19,34 +49,32 @@ class TraditionalScore extends StatelessWidget {
       );
     }
 
-    int s = value.clamp(0, 99999);
-    final hundreds = s ~/ 100; s %= 100;
-    final fifties  = s ~/ 50;  s %= 50;
-    final twenties = s ~/ 20;  s %= 20;
-    final rem      = s;
-
-    final fullGroups = twenties ~/ 3;
-    final leftover   = twenties % 3;
-    final gap        = u * 0.1;
+    final m   = TraditionalMarks.of(value);
+    final gap = u * 0.1;
+    final note = TextStyle(fontSize: u * 0.3, color: color.withValues(alpha: 0.65), fontWeight: FontWeight.w700);
 
     final children = <Widget>[];
 
-    for (int i = 0; i < hundreds; i++) {
+    for (int i = 0; i < m.hundreds; i++) {
       children.add(_circle(crossed: true));
     }
-    for (int i = 0; i < fifties; i++) {
+    for (int i = 0; i < m.fifties; i++) {
       children.add(_circle(crossed: false));
     }
-    for (int i = 0; i < fullGroups; i++) {
-      children.add(_sticks(3));
+    if (m.sticks > 0) children.add(_sticks(m.sticks));
+    if (m.short > 0) {
+      // What the last stick lacks, written up against its top end.
+      children.add(SizedBox(
+        height: u,
+        child: Align(alignment: Alignment.topLeft, child: Text('−${m.short}', style: note)),
+      ));
     }
-    if (leftover > 0) children.add(_sticks(leftover));
-    if (rem > 0) {
+    if (m.extra > 0) {
       children.add(Align(
         alignment: Alignment.bottomLeft,
         child: Padding(
-          padding: EdgeInsets.only(bottom: 2),
-          child: Text('+$rem', style: TextStyle(fontSize: u * 0.3, color: color.withValues(alpha: 0.65), fontWeight: FontWeight.w700)),
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Text('+${m.extra}', style: note),
         ),
       ));
     }
