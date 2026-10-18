@@ -18,6 +18,8 @@ class Tally {
 
 /// What each side earns from a single deal, before any held points.
 List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
+  // A deberc decides the game on its own; its deal adds no points.
+  if (r.isDeberc) return [0, 0];
   if (r.isBaited || (r.isTie && tieRule == TieRule.opponentsTakeAll)) {
     final earned = [0, 0];
     earned[1 - r.taker] = r.gv;
@@ -39,6 +41,11 @@ Tally tally(GameState game) {
 
   for (final r in game.rounds) {
     final e = scoreRound(r, tieRule: game.tieRule);
+    if (r.isDeberc) {
+      earned.add(e);
+      winner = r.deberc;
+      break;
+    }
     if (r.isTie && game.tieRule == TieRule.hanging) {
       held += r.score[r.taker];
     } else if (held > 0) {

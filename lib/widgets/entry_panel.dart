@@ -38,6 +38,8 @@ class _EntryPanelState extends State<EntryPanel> {
   String _raw = '';
   late int _activeInput;
   late int _taker;
+  /// The side holding a deberc, when one was declared.
+  int? _debercBy;
 
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
   int get _gv => _decl.gv;
@@ -50,7 +52,8 @@ class _EntryPanelState extends State<EntryPanel> {
     _activeInput = _taker;
     if (r != null) {
       _decl = r.declarations;
-      if (!r.isBait) _raw = '${r.score[_taker]}';
+      _debercBy = r.deberc;
+      if (!r.isBait && !r.isDeberc) _raw = '${r.score[_taker]}';
     }
   }
 
@@ -83,6 +86,11 @@ class _EntryPanelState extends State<EntryPanel> {
   }
 
   void _save() {
+    if (_debercBy != null) {
+      widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: const [0, 0],
+          declarations: _decl, deberc: _debercBy));
+      return;
+    }
     if (_parsed == null) return;
     final s = _score;
     widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: [s[0] ?? 0, s[1] ?? 0],
@@ -135,6 +143,14 @@ class _EntryPanelState extends State<EntryPanel> {
           ],
           const SizedBox(height: 8),
           _declarationsRow(),
+          const SizedBox(height: 6),
+          _debercToggle(),
+          if (_debercBy != null) ...[
+            const SizedBox(height: 6),
+            _sideRow(s.debercBy, _debercBy!, '✦', (i) => setState(() => _debercBy = i)),
+            const SizedBox(height: 6),
+            _hint('✦', s.debercWins(widget.teamNames[_debercBy!]), t.acc, t.accDim),
+          ] else ...[
           const SizedBox(height: 8),
           // score input row
           Container(
@@ -159,6 +175,7 @@ class _EntryPanelState extends State<EntryPanel> {
           const SizedBox(height: 8),
           // numpad
           _buildNumpad(),
+          ],
           const SizedBox(height: 8),
           // actions
           Row(children: [
@@ -167,8 +184,10 @@ class _EntryPanelState extends State<EntryPanel> {
               const SizedBox(width: 6),
               _deleteBtn(),
             ],
-            const SizedBox(width: 6),
-            _baitBtn(),
+            if (_debercBy == null) ...[
+              const SizedBox(width: 6),
+              _baitBtn(),
+            ],
             const SizedBox(width: 6),
             Expanded(child: _saveBtn()),
           ]),
@@ -189,19 +208,41 @@ class _EntryPanelState extends State<EntryPanel> {
     ]),
   );
 
-  Widget _takerRow() => Row(children: [
-    Text(s.trumpTakenBy, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+  Widget _takerRow() => _sideRow(s.trumpTakenBy, _taker, '♠',
+      (i) => setState(() { _taker = i; _activeInput = i; _raw = ''; }));
+
+  /// A label followed by one chip per side, the [selected] one marked.
+  Widget _sideRow(String label, int selected, String mark, void Function(int) onSelect) => Row(children: [
+    Text(label, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
     const SizedBox(width: 8),
     for (var i = 0; i < widget.teamNames.length; i++) ...[
       if (i > 0) const SizedBox(width: 6),
-      Expanded(child: _takerChip(i)),
+      Expanded(child: _sideChip(i, selected == i, mark, () => onSelect(i))),
     ],
   ]);
 
-  Widget _takerChip(int i) {
-    final on = _taker == i;
+  Widget _debercToggle() {
+    final on = _debercBy != null;
     return GestureDetector(
-      onTap: () => setState(() { _taker = i; _activeInput = i; _raw = ''; }),
+      key: const ValueKey('deberc'),
+      onTap: () => setState(() => _debercBy = on ? null : _taker),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+        decoration: BoxDecoration(
+          color: on ? t.accDim : Colors.transparent,
+          border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: Text('${on ? '✓ ' : '✦ '}${s.deberc}', maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
+      ),
+    );
+  }
+
+  Widget _sideChip(int i, bool on, String mark, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -211,7 +252,7 @@ class _EntryPanelState extends State<EntryPanel> {
           borderRadius: BorderRadius.circular(20),
         ),
         alignment: Alignment.center,
-        child: Text('${on ? '♠ ' : ''}${widget.teamNames[i]}', maxLines: 1, overflow: TextOverflow.ellipsis,
+        child: Text('${on ? '$mark ' : ''}${widget.teamNames[i]}', maxLines: 1, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.teamColor(i) : t.tx2)),
       ),
     );
@@ -390,7 +431,7 @@ class _EntryPanelState extends State<EntryPanel> {
   );
 
   Widget _saveBtn() {
-    final enabled = _parsed != null;
+    final enabled = _parsed != null || _debercBy != null;
     return GestureDetector(
       onTap: enabled ? _save : null,
       child: Container(

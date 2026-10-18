@@ -116,6 +116,31 @@ void main() {
     expect(t.winner, 0);
   });
 
+  group('a deberc', () {
+    test('wins the game at once for the side that declared it, whatever the score', () {
+      final t = tally(game(const [
+        Round(gv: 162, dealer: 0, taker: 0, score: [150, 12]),
+        Round(gv: 162, dealer: 1, taker: 0, score: [0, 0], deberc: 1),
+      ]));
+
+      expect(t.winner, 1);
+      expect(t.totals, [150, 12]);
+    });
+
+    test('is neither bait nor a tie', () {
+      const r = Round(gv: 162, dealer: 0, taker: 0, score: [0, 0], deberc: 0);
+
+      expect(r.isBaited, isFalse);
+      expect(r.isTie, isFalse);
+    });
+
+    test('is remembered when the game is saved', () {
+      const r = Round(gv: 162, dealer: 0, taker: 0, score: [0, 0], deberc: 1);
+
+      expect(Round.fromJson(r.toJson()).deberc, 1);
+    });
+  });
+
   test('a removed deal no longer counts', () {
     final rounds = [
       const Round(gv: 512, dealer: 0, taker: 0, score: [400, 112]),

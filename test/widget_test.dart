@@ -111,6 +111,20 @@ void main() {
     expect(find.text(uk.dealValue(252)), findsOneWidget);
   });
 
+  testWidgets('ends the game when a deberc is recorded', (tester) async {
+    await openRound(tester);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('deberc')));
+    await tester.tap(find.byKey(const ValueKey('deberc')));
+    await tester.pump();
+    // The side that took the trump is offered first.
+    expect(find.text(uk.debercWins('Вони')), findsOneWidget);
+
+    await tapText(tester, uk.save);
+
+    expect(find.text(uk.newRound), findsNothing);
+  });
+
   testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
     await openApp(tester);
     await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));

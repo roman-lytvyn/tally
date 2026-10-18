@@ -307,9 +307,10 @@ class _GameScreenState extends State<GameScreen> {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
+      if (r.isDeberc) _badge(strings.badgeDeberc, t.acc, t.accDim),
       if (r.isBaited) _badge(strings.badgeBait, t.danger, t.dangerDim),
       if (r.isTie) _badge(strings.badgeEggs, t.egg, t.eggDim),
-      if (r.isBaited || r.isTie) const SizedBox(width: 3),
+      if (r.isDeberc || r.isBaited || r.isTie) const SizedBox(width: 3),
       Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );

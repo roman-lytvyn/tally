@@ -61,6 +61,9 @@ class Round {
   final List<int> score;
   final bool isBait;
   final Declarations? _declarations;
+  /// The side that declared a deberc — seven trumps in a row — and so won
+  /// the whole game with this deal.
+  final int? deberc;
 
   const Round({
     required this.gv,
@@ -69,21 +72,25 @@ class Round {
     required this.score,
     this.isBait = false,
     Declarations? declarations,
+    this.deberc,
   }) : _declarations = declarations;
 
   /// What was declared in the deal; for deals saved with only a game value
   /// it is worked back out of that value.
   Declarations get declarations => _declarations ?? Declarations.fromGv(gv);
 
-  bool get isTie => !isBait && score[0] == score[1];
+  bool get isDeberc => deberc != null;
+
+  bool get isTie => !isDeberc && !isBait && score[0] == score[1];
 
   /// The side that took the trump scored less than its opponents, either by
   /// the points entered or because the deal was recorded straight as bait.
-  bool get isBaited => isBait || score[taker] < score[1 - taker];
+  bool get isBaited => !isDeberc && (isBait || score[taker] < score[1 - taker]);
 
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
     if (_declarations != null) 'declarations': _declarations.toJson(),
+    if (deberc != null) 'deberc': deberc,
   };
 
   factory Round.fromJson(Map<String, dynamic> j) => Round(
@@ -95,6 +102,7 @@ class Round {
     declarations: j['declarations'] == null
         ? null
         : Declarations.fromJson(j['declarations'] as Map<String, dynamic>),
+    deberc: j['deberc'],
   );
 }
 
