@@ -141,6 +141,40 @@ void main() {
     });
   });
 
+  group('a thrown-in deal', () {
+    test('scores nothing but passes the deal on', () {
+      final t = tally(game(const [Round.redeal(dealer: 0)]));
+
+      expect(t.totals, [0, 0]);
+      expect(t.dealer, 1);
+    });
+
+    test('leaves held points waiting for the next deal that is won', () {
+      final t = tally(game(const [
+        tie,
+        Round.redeal(dealer: 1),
+        Round(gv: 162, dealer: 0, taker: 1, score: [62, 100]),
+      ]));
+
+      expect(t.earned[1], [0, 0]);
+      expect(t.earned[2], [62, 191]);
+      expect(t.held, 0);
+    });
+
+    test('is neither bait nor a tie, and is remembered when saved', () {
+      const r = Round.redeal(dealer: 1);
+
+      expect(r.isBaited, isFalse);
+      expect(r.isTie, isFalse);
+      expect(Round.fromJson(r.toJson()).isRedeal, isTrue);
+    });
+  });
+
+  test('the deal goes round the table, so each team\'s players take turns', () {
+    const r = Round(gv: 162, dealer: 0, taker: 0, score: [100, 62]);
+    expect([for (var n = 0; n < 5; n++) tally(game(List.filled(n, r))).dealerSeat], [0, 0, 1, 1, 0]);
+  });
+
   group('when both sides pass the target in the same deal', () {
     const start = Round(gv: 900, dealer: 0, taker: 0, score: [450, 450]);
 

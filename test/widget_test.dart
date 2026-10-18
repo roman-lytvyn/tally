@@ -125,6 +125,25 @@ void main() {
     expect(find.text(uk.newRound), findsNothing);
   });
 
+  testWidgets('records a redeal when everyone passed and hands the deal on', (tester) async {
+    await openRound(tester);
+
+    await tapText(tester, uk.allPassed);
+
+    expect(find.text(uk.badgeRedeal), findsOneWidget);
+    expect(find.text('#2'), findsOneWidget);
+  });
+
+  testWidgets('offers no redeal when the dealer must play', (tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.dealerMustPlay);
+    await tapText(tester, uk.newGame);
+    await tapText(tester, uk.newRound);
+
+    expect(find.text(uk.allPassed), findsNothing);
+    expect(find.text(uk.dealerPlaysIfAllPass), findsOneWidget);
+  });
+
   testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {
     await openApp(tester);
 

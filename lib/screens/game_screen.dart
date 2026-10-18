@@ -48,6 +48,7 @@ class _GameScreenState extends State<GameScreen> {
   int get dealer => widget.tally.dealer;
   List<Round> get rounds => widget.rounds;
   bool get isTraditional => widget.scoreStyle == 'traditional';
+  String get _dealsLabel => strings.dealsSeat(widget.tally.dealerSeat + 1);
 
   void _openEntry([int? index]) => setState(() { _entryOpen = true; _editing = index; _session++; });
 
@@ -152,7 +153,7 @@ class _GameScreenState extends State<GameScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
-                child: Text(strings.deals, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                child: Text(_dealsLabel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
                     color: t.teamColor(i), letterSpacing: 0.5)),
               ),
             ),
@@ -189,7 +190,7 @@ class _GameScreenState extends State<GameScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
-            child: Text(strings.deals, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: t.teamColor(i))),
+            child: Text(_dealsLabel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: t.teamColor(i))),
           ),
         ),
       ]))),
@@ -291,7 +292,7 @@ class _GameScreenState extends State<GameScreen> {
                     width: 72,
                     child: Align(
                       alignment: Alignment.centerRight,
-                      child: _roundMeta(r),
+                      child: FittedBox(fit: BoxFit.scaleDown, child: _roundMeta(r)),
                     ),
                   ),
                 ],
@@ -307,11 +308,12 @@ class _GameScreenState extends State<GameScreen> {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
+      if (r.isRedeal) _badge(strings.badgeRedeal, t.tx3, t.surf2),
       if (r.isDeberc) _badge(strings.badgeDeberc, t.acc, t.accDim),
       if (r.isBaited) _badge(strings.badgeBait, t.danger, t.dangerDim),
       if (r.isTie) _badge(strings.badgeEggs, t.egg, t.eggDim),
       if (r.isDeberc || r.isBaited || r.isTie) const SizedBox(width: 3),
-      Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
+      if (!r.isRedeal) Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );
 
@@ -319,8 +321,8 @@ class _GameScreenState extends State<GameScreen> {
     // On a tie the trump-taker's own points, when not scored, show crossed out.
     final lost = r.isTie && r.taker == i && earned[i] < r.score[i];
     // The trump-taker's points carry a ♠ on the side facing away from the divider.
-    final value = '${lost ? r.score[i] : earned[i]}';
-    final label = r.taker != i ? value : (i == 0 ? '♠ $value' : '$value ♠');
+    final value = r.isRedeal ? '—' : '${lost ? r.score[i] : earned[i]}';
+    final label = r.taker != i || r.isRedeal ? value : (i == 0 ? '♠ $value' : '$value ♠');
     return Align(
       alignment: i == 0 ? Alignment.centerRight : Alignment.centerLeft,
       child: Text(

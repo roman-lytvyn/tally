@@ -7,19 +7,24 @@ class Tally {
   final List<int> totals;
   final int? winner;
   final int dealer;
+  /// Which of the dealing team's two players deals now, 0 for the one who
+  /// dealt the team's first deal and 1 for the partner. The deal goes round
+  /// the table, so each team's players take turns.
+  final int dealerSeat;
   /// Points from tied deals still waiting for the winner of the next deal.
   final int held;
 
   const Tally({
     required this.earned, required this.totals, required this.winner,
-    required this.dealer, this.held = 0,
+    required this.dealer, this.dealerSeat = 0, this.held = 0,
   });
 }
 
 /// What each side earns from a single deal, before any held points.
 List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
-  // A deberc decides the game on its own; its deal adds no points.
-  if (r.isDeberc) return [0, 0];
+  // A deberc decides the game on its own and a thrown-in deal is not played;
+  // neither adds any points.
+  if (!r.isPlayed) return [0, 0];
   if (r.isBaited || (r.isTie && tieRule == TieRule.opponentsTakeAll)) {
     final earned = [0, 0];
     earned[1 - r.taker] = r.gv;
@@ -59,6 +64,11 @@ Tally tally(GameState game) {
       winner = r.deberc;
       break;
     }
+    // Held points wait for a deal that is actually won.
+    if (r.isRedeal) {
+      earned.add(e);
+      continue;
+    }
     if (r.isTie && game.tieRule == TieRule.hanging) {
       held += r.score[r.taker];
     } else if (held > 0) {
@@ -77,6 +87,7 @@ Tally tally(GameState game) {
     totals: totals,
     winner: winner,
     dealer: (game.firstDealer + game.rounds.length) % 2,
+    dealerSeat: (game.rounds.length ~/ 2) % 2,
     held: held,
   );
 }

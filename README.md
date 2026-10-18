@@ -182,12 +182,19 @@ After each round, tap **«+ New round»** at the bottom of the screen:
 
 In the history the side that took the trump is marked with **♠**.
 
+If everybody passed and the cards were thrown in, tap **«Everyone passed —
+redeal»** instead: the deal is recorded with a «Redeal» badge, nobody scores,
+points held from a tie keep waiting, and the next player deals. The link is
+hidden when the dealer must play.
+
 ### 3. Following the Game
 
 The game screen shows:
 - Current score for both teams
 - Progress toward the point limit (as a bar or numerically, depending on display style)
-- Which team is currently dealing (a «deals» badge)
+- Which team is currently dealing and which of its two players — the one who
+  dealt the team's first deal or the partner — since the deal goes round the
+  table (a «player 1 deals» / «player 2 deals» badge)
 - Full round history with **BAIT**, **EGGS** and **DEBERC** badges
 
 ### 4. Correcting a Mistake

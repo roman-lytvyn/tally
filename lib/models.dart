@@ -67,6 +67,9 @@ class Round {
   /// The side that declared a deberc — seven trumps in a row — and so won
   /// the whole game with this deal.
   final int? deberc;
+  /// Everybody passed, so the cards were thrown in and nobody scored; the
+  /// deal still passes to the next dealer.
+  final bool isRedeal;
 
   const Round({
     required this.gv,
@@ -76,7 +79,13 @@ class Round {
     this.isBait = false,
     Declarations? declarations,
     this.deberc,
+    this.isRedeal = false,
   }) : _declarations = declarations;
+
+  /// A thrown-in deal by [dealer] where nobody took the trump.
+  const Round.redeal({required this.dealer})
+      : gv = kBaseGV, taker = dealer, score = const [0, 0], isBait = false,
+        _declarations = null, deberc = null, isRedeal = true;
 
   /// What was declared in the deal; for deals saved with only a game value
   /// it is worked back out of that value.
@@ -84,16 +93,20 @@ class Round {
 
   bool get isDeberc => deberc != null;
 
-  bool get isTie => !isDeberc && !isBait && score[0] == score[1];
+  /// Whether the deal was actually played out and scored.
+  bool get isPlayed => !isDeberc && !isRedeal;
+
+  bool get isTie => isPlayed && !isBait && score[0] == score[1];
 
   /// The side that took the trump scored less than its opponents, either by
   /// the points entered or because the deal was recorded straight as bait.
-  bool get isBaited => !isDeberc && (isBait || score[taker] < score[1 - taker]);
+  bool get isBaited => isPlayed && (isBait || score[taker] < score[1 - taker]);
 
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
     if (_declarations != null) 'declarations': _declarations.toJson(),
     if (deberc != null) 'deberc': deberc,
+    if (isRedeal) 'isRedeal': true,
   };
 
   factory Round.fromJson(Map<String, dynamic> j) => Round(
@@ -106,6 +119,7 @@ class Round {
         ? null
         : Declarations.fromJson(j['declarations'] as Map<String, dynamic>),
     deberc: j['deberc'],
+    isRedeal: j['isRedeal'] ?? false,
   );
 }
 
