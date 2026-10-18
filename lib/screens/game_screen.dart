@@ -2,34 +2,74 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
+import '../scoring.dart';
 import '../widgets/entry_panel.dart';
 import '../widgets/traditional_score.dart';
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   final AppTheme theme;
   final AppStrings strings;
   final List<String> teamNames;
-  final List<int> scores;
   final int scoreLimit;
   final List<Round> rounds;
-  final int dealer;
+  final Tally tally;
   final String scoreStyle;
   final void Function(Round) onAddRound;
+  final void Function(int, Round) onReplaceRound;
+  final void Function(int) onRemoveRound;
+  final VoidCallback onUndo;
   final VoidCallback onBack;
   final VoidCallback onSettings;
 
   const GameScreen({
-    super.key, required this.theme, required this.strings, required this.teamNames, required this.scores,
-    required this.scoreLimit, required this.rounds, required this.dealer,
-    required this.scoreStyle, required this.onAddRound,
+    super.key, required this.theme, required this.strings, required this.teamNames,
+    required this.scoreLimit, required this.rounds, required this.tally,
+    required this.scoreStyle, required this.onAddRound, required this.onReplaceRound,
+    required this.onRemoveRound, required this.onUndo,
     required this.onBack, required this.onSettings,
   });
 
-  AppTheme get t => theme;
-  bool get isTraditional => scoreStyle == 'traditional';
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  bool _entryOpen = false;
+  int? _editing;
+  // Bumped on every opening so the panel starts from a clean slate.
+  int _session = 0;
+
+  AppTheme get t => widget.theme;
+  AppStrings get strings => widget.strings;
+  List<String> get teamNames => widget.teamNames;
+  List<int> get scores => widget.tally.totals;
+  int get dealer => widget.tally.dealer;
+  List<Round> get rounds => widget.rounds;
+  bool get isTraditional => widget.scoreStyle == 'traditional';
+
+  void _openEntry([int? index]) => setState(() { _entryOpen = true; _editing = index; _session++; });
+
+  void _closeEntry() => setState(() { _entryOpen = false; _editing = null; });
+
+  void _saveEntry(Round r) {
+    final index = _editing;
+    _closeEntry();
+    if (index == null) {
+      widget.onAddRound(r);
+    } else {
+      widget.onReplaceRound(index, r);
+    }
+  }
+
+  void _deleteEntry() {
+    final index = _editing;
+    _closeEntry();
+    if (index != null) widget.onRemoveRound(index);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final editing = _editing;
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
@@ -39,7 +79,17 @@ class GameScreen extends StatelessWidget {
             _buildScoreSection(),
             if (!isTraditional) _buildProgressBars(),
             Expanded(child: _buildRoundsList()),
-            EntryPanel(theme: t, strings: strings, teamNames: teamNames, dealer: dealer, onSave: onAddRound),
+            EntryPanel(
+              key: ValueKey(_session),
+              theme: t, strings: strings, teamNames: teamNames, dealer: dealer,
+              open: _entryOpen,
+              initial: editing != null ? rounds[editing] : null,
+              number: editing != null ? editing + 1 : null,
+              onOpen: () => _openEntry(),
+              onCancel: _closeEntry,
+              onSave: _saveEntry,
+              onDelete: editing != null ? _deleteEntry : null,
+            ),
           ],
         ),
       ),
@@ -50,9 +100,13 @@ class GameScreen extends StatelessWidget {
     decoration: BoxDecoration(gradient: t.headerGradient),
     padding: const EdgeInsets.fromLTRB(18, 12, 18, 10),
     child: Row(children: [
-      _iconBtn(strings.exitBtn, onBack),
+      _iconBtn(strings.exitBtn, widget.onBack),
       Expanded(child: Text(strings.appTitle.toUpperCase(), textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.tx3, letterSpacing: 0.5))),
+      if (rounds.isNotEmpty) ...[
+        _iconBtn(strings.undoBtn, () { _closeEntry(); widget.onUndo(); }),
+        const SizedBox(width: 8),
+      ],
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
         decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(20)),
@@ -60,7 +114,7 @@ class GameScreen extends StatelessWidget {
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.tx2)),
       ),
       const SizedBox(width: 8),
-      _iconBtn('⚙', onSettings),
+      _iconBtn('⚙', widget.onSettings),
     ]),
   );
 
@@ -105,7 +159,7 @@ class GameScreen extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(2),
               child: LinearProgressIndicator(
-                value: (scores[i] / scoreLimit).clamp(0.0, 1.0),
+                value: (scores[i] / widget.scoreLimit).clamp(0.0, 1.0),
                 backgroundColor: t.surf2,
                 valueColor: AlwaysStoppedAnimation(t.teamColor(i)),
               ),
@@ -157,8 +211,8 @@ class GameScreen extends StatelessWidget {
       ]),
       const SizedBox(height: 4),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('${scores[0]}/$scoreLimit', style: TextStyle(fontSize: 11, color: t.tx3)),
-        Text('${scores[1]}/$scoreLimit', style: TextStyle(fontSize: 11, color: t.tx3)),
+        Text('${scores[0]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3)),
+        Text('${scores[1]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3)),
       ]),
     ]),
   );
@@ -168,7 +222,7 @@ class GameScreen extends StatelessWidget {
     child: SizedBox(
       height: 5,
       child: LinearProgressIndicator(
-        value: (scores[i] / scoreLimit).clamp(0.0, 1.0),
+        value: (scores[i] / widget.scoreLimit).clamp(0.0, 1.0),
         backgroundColor: t.surf2,
         valueColor: AlwaysStoppedAnimation(t.teamColor(i)),
       ),
@@ -192,35 +246,41 @@ class GameScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       itemCount: rounds.length,
       itemBuilder: (_, idx) {
-        final r = rounds[rounds.length - 1 - idx];
-        final num = rounds.length - idx;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-          decoration: BoxDecoration(
-            color: t.surf, border: Border.all(color: t.bdr),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(width: 26,
-                    child: Center(child: Text('#$num',
-                        style: TextStyle(fontSize: 11, color: t.tx3, fontWeight: FontWeight.w700)))),
-                Expanded(child: _roundScore(r, 0)),
-                Container(
-                    width: 1, color: t.bdr,
-                    margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
-                Expanded(child: _roundScore(r, 1)),
-                SizedBox(
-                  width: 72,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: _roundMeta(r),
+        final index = rounds.length - 1 - idx;
+        final r = rounds[index];
+        final earned = widget.tally.earned[index];
+        final selected = _editing == index;
+        return GestureDetector(
+          onTap: () => _openEntry(index),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+            decoration: BoxDecoration(
+              color: selected ? t.accDim : t.surf,
+              border: Border.all(color: selected ? t.accBdr : t.bdr),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(width: 26,
+                      child: Center(child: Text('#${index + 1}',
+                          style: TextStyle(fontSize: 11, color: t.tx3, fontWeight: FontWeight.w700)))),
+                  Expanded(child: _roundScore(r, earned, 0)),
+                  Container(
+                      width: 1, color: t.bdr,
+                      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
+                  Expanded(child: _roundScore(r, earned, 1)),
+                  SizedBox(
+                    width: 72,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: _roundMeta(r),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -233,23 +293,22 @@ class GameScreen extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       if (r.isBait) _badge(strings.badgeBait, t.t1, t.t1.withValues(alpha: 0.13)),
-      if (r.yaytsia) _badge(strings.badgeEggs, t.egg, t.eggDim),
-      if (r.fell && !r.isBait && !r.yaytsia) _badge(strings.badgeFell, t.danger, t.dangerDim),
-      if (r.isBait || r.yaytsia || r.fell) const SizedBox(width: 3),
+      if (r.isTie) _badge(strings.badgeEggs, t.egg, t.eggDim),
+      if (r.isBait || r.isTie) const SizedBox(width: 3),
       Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );
 
-  Widget _roundScore(Round r, int i) {
-    final fell = (r.fell || r.yaytsia) && r.dealer == i;
+  Widget _roundScore(Round r, List<int> earned, int i) {
+    final lost = r.isTie && r.dealer == i;
     return Align(
       alignment: i == 0 ? Alignment.centerRight : Alignment.centerLeft,
       child: Text(
-        '${r.earned[i]}',
+        '${earned[i]}',
         style: TextStyle(
           fontSize: 14, fontWeight: FontWeight.w700,
-          color: fell ? t.danger : t.teamColor(i),
-          decoration: fell ? TextDecoration.lineThrough : null,
+          color: lost ? t.danger : t.teamColor(i),
+          decoration: lost ? TextDecoration.lineThrough : null,
         ),
       ),
     );

@@ -17,6 +17,7 @@ class AppStrings {
 
   // Game
   String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
+  String get undoBtn         => '↶';
   String get deals           => isUk ? 'роздає'                             : 'deals';
   String get noRoundsYet     => isUk ? 'Ще немає роздач'                    : 'No rounds yet';
   String get tapNewRound     => isUk ? 'Натисни «Нова роздача» нижче'       : 'Tap "New round" below';
@@ -28,6 +29,7 @@ class AppStrings {
   // Win
   String get winLabel        => isUk ? 'перемагають!'                       : 'win!';
   String get finalScore      => isUk ? 'Фінальний рахунок'                  : 'Final score';
+  String get undoLastRound   => isUk ? '↶ Скасувати останню роздачу'        : '↶ Undo the last round';
 
   // Settings
   String get settingsTitle   => isUk ? 'Налаштування'                       : 'Settings';
@@ -54,6 +56,8 @@ class AppStrings {
   String get inputting       => isUk ? '▼ вводиш'                           : '▼ input';
   String get auto            => isUk ? 'авто'                               : 'auto';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';
+  String get delete          => isUk ? 'Видалити'                           : 'Delete';
+  String editingRound(int n) => isUk ? '✎ Роздача #$n'                      : '✎ Round #$n';
   String get bait            => isUk ? 'Байт'                               : 'Bait';
   String get save            => isUk ? 'Зберегти'                           : 'Save';
 }

@@ -3,16 +3,26 @@ import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
 
+/// The bottom panel for entering a new deal or correcting a recorded one.
+/// It starts from [initial] when given and is reset by giving it a new key.
 class EntryPanel extends StatefulWidget {
   final AppTheme theme;
   final AppStrings strings;
   final List<String> teamNames;
   final int dealer;
+  final bool open;
+  final Round? initial;
+  final int? number;
+  final VoidCallback onOpen;
+  final VoidCallback onCancel;
   final void Function(Round) onSave;
+  final VoidCallback? onDelete;
 
   const EntryPanel({
     super.key, required this.theme, required this.strings,
-    required this.teamNames, required this.dealer, required this.onSave,
+    required this.teamNames, required this.dealer, required this.open,
+    this.initial, this.number,
+    required this.onOpen, required this.onCancel, required this.onSave, this.onDelete,
   });
 
   @override
@@ -20,22 +30,22 @@ class EntryPanel extends StatefulWidget {
 }
 
 class _EntryPanelState extends State<EntryPanel> {
-  bool _open = false;
   int _gv = 162;
   String _raw = '';
   late int _activeInput;
 
+  int get _dealer => widget.initial?.dealer ?? widget.dealer;
+
   @override
   void initState() {
     super.initState();
-    _activeInput = widget.dealer;
+    _activeInput = _dealer;
+    final r = widget.initial;
+    if (r != null) {
+      _gv = r.gv;
+      if (!r.isBait) _raw = '${r.score[_dealer]}';
+    }
   }
-
-  void _openPanel() {
-    setState(() { _open = true; _activeInput = widget.dealer; _raw = ''; _gv = 162; });
-  }
-
-  void _cancel() => setState(() { _open = false; _raw = ''; });
 
   void _tap(String k) {
     if (k == '⌫') { setState(() => _raw = _raw.isEmpty ? '' : _raw.substring(0, _raw.length - 1)); return; }
@@ -61,21 +71,13 @@ class _EntryPanelState extends State<EntryPanel> {
   }
 
   void _save() {
-    final p = _parsed;
-    if (p == null) return;
+    if (_parsed == null) return;
     final s = _score;
-    final earned = [s[0] ?? 0, s[1] ?? 0];
-    widget.onSave(Round(gv: _gv, dealer: widget.dealer, score: [s[0] ?? 0, s[1] ?? 0],
-        fell: false, yaytsia: _yaytsia, isBait: false, earned: earned));
-    _cancel();
+    widget.onSave(Round(gv: _gv, dealer: _dealer, score: [s[0] ?? 0, s[1] ?? 0]));
   }
 
   void _bait() {
-    final earned = [0, 0];
-    earned[1 - widget.dealer] = _gv;
-    widget.onSave(Round(gv: _gv, dealer: widget.dealer, score: [0, 0],
-        fell: false, yaytsia: false, isBait: true, earned: earned));
-    _cancel();
+    widget.onSave(Round(gv: _gv, dealer: _dealer, score: const [0, 0], isBait: true));
   }
 
   AppTheme get t => widget.theme;
@@ -83,16 +85,17 @@ class _EntryPanelState extends State<EntryPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_open) {
+    if (!widget.open) {
       return Container(
         decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
         padding: const EdgeInsets.fromLTRB(18, 11, 18, 18),
-        child: _ctaBtn(s.newRound, _openPanel),
+        child: _ctaBtn(s.newRound, widget.onOpen),
       );
     }
 
     final score = _score;
     final parsed = _parsed;
+    final gvs = kGV.contains(_gv) ? kGV : ([...kGV, _gv]..sort());
 
     return Container(
       decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
@@ -105,9 +108,10 @@ class _EntryPanelState extends State<EntryPanel> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(s.dealsNow, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
-              Text(widget.teamNames[widget.dealer],
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.teamColor(widget.dealer))),
+              Text(widget.number != null ? s.editingRound(widget.number!) : s.dealsNow,
+                  style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+              Text(widget.teamNames[_dealer],
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.teamColor(_dealer))),
             ],
           ),
           const SizedBox(height: 8),
@@ -116,10 +120,10 @@ class _EntryPanelState extends State<EntryPanel> {
             height: 34,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: kGV.length,
+              itemCount: gvs.length,
               separatorBuilder: (context, index) => const SizedBox(width: 6),
               itemBuilder: (_, i) {
-                final v = kGV[i];
+                final v = gvs[i];
                 final on = _gv == v;
                 return GestureDetector(
                   onTap: () => setState(() { _gv = v; _raw = ''; }),
@@ -171,7 +175,11 @@ class _EntryPanelState extends State<EntryPanel> {
           const SizedBox(height: 8),
           // actions
           Row(children: [
-            _ghostBtn(s.cancel, _cancel),
+            _ghostBtn(s.cancel, widget.onCancel),
+            if (widget.onDelete != null) ...[
+              const SizedBox(width: 6),
+              _deleteBtn(),
+            ],
             const SizedBox(width: 6),
             _baitBtn(),
             const SizedBox(width: 6),
@@ -258,6 +266,15 @@ class _EntryPanelState extends State<EntryPanel> {
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(12)),
       child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.tx2)),
+    ),
+  );
+
+  Widget _deleteBtn() => GestureDetector(
+    onTap: widget.onDelete,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+      decoration: BoxDecoration(color: t.dangerDim, borderRadius: BorderRadius.circular(12)),
+      child: Text(s.delete, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.danger)),
     ),
   );
 

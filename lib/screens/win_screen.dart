@@ -8,11 +8,12 @@ class WinScreen extends StatelessWidget {
   final List<String> teamNames;
   final List<int> scores;
   final int winner;
+  final VoidCallback onUndo;
   final VoidCallback onNewGame;
 
   const WinScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
-    required this.scores, required this.winner, required this.onNewGame,
+    required this.scores, required this.winner, required this.onUndo, required this.onNewGame,
   });
 
   AppTheme get t => theme;
@@ -67,6 +68,20 @@ class WinScreen extends StatelessWidget {
                     alignment: Alignment.center,
                     child: Text(strings.newGame,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
+                  ),
+                ),
+                const SizedBox(height: 9),
+                GestureDetector(
+                  onTap: onUndo,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 17),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: t.bdr, width: 1.5),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(strings.undoLastRound,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.tx2)),
                   ),
                 ),
               ],
