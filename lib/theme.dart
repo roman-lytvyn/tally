@@ -18,7 +18,8 @@ class AppTheme {
   Color get danger => isDark ? const Color(0xFFE05252) : const Color(0xFFC0392B);
   Color get egg   => isDark ? const Color(0xFFF0B429) : const Color(0xFFB07800);
 
-  Color teamColor(int i) => i == 0 ? t0 : t1;
+  Color get t2    => isDark ? const Color(0xFF6DBE7A) : const Color(0xFF2E7D3E);
+  Color teamColor(int i) => [t0, t1, t2][i];
   Color teamDim(int i)   => teamColor(i).withValues(alpha: 0.13);
   Color get accDim  => acc.withValues(alpha: 0.16);
   Color get accBdr  => acc.withValues(alpha: 0.45);

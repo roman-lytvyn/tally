@@ -4,6 +4,12 @@ const kBaseGV = 162;
 /// The targets a game can be played to: the short game, the usual and the long one.
 const kScoreLimits = [301, 501, 1001];
 
+/// How many can play: two or three each for themselves, or four in two teams.
+const kPlayerCounts = [2, 3, 4];
+
+/// How many sides keep a score when [players] play.
+int sidesFor(int players) => players == 4 ? 2 : players;
+
 /// The combinations declared in a deal, which raise its game value.
 class Declarations {
   /// Three cards in a row of one suit, worth 20 each.
@@ -83,9 +89,22 @@ class Round {
   }) : _declarations = declarations;
 
   /// A thrown-in deal by [dealer] where nobody took the trump.
-  const Round.redeal({required this.dealer})
-      : gv = kBaseGV, taker = dealer, score = const [0, 0], isBait = false,
+  Round.redeal({required this.dealer, int sides = 2})
+      : gv = kBaseGV, taker = dealer, score = List.filled(sides, 0), isBait = false,
         _declarations = null, deberc = null, isRedeal = true;
+
+  /// The sides playing against the trump-taker.
+  Iterable<int> get opponents sync* {
+    for (var i = 0; i < score.length; i++) {
+      if (i != taker) yield i;
+    }
+  }
+
+  int get _bestOpponentScore => opponents.map((i) => score[i]).reduce((a, b) => a > b ? a : b);
+
+  /// The opponents who take the deal when the trump-taker loses it: the one
+  /// who scored the most, or all who share the most.
+  List<int> get baitTakers => [for (final i in opponents) if (score[i] == _bestOpponentScore) i];
 
   /// What was declared in the deal; for deals saved with only a game value
   /// it is worked back out of that value.
@@ -96,11 +115,13 @@ class Round {
   /// Whether the deal was actually played out and scored.
   bool get isPlayed => !isDeberc && !isRedeal;
 
-  bool get isTie => isPlayed && !isBait && score[0] == score[1];
+  /// The side that took the trump scored exactly as much as the best of its
+  /// opponents.
+  bool get isTie => isPlayed && !isBait && score[taker] == _bestOpponentScore;
 
-  /// The side that took the trump scored less than its opponents, either by
+  /// The side that took the trump scored less than an opponent, either by
   /// the points entered or because the deal was recorded straight as bait.
-  bool get isBaited => isPlayed && (isBait || score[taker] < score[1 - taker]);
+  bool get isBaited => isPlayed && (isBait || score[taker] < _bestOpponentScore);
 
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
@@ -124,6 +145,7 @@ class Round {
 }
 
 class GameState {
+  /// One name per side: a team when four play, a player otherwise.
   final List<String> teamNames;
   final int scoreLimit;
   final List<Round> rounds;
@@ -131,13 +153,18 @@ class GameState {
   /// When nobody else takes the trump the dealer has to play the deal.
   final bool dealerMustPlay;
   final TieRule tieRule;
+  /// 2 or 3 playing each for themselves, or 4 in two teams.
+  final int players;
 
   const GameState({
     required this.teamNames, required this.scoreLimit,
     required this.rounds, required this.firstDealer,
     this.dealerMustPlay = false,
     this.tieRule = TieRule.hanging,
+    this.players = 4,
   });
+
+  int get sides => sidesFor(players);
 
   Map<String, dynamic> toJson() => {
     'screen': 'game',
@@ -147,6 +174,7 @@ class GameState {
     'firstDealer': firstDealer,
     'dealerMustPlay': dealerMustPlay,
     'tieRule': tieRule.name,
+    'players': players,
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) {
@@ -161,9 +189,10 @@ class GameState {
       dealerMustPlay: j['dealerMustPlay'] ?? false,
       // Games saved before the rule was chosen kept each side's own points.
       tieRule: TieRule.values.asNameMap()[j['tieRule']] ?? TieRule.eachKeepsOwn,
+      players: j['players'] ?? 4,
     );
   }
 
   /// The side with the first right to the trump: the player to the dealer's left.
-  int firstToBid(int dealer) => 1 - dealer;
+  int firstToBid(int dealer) => (dealer + 1) % sides;
 }

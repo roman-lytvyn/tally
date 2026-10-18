@@ -35,72 +35,98 @@ class EntryPanel extends StatefulWidget {
 
 class _EntryPanelState extends State<EntryPanel> {
   Declarations _decl = const Declarations();
-  String _raw = '';
+  /// What has been typed for each side; null for a side worked out from the rest.
+  late List<String?> _raws;
+  /// The sides typed in, oldest first. All sides but one are typed and the
+  /// last one gets what remains of the deal.
+  late List<int> _entered;
   late int _activeInput;
   late int _taker;
   /// The side holding a deberc, when one was declared.
   int? _debercBy;
 
+  int get _sides => widget.teamNames.length;
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
   int get _gv => _decl.gv;
+  Round? get _scored {
+    final r = widget.initial;
+    return r != null && r.isPlayed && !r.isBait ? r : null;
+  }
 
   @override
   void initState() {
     super.initState();
     final r = widget.initial;
     _taker = r?.taker ?? widget.firstToBid;
-    _activeInput = _taker;
-    if (r != null) {
-      _decl = r.declarations;
-      _debercBy = r.deberc;
-      if (!r.isBait && !r.isDeberc) _raw = '${r.score[_taker]}';
+    _decl = r?.declarations ?? const Declarations();
+    _debercBy = r?.deberc;
+    _startInput(_taker);
+    final scored = _scored;
+    if (scored != null) {
+      _entered = [for (var k = 0; k < _sides - 1; k++) (_taker + k) % _sides];
+      _raws = List.generate(_sides, (i) => _entered.contains(i) ? '${scored.score[i]}' : null);
     }
+  }
+
+  /// Starts entering the deal again from side [i] alone.
+  void _startInput(int i) {
+    _raws = List.filled(_sides, null)..[i] = '';
+    _entered = [i];
+    _activeInput = i;
+  }
+
+  /// Moves the input to side [i]; when that would leave no side to work out,
+  /// the side typed longest ago becomes the worked-out one.
+  void _selectInput(int i) {
+    if (!_entered.contains(i)) {
+      _entered.add(i);
+      _raws[i] = '';
+      if (_entered.length > _sides - 1) _raws[_entered.removeAt(0)] = null;
+    }
+    _activeInput = i;
   }
 
   void _tap(String k) {
-    if (k == '⌫') { setState(() => _raw = _raw.isEmpty ? '' : _raw.substring(0, _raw.length - 1)); return; }
-    if (_raw.length >= 3) return;
-    setState(() => _raw = _raw + k);
+    final raw = _raws[_activeInput] ?? '';
+    if (k == '⌫') { setState(() => _raws[_activeInput] = raw.isEmpty ? '' : raw.substring(0, raw.length - 1)); return; }
+    if (raw.length >= 3) return;
+    setState(() => _raws[_activeInput] = raw + k);
   }
 
-  int? get _parsed {
-    if (_raw.isEmpty) return null;
-    final v = int.tryParse(_raw) ?? 0;
-    return v.clamp(0, _gv);
-  }
-
+  /// Each side's points, or null for every side while something is missing.
   List<int?> get _score {
-    final p = _parsed;
-    if (p == null) return [null, null];
-    return _activeInput == 0 ? [p, (_gv - p).clamp(0, _gv)] : [(_gv - p).clamp(0, _gv), p];
+    final missing = List<int?>.filled(_sides, null);
+    if (_entered.length != _sides - 1 || _entered.any((i) => _raws[i]!.isEmpty)) return missing;
+    final typed = [for (final raw in _raws) raw == null ? null : (int.tryParse(raw) ?? 0).clamp(0, _gv)];
+    final rest = _gv - typed.fold<int>(0, (sum, v) => sum + (v ?? 0));
+    return [for (final v in typed) v ?? rest.clamp(0, _gv)];
   }
 
-  bool get _yaytsia {
-    final s = _score;
-    return _parsed != null && s[0] != null && s[1] != null && s[0] == s[1];
-  }
+  bool get _complete => _score.every((v) => v != null);
 
-  bool get _baited {
-    final s = _score;
-    return _parsed != null && s[_taker]! < s[1 - _taker]!;
-  }
+  Round get _round => Round(gv: _gv, dealer: _dealer, taker: _taker,
+      score: [for (final v in _score) v ?? 0], declarations: _decl);
+
+  bool get _yaytsia => _complete && _round.isTie;
+
+  bool get _baited => _complete && _round.isBaited;
 
   void _save() {
     if (_debercBy != null) {
-      widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: const [0, 0],
+      widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: List.filled(_sides, 0),
           declarations: _decl, deberc: _debercBy));
       return;
     }
-    if (_parsed == null) return;
-    final s = _score;
-    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: [s[0] ?? 0, s[1] ?? 0],
-        declarations: _decl));
+    if (!_complete) return;
+    widget.onSave(_round);
   }
 
   void _bait() {
-    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: const [0, 0], isBait: true,
+    widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: List.filled(_sides, 0), isBait: true,
         declarations: _decl));
   }
+
+  String _names(Iterable<int> sides) => sides.map((i) => widget.teamNames[i]).join(', ');
 
   AppTheme get t => widget.theme;
   AppStrings get s => widget.strings;
@@ -116,7 +142,6 @@ class _EntryPanelState extends State<EntryPanel> {
     }
 
     final score = _score;
-    final parsed = _parsed;
 
     return Container(
       decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
@@ -144,7 +169,7 @@ class _EntryPanelState extends State<EntryPanel> {
                 : Align(
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
-                      onTap: () => widget.onSave(Round.redeal(dealer: _dealer)),
+                      onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides)),
                       child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
                           color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
                     ),
@@ -167,19 +192,20 @@ class _EntryPanelState extends State<EntryPanel> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             child: Row(
               children: [
-                Expanded(child: _teamInput(0, score[0])),
-                Text(':', style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)),
-                Expanded(child: _teamInput(1, score[1])),
+                for (var i = 0; i < _sides; i++) ...[
+                  if (i > 0) Text(':', style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)),
+                  Expanded(child: _teamInput(i, score[i])),
+                ],
               ],
             ),
           ),
-          if (_yaytsia && parsed != null) ...[
+          if (_yaytsia) ...[
             const SizedBox(height: 6),
-            _hint('🥚', s.eggsMsg(widget.tieRule, score[0] ?? 0, widget.teamNames[1 - _taker]), t.egg, t.eggDim),
+            _hint('🥚', s.eggsMsg(widget.tieRule, score[_taker] ?? 0, _names(_round.opponents)), t.egg, t.eggDim),
           ],
           if (_baited) ...[
             const SizedBox(height: 6),
-            _hint('⚠', s.baitMsg(widget.teamNames[1 - _taker], _gv), t.danger, t.dangerDim),
+            _hint('⚠', s.baitMsg(_names(_round.baitTakers), _gv), t.danger, t.dangerDim),
           ],
           const SizedBox(height: 8),
           // numpad
@@ -193,7 +219,9 @@ class _EntryPanelState extends State<EntryPanel> {
               const SizedBox(width: 6),
               _deleteBtn(),
             ],
-            if (_debercBy == null) ...[
+            // With three players it is the points that tell which opponent
+            // takes the deal, so bait cannot be recorded without them.
+            if (_debercBy == null && _sides == 2) ...[
               const SizedBox(width: 6),
               _baitBtn(),
             ],
@@ -218,7 +246,7 @@ class _EntryPanelState extends State<EntryPanel> {
   );
 
   Widget _takerRow() => _sideRow(s.trumpTakenBy, _taker, '♠',
-      (i) => setState(() { _taker = i; _activeInput = i; _raw = ''; }));
+      (i) => setState(() { _taker = i; _startInput(i); }));
 
   /// A label followed by one chip per side, the [selected] one marked.
   Widget _sideRow(String label, int selected, String mark, void Function(int) onSelect) => Row(children: [
@@ -339,8 +367,13 @@ class _EntryPanelState extends State<EntryPanel> {
 
   Widget _teamInput(int idx, int? val) {
     final active = _activeInput == idx;
+    final raw = _raws[idx];
+    final typed = raw != null;
+    // A typed side shows what was typed even before the deal adds up.
+    final shown = !typed ? val : raw.isEmpty ? null : (int.tryParse(raw) ?? 0).clamp(0, _gv);
     return GestureDetector(
-      onTap: () { if (!active) setState(() { _activeInput = idx; _raw = ''; }); },
+      key: ValueKey('score.$idx'),
+      onTap: () { if (!active) setState(() => _selectInput(idx)); },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
@@ -354,12 +387,12 @@ class _EntryPanelState extends State<EntryPanel> {
                     color: t.teamColor(idx))),
             const SizedBox(height: 2),
             Text(
-              val != null ? '$val' : '—',
+              shown != null ? '$shown' : '—',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.1,
-                  color: val != null ? t.tx : t.tx3),
+                  color: shown != null ? t.tx : t.tx3),
             ),
             const SizedBox(height: 1),
-            Text(active ? s.inputting : s.auto,
+            Text(active ? s.inputting : typed ? ' ' : s.auto,
                 style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.3,
                     color: active ? t.teamColor(idx) : t.tx3)),
           ],
@@ -439,7 +472,7 @@ class _EntryPanelState extends State<EntryPanel> {
   );
 
   Widget _saveBtn() {
-    final enabled = _parsed != null || _debercBy != null;
+    final enabled = _complete || _debercBy != null;
     return GestureDetector(
       onTap: enabled ? _save : null,
       child: Container(

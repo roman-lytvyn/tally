@@ -7,6 +7,8 @@ class SetupScreen extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
   final List<String> teamNames;
+  final int players;
+  final void Function(int) onPlayersChanged;
   final int scoreLimit;
   final int firstDealer;
   final bool hasSavedGame;
@@ -23,6 +25,7 @@ class SetupScreen extends StatelessWidget {
 
   const SetupScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
+    this.players = 4, required this.onPlayersChanged,
     required this.scoreLimit, required this.firstDealer, required this.hasSavedGame,
     required this.dealerMustPlay, required this.onDealerMustPlayChanged,
     required this.tieRule, required this.onTieRuleChanged,
@@ -68,23 +71,34 @@ class SetupScreen extends StatelessWidget {
                 ]),
                 const SizedBox(height: 24),
 
-                // team names
-                _label(strings.teams),
-                _TeamInput(theme: t, index: 0, value: teamNames[0],
-                    hint: strings.ourTeamHint,
-                    onChanged: (v) { final n = [...teamNames]; n[0] = v; onTeamNamesChanged(n); }),
-                const SizedBox(height: 8),
-                _TeamInput(theme: t, index: 1, value: teamNames[1],
-                    hint: strings.otherTeamHint,
-                    onChanged: (v) { final n = [...teamNames]; n[1] = v; onTeamNamesChanged(n); }),
+                // how many play
+                _label(strings.howManyPlay),
+                Row(children: [
+                  for (final n in kPlayerCounts) ...[
+                    if (n != kPlayerCounts.first) const SizedBox(width: 8),
+                    Expanded(child: _segBtn(strings.playersOption(n), players == n, -1,
+                        () => onPlayersChanged(n), key: ValueKey('players.$n'))),
+                  ],
+                ]),
+                const SizedBox(height: 20),
+
+                // team or player names
+                _label(players == 4 ? strings.teams : strings.players),
+                for (var i = 0; i < teamNames.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 8),
+                  _TeamInput(key: ValueKey('name.$players.$i'), theme: t, index: i, value: teamNames[i],
+                      hint: strings.nameHint(players, i),
+                      onChanged: (v) { final n = [...teamNames]; n[i] = v; onTeamNamesChanged(n); }),
+                ],
                 const SizedBox(height: 20),
 
                 // first dealer
                 _label(strings.whoDealsFirst),
                 Row(children: [
-                  Expanded(child: _segBtn(teamNames[0], firstDealer == 0, 0, () => onFirstDealerChanged(0))),
-                  const SizedBox(width: 8),
-                  Expanded(child: _segBtn(teamNames[1], firstDealer == 1, 1, () => onFirstDealerChanged(1))),
+                  for (var i = 0; i < teamNames.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    Expanded(child: _segBtn(teamNames[i], firstDealer == i, i, () => onFirstDealerChanged(i))),
+                  ],
                 ]),
                 const SizedBox(height: 20),
 
@@ -164,10 +178,11 @@ class SetupScreen extends StatelessWidget {
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1, color: t.tx2)),
   );
 
-  Widget _segBtn(String label, bool active, int teamIdx, VoidCallback onTap, {double fontSize = 15}) {
+  Widget _segBtn(String label, bool active, int teamIdx, VoidCallback onTap, {double fontSize = 15, Key? key}) {
     final color = teamIdx >= 0 ? t.teamColor(teamIdx) : t.acc;
     final dim   = teamIdx >= 0 ? t.teamDim(teamIdx)   : t.accDim;
     return GestureDetector(
+      key: key,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -216,7 +231,7 @@ class _TeamInput extends StatefulWidget {
   final void Function(String) onChanged;
 
   const _TeamInput({
-    required this.theme, required this.index,
+    super.key, required this.theme, required this.index,
     required this.value, required this.hint, required this.onChanged,
   });
 

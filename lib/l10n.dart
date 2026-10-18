@@ -16,6 +16,17 @@ class AppStrings {
   String get settingsBtn     => isUk ? '⚙ Налаштування'                     : '⚙ Settings';
   String get ourTeamHint     => isUk ? 'Наша команда'                       : 'Our team';
   String get otherTeamHint   => isUk ? 'Інша команда'                       : 'Other team';
+  String get players         => isUk ? 'Гравці'                             : 'Players';
+  String get howManyPlay     => isUk ? 'Скільки грає'                       : 'How many play';
+  String playersOption(int n) => n == 4 ? '2 × 2' : '$n';
+  String player(int n)       => isUk ? 'Гравець $n'                         : 'Player $n';
+  /// The names a game starts with: two teams, or one per player.
+  List<String> defaultNames(int players) => players == 4
+      ? (isUk ? ['Ми', 'Вони'] : ['Us', 'Them'])
+      : [for (var i = 1; i <= players; i++) player(i)];
+  String nameHint(int players, int side) => players == 4
+      ? (side == 0 ? ourTeamHint : otherTeamHint)
+      : player(side + 1);
   String get rules           => isUk ? 'Правила'                            : 'Rules';
   String get dealerMustPlay  => isUk ? 'Роздавач зобов\'язаний грати'        : 'Dealer must play';
   String get dealerMustPlayDesc => isUk
@@ -55,6 +66,7 @@ class AppStrings {
 
   // Win
   String get winLabel        => isUk ? 'перемагають!'                       : 'win!';
+  String get winLabelOne     => isUk ? 'перемагає!'                         : 'wins!';
   String get finalScore      => isUk ? 'Фінальний рахунок'                  : 'Final score';
   String get undoLastRound   => isUk ? '↶ Скасувати останню роздачу'        : '↶ Undo the last round';
 
