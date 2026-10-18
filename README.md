@@ -125,8 +125,10 @@ or **1001**.
 
 ## How the App Scores a Deal
 
-Each deal has a **game value (GV)**: 162 plus the declarations. You enter the
-points of one side and the app gives the rest of the GV to the other side.
+Each deal has a **game value (GV)**: 162 plus the declarations. You count the
+tierces and fifties declared and tick bella if it was shown; the app adds them
+up, so any value the table can reach is possible. You then enter the points of
+one side and the app gives the rest of the GV to the other side.
 
 - **Who took the trump** — every deal records which side took the trump. The
   side to the dealer's left has the first right to it and is preselected; tap
@@ -167,7 +169,7 @@ Tap **«New game»** to start.
 After each round, tap **«+ New round»** at the bottom of the screen:
 
 1. **Who took the trump** — the side to the dealer's left is preselected; tap the other side if they took it
-2. **Select the GV** — scroll the horizontal list and pick the game value for this round
+2. **Declarations** — use **−** / **+** to count the tierces (20) and fifties (50) and tap **«Bella»** (20) if it was declared; the deal's value is shown next to them
 3. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering
 4. If the scores are equal, an «Eggs» hint appears automatically
 5. If the side that took the trump has fewer points, the app warns that this is bait and gives the whole GV to the opponents; tap **«Bait»** to record bait without entering points
@@ -187,7 +189,7 @@ The game screen shows:
 
 - **Undo** — the **↶** button in the header removes the last recorded deal.
 - **Edit or remove any deal** — tap a deal in the history to open it in the
-  entry panel, change the GV, the points or the bait flag and tap **«Save»**,
+  entry panel, change the declarations, the points or who took the trump and tap **«Save»**,
   or tap **«Delete»** to remove it. Totals, the dealer and the winner are
   recalculated from the remaining deals.
 - **Undo a win** — if the last deal ended the game by mistake, the win screen
