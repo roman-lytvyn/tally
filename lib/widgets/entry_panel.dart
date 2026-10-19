@@ -319,17 +319,21 @@ class _EntryPanelState extends State<EntryPanel> {
     return GestureDetector(
       key: const ValueKey('deberc'),
       onTap: () => setState(() => _debercBy = on ? null : _taker),
-      child: Container(
+      // Once pressed the key looks like the win it stands for.
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: on ? t.accDim : t.nk,
-          border: Border.all(color: on ? t.accBdr : Colors.transparent, width: 1.5),
+          gradient: on ? t.ctaGradient : null,
+          color: on ? null : t.nk,
           borderRadius: BorderRadius.circular(10),
+          boxShadow: on ? [BoxShadow(color: t.acc.withValues(alpha: 0.45), blurRadius: 10)] : null,
         ),
         alignment: Alignment.center,
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text('${on ? '✓ ' : '✦ '}${s.deberc}', maxLines: 1,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
+          child: Text('${on ? '🏆 ' : '✦ '}${s.deberc}', maxLines: 1,
+              style: TextStyle(fontSize: 13, fontWeight: on ? FontWeight.w800 : FontWeight.w700,
+                  color: on ? const Color(0xFF111111) : t.tx2)),
         ),
       ),
     );
@@ -426,10 +430,6 @@ class _EntryPanelState extends State<EntryPanel> {
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.1,
                   color: shown != null ? t.tx : t.tx3),
             ),
-            const SizedBox(height: 1),
-            Text(active ? s.inputting : typed ? ' ' : s.auto,
-                style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.3,
-                    color: active ? t.teamColor(idx) : t.tx3)),
           ],
         ),
       ),

@@ -185,6 +185,8 @@ void main() {
     await tester.pump();
     // The side that took the trump is offered first.
     expect(find.text(uk.debercWins('Вони')), findsOneWidget);
+    // The pressed key is dressed as a win.
+    expect(find.text('🏆 ${uk.deberc}'), findsOneWidget);
 
     await tapText(tester, uk.save);
 
