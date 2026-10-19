@@ -7,7 +7,7 @@ class AppStrings {
   bool get isUk => lang == 'uk';
 
   // Setup
-  String get appTitle        => isUk ? 'Деберц'                             : 'Deberc';
+  String get appTitle        => isUk ? 'Деберць'                            : 'Deberc';
   String get teams           => isUk ? 'Команди'                            : 'Teams';
   String get whoDealsFirst   => isUk ? 'Хто роздає першим'                  : 'Who deals first';
   String get playTo          => isUk ? 'Гра до'                             : 'Play to';
@@ -123,12 +123,12 @@ class AppStrings {
   String get fifty           => isUk ? 'П\'ятдесят'                         : 'Fifty';
   String get bella           => isUk ? 'Бела'                               : 'Bella';
   String dealValue(int gv)   => isUk ? 'Гра: $gv'                           : 'Deal: $gv';
-  String get deberc          => isUk ? 'Деберц'                             : 'Deberc';
-  String get debercBy        => isUk ? 'Деберц у'                           : 'Deberc held by';
+  String get deberc          => isUk ? 'Деберць'                            : 'Deberc';
+  String get debercBy        => isUk ? 'Деберць у'                          : 'Deberc held by';
   String debercWins(String side) => isUk
       ? 'Сім козирів підряд — $side виграють гру'
       : 'Seven trumps in a row — $side win the game';
-  String get badgeDeberc     => isUk ? 'ДЕБЕРЦ'                             : 'DEBERC';
+  String get badgeDeberc     => isUk ? 'ДЕБЕРЦЬ'                            : 'DEBERC';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';
   String get delete          => isUk ? 'Видалити'                           : 'Delete';
   String editingRound(int n) => isUk ? '✎ Роздача #$n'                      : '✎ Round #$n';

@@ -1,5 +1,5 @@
 name: deberc
-description: "Деберц — лічильник очок"
+description: "Деберць — лічильник очок"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -55,7 +55,7 @@ dev_dependencies:
 # Defaults for a local `dart run msix:create`. The release pipeline overrides
 # the identity fields on the command line with the values from Partner Center.
 msix_config:
-  display_name: Деберц
+  display_name: Деберць
   publisher_display_name: Roman Lytvyn
   identity_name: com.deberc.deberc
   msix_version: 1.0.0.0
