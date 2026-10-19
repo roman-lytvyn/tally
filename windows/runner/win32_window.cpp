@@ -3,6 +3,8 @@
 #include <dwmapi.h>
 #include <flutter_windows.h>
 
+#include <algorithm>
+
 #include "resource.h"
 
 namespace {
@@ -134,10 +136,29 @@ bool Win32Window::Create(const std::wstring& title,
   UINT dpi = FlutterDesktopGetDpiForMonitor(monitor);
   double scale_factor = dpi / 96.0;
 
+  // A fixed window, like the Calculator's: it cannot be resized or maximised.
+  const DWORD style = WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME & ~WS_MAXIMIZEBOX;
+
+  // |size| is the content area; the frame is added around it and the whole
+  // window is kept within the work area and centred in it.
+  RECT frame = {0, 0, Scale(size.width, scale_factor),
+                Scale(size.height, scale_factor)};
+  AdjustWindowRectEx(&frame, style, FALSE, 0);
+  int width = frame.right - frame.left;
+  int height = frame.bottom - frame.top;
+  int x = Scale(origin.x, scale_factor);
+  int y = Scale(origin.y, scale_factor);
+  MONITORINFO monitor_info = {sizeof(monitor_info)};
+  if (GetMonitorInfo(monitor, &monitor_info)) {
+    const RECT& work = monitor_info.rcWork;
+    width = (std::min)(width, static_cast<int>(work.right - work.left));
+    height = (std::min)(height, static_cast<int>(work.bottom - work.top));
+    x = work.left + (work.right - work.left - width) / 2;
+    y = work.top + (work.bottom - work.top - height) / 2;
+  }
+
   HWND window = CreateWindow(
-      window_class, title.c_str(), WS_OVERLAPPEDWINDOW,
-      Scale(origin.x, scale_factor), Scale(origin.y, scale_factor),
-      Scale(size.width, scale_factor), Scale(size.height, scale_factor),
+      window_class, title.c_str(), style, x, y, width, height,
       nullptr, nullptr, GetModuleHandle(nullptr), this);
 
   if (!window) {

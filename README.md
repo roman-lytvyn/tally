@@ -248,6 +248,7 @@ The game state is automatically saved after every change. Only the recorded deal
 - **Dart** — programming language
 - **shared_preferences** — game state and settings persistence
 - Supported platforms: **Android**, **iOS**, **Windows**
+- On Windows the app opens in a fixed, phone-sized window centred on the screen, which cannot be resized or maximised
 
 ## Delivery
 
