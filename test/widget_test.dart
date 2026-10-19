@@ -85,7 +85,7 @@ void main() {
       await tapText(tester, en.newGame);
       await tapText(tester, en.newRound);
 
-      expect(find.text(en.dealerPlaysIfAllPass), findsOneWidget);
+      expect(find.text(en.trumpTakenBy), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('deberc')));
       await tester.pump();
       expect(find.text(en.debercWins('Them')), findsOneWidget);
@@ -280,7 +280,38 @@ void main() {
     await openRound(tester);
 
     expect(find.text(uk.allPassed), findsNothing);
-    expect(find.text(uk.dealerPlaysIfAllPass), findsOneWidget);
+  });
+
+  testWidgets('stacks the trump choice beside the deal value', (tester) async {
+    await openRound(tester);
+
+    final us = tester.getRect(find.byKey(const ValueKey('taker.0')));
+    final them = tester.getRect(find.byKey(const ValueKey('taker.1')));
+    expect(them.top, greaterThan(us.bottom));
+    expect(them.left, us.left);
+
+    final tierce = tester.getRect(find.byKey(const ValueKey('tierce.−')));
+    final fifty = tester.getRect(find.byKey(const ValueKey('fifty.+')));
+    final bella = tester.getRect(find.byKey(const ValueKey('bella')));
+    expect(tierce.left, greaterThan(us.right));
+    expect(fifty.top, tierce.top);
+    expect(bella.top, greaterThan(tierce.bottom));
+    expect(bella.left, lessThanOrEqualTo(tierce.left));
+    expect(bella.right, greaterThanOrEqualTo(fifty.right));
+    expect(tierce.top, closeTo(us.top, 2));
+    expect(bella.bottom, them.bottom);
+    expect(find.text(uk.dealValue(162)), findsOneWidget);
+  });
+
+  testWidgets('makes the value wheel as tall as the side buttons', (tester) async {
+    SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_value_input': 'wheel'});
+    await openRound(tester);
+
+    final us = tester.getRect(find.byKey(const ValueKey('taker.0')));
+    final them = tester.getRect(find.byKey(const ValueKey('taker.1')));
+    final wheel = tester.getRect(find.byKey(const ValueKey('valueWheel')));
+    expect(wheel.top, us.top);
+    expect(wheel.bottom, them.bottom);
   });
 
   testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {

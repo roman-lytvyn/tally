@@ -102,9 +102,6 @@ class AppStrings {
   String get newRound        => isUk ? '+ Нова роздача'                     : '+ New round';
   String get dealsNow        => isUk ? '🃏 Роздає зараз:'                   : '🃏 Deals now:';
   String get trumpTakenBy    => isUk ? 'Козир узяли:'                       : 'Trump taken by:';
-  String get dealerPlaysIfAllPass => isUk
-      ? 'Якщо всі спасували — грає роздавач'
-      : 'If everyone passed, the dealer plays';
   String eggsMsg(TieRule rule, int points, String opponents) => switch (rule) {
     TieRule.hanging => isUk
         ? 'Яйця! $points очок висять до наступної роздачі'
@@ -122,7 +119,6 @@ class AppStrings {
   String baitMsg(String opponents, int gv) => isUk
       ? 'Байт! Усі $gv отримують $opponents'
       : 'Bait! $opponents get all $gv';
-  String get declarations    => isUk ? 'Комбінації'                         : 'Declarations';
   String get tierce          => isUk ? 'Терц'                               : 'Tierce';
   String get fifty           => isUk ? 'П\'ятдесят'                         : 'Fifty';
   String get bella           => isUk ? 'Бела'                               : 'Bella';
