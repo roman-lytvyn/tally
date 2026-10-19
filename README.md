@@ -149,8 +149,8 @@ one side and the app gives the rest of the GV to the other side.
     points are held, the game screen shows how many.
   - **To opponents** — a tie counts as bait and the opponents get the whole GV.
   - **Each keeps own** — both sides score what they took.
-- **Deberc** — when a side declares seven trumps in a row, tap **«Deberc»**
-  and pick the side holding it: that side wins the game at once, whatever the
+- **Deberc** — when a side declares seven trumps in a row, tap the
+  **«Deberc»** key beside 0 and pick the side holding it: that side wins the game at once, whatever the
   score. The deal is marked with a «Deberc» badge and can still be undone.
 
 ---
