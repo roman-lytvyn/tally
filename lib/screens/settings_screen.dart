@@ -6,17 +6,20 @@ class SettingsScreen extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
   final String scoreStyle;
+  final String valueInput;
   final String lang;
   final String themeMode;
   final void Function(String) onThemeModeChanged;
   final void Function(String) onScoreStyleChanged;
+  final void Function(String) onValueInputChanged;
   final void Function(String) onLangChanged;
   final VoidCallback onBack;
 
   const SettingsScreen({
     super.key, required this.theme, required this.strings, required this.scoreStyle,
-    required this.lang, required this.themeMode, required this.onThemeModeChanged,
-    required this.onScoreStyleChanged, required this.onLangChanged, required this.onBack,
+    required this.valueInput, required this.lang, required this.themeMode,
+    required this.onThemeModeChanged, required this.onScoreStyleChanged,
+    required this.onValueInputChanged, required this.onLangChanged, required this.onBack,
   });
 
   AppTheme get t => theme;
@@ -93,6 +96,24 @@ class SettingsScreen extends StatelessWidget {
                       ]),
                     ]),
                   ),
+                  _divider(),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(strings.gameValue,
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+                      const SizedBox(height: 2),
+                      Text(strings.gameValueDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Expanded(child: _option('+ −', strings.valueCounters, valueInput == 'counters',
+                            () => onValueInputChanged('counters'))),
+                        const SizedBox(width: 6),
+                        Expanded(child: _option('⇅', strings.valueWheel, valueInput == 'wheel',
+                            () => onValueInputChanged('wheel'))),
+                      ]),
+                    ]),
+                  ),
                 ]),
                 const SizedBox(height: 14),
                 _groupLabel(strings.language),
@@ -147,10 +168,12 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _styleOpt(String icon, String label, String value) {
-    final on = scoreStyle == value;
+  Widget _styleOpt(String icon, String label, String value) =>
+      _option(icon, label, scoreStyle == value, () => onScoreStyleChanged(value));
+
+  Widget _option(String icon, String label, bool on, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () => onScoreStyleChanged(value),
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),

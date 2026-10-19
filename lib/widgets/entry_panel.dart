@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
@@ -14,6 +16,9 @@ class EntryPanel extends StatefulWidget {
   final bool dealerMustPlay;
   final TieRule tieRule;
   final bool open;
+  /// The value of the deal is picked on a scroll wheel instead of counted
+  /// up from its declarations.
+  final bool valueWheel;
   final Round? initial;
   final int? number;
   final VoidCallback onOpen;
@@ -25,7 +30,7 @@ class EntryPanel extends StatefulWidget {
     super.key, required this.theme, required this.strings,
     required this.teamNames, required this.dealer, required this.firstToBid,
     required this.dealerMustPlay, required this.tieRule, required this.open,
-    this.initial, this.number,
+    this.valueWheel = false, this.initial, this.number,
     required this.onOpen, required this.onCancel, required this.onSave, this.onDelete,
   });
 
@@ -296,7 +301,7 @@ class _EntryPanelState extends State<EntryPanel> {
 
   /// The declarations made in the deal, which together with the 162 points
   /// of the cards make up its value.
-  Widget _declarationsRow() => Column(
+  Widget _declarationsRow() => widget.valueWheel ? _valueWheelRow() : Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Row(
@@ -318,6 +323,21 @@ class _EntryPanelState extends State<EntryPanel> {
       ]),
     ],
   );
+
+  /// The value of the deal picked straight from every value it can have.
+  Widget _valueWheelRow() => Row(children: [
+    Expanded(child: Text(s.declarations,
+        style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600))),
+    Container(
+      width: 140, height: 84,
+      decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(10)),
+      clipBehavior: Clip.antiAlias,
+      child: _ValueWheel(
+        theme: t, value: _gv,
+        onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv)),
+      ),
+    ),
+  ]);
 
   Widget _counter(String id, String label, int count, Declarations Function(int) change) {
     final on = count > 0;
@@ -491,6 +511,63 @@ class _EntryPanelState extends State<EntryPanel> {
         child: Text(s.save,
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
                 color: enabled ? const Color(0xFF111111) : t.tx3)),
+      ),
+    );
+  }
+}
+
+/// A scroll wheel of the values a deal can have. Spinning it up raises the
+/// value.
+class _ValueWheel extends StatefulWidget {
+  final AppTheme theme;
+  final int value;
+  final void Function(int) onChanged;
+
+  const _ValueWheel({required this.theme, required this.value, required this.onChanged});
+
+  @override
+  State<_ValueWheel> createState() => _ValueWheelState();
+}
+
+class _ValueWheelState extends State<_ValueWheel> {
+  late final FixedExtentScrollController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = FixedExtentScrollController(
+        initialItem: kDealValues.indexOf(widget.value).clamp(0, kDealValues.length - 1));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.theme;
+    return ScrollConfiguration(
+      // A mouse drags the wheel as a finger does.
+      behavior: ScrollConfiguration.of(context).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+      child: CupertinoPicker.builder(
+        scrollController: _controller,
+        itemExtent: 28,
+        childCount: kDealValues.length,
+        selectionOverlay: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: t.accDim,
+            border: Border.all(color: t.accBdr, width: 1.5),
+            borderRadius: BorderRadius.circular(9),
+          ),
+        ),
+        onSelectedItemChanged: (i) => widget.onChanged(kDealValues[i]),
+        itemBuilder: (context, i) => Center(
+          child: Text('${kDealValues[i]}',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: t.tx)),
+        ),
       ),
     );
   }
