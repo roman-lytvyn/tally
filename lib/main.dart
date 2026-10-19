@@ -53,7 +53,7 @@ class _AppRootState extends State<AppRoot> {
   List<String> _teamNames = ['', ''];
   int _scoreLimit = 1001;
   int _firstDealer = 0;
-  bool _dealerMustPlay = false;
+  bool _dealerMustPlay = true;
   TieRule _tieRule = TieRule.hanging;
   int _players = 4;
   List<Round> _rounds = [];
