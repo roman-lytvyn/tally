@@ -163,20 +163,16 @@ class _EntryPanelState extends State<EntryPanel> {
           const SizedBox(height: 8),
           _takerRow(),
           const SizedBox(height: 6),
-          Row(children: [
-            Expanded(child: widget.dealerMustPlay
-                ? Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3))
-                : Align(
-                    alignment: Alignment.centerLeft,
-                    child: GestureDetector(
-                      onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides)),
-                      child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                          color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
-                    ),
-                  )),
-            const SizedBox(width: 8),
-            _debercToggle(),
-          ]),
+          widget.dealerMustPlay
+              ? Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3))
+              : Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides)),
+                    child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
+                  ),
+                ),
           const SizedBox(height: 8),
           _declarationsRow(),
           if (_debercBy != null) ...[
@@ -207,10 +203,11 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(height: 6),
             _hint('⚠', s.baitMsg(_names(_round.baitTakers), _gv), t.danger, t.dangerDim),
           ],
-          const SizedBox(height: 8),
-          // numpad
-          _buildNumpad(),
           ],
+          const SizedBox(height: 8),
+          // The keypad stays in place while a deberc is recorded, so the
+          // Deberc key beside 0 can switch it off again.
+          _buildNumpad(),
           const SizedBox(height: 8),
           // actions
           Row(children: [
@@ -258,20 +255,23 @@ class _EntryPanelState extends State<EntryPanel> {
     ],
   ]);
 
-  Widget _debercToggle() {
+  Widget _debercKey() {
     final on = _debercBy != null;
     return GestureDetector(
       key: const ValueKey('deberc'),
       onTap: () => setState(() => _debercBy = on ? null : _taker),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
         decoration: BoxDecoration(
-          color: on ? t.accDim : Colors.transparent,
-          border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
+          color: on ? t.accDim : t.nk,
+          border: Border.all(color: on ? t.accBdr : Colors.transparent, width: 1.5),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Text('${on ? '✓ ' : '✦ '}${s.deberc}', maxLines: 1,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
+        alignment: Alignment.center,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('${on ? '✓ ' : '✦ '}${s.deberc}', maxLines: 1,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
+        ),
       ),
     );
   }
@@ -403,6 +403,8 @@ class _EntryPanelState extends State<EntryPanel> {
 
   Widget _buildNumpad() {
     const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+    // Points are not typed while a deberc is recorded.
+    final typing = _debercBy == null;
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -411,18 +413,21 @@ class _EntryPanelState extends State<EntryPanel> {
       crossAxisSpacing: 5,
       childAspectRatio: 3.2,
       children: keys.map((k) {
-        if (k.isEmpty) return const SizedBox();
+        if (k.isEmpty) return _debercKey();
         final isDel = k == '⌫';
         return GestureDetector(
-          onTap: () => _tap(k),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDel ? t.nkDel : t.nk,
-              borderRadius: BorderRadius.circular(10),
+          onTap: typing ? () => _tap(k) : null,
+          child: Opacity(
+            opacity: typing ? 1 : 0.35,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDel ? t.nkDel : t.nk,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: Text(k, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600,
+                  color: isDel ? t.danger : t.tx)),
             ),
-            alignment: Alignment.center,
-            child: Text(k, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600,
-                color: isDel ? t.danger : t.tx)),
           ),
         );
       }).toList(),

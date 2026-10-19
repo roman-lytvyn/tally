@@ -190,6 +190,27 @@ void main() {
     expect(find.text(uk.newRound), findsNothing);
   });
 
+  testWidgets('keeps the Deberc key in the keypad beside 0, where it can be switched off', (tester) async {
+    await openRound(tester);
+
+    final deberc = tester.getRect(find.byKey(const ValueKey('deberc')));
+    final zero = tester.getRect(find.text('0').last);
+    expect(deberc.center.dy, closeTo(zero.center.dy, 1));
+    expect(deberc.right, lessThan(zero.left));
+
+    await tester.tap(find.byKey(const ValueKey('deberc')));
+    await tester.pump();
+    // Digits do nothing while a deberc is recorded.
+    await tester.tap(find.text('5'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('deberc')));
+    await tester.pump();
+
+    expect(find.text(uk.debercWins('Вони')), findsNothing);
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text('—'), findsNWidgets(2));
+  });
+
   testWidgets('records a redeal when everyone passed and hands the deal on', (tester) async {
     await openRound(tester);
 
