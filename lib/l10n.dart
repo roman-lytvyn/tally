@@ -130,6 +130,8 @@ class AppStrings {
   String get badgeDeberc     => isUk ? 'ДЕБЕРЦЬ'                            : 'DEBERC';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';
   String get delete          => isUk ? 'Видалити'                           : 'Delete';
+  String deleteRoundTitle(int n) => isUk ? 'Видалити роздачу #$n?'          : 'Delete round #$n?';
+  String get deleteRoundDesc => isUk ? 'Її очки зникнуть з рахунку.'        : 'Its points will be removed from the score.';
   String editingRound(int n) => isUk ? '✎ Роздача #$n'                      : '✎ Round #$n';
   String get bait            => isUk ? 'Байт'                               : 'Bait';
   String get save            => isUk ? 'Зберегти'                           : 'Save';

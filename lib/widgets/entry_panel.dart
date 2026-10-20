@@ -499,12 +499,36 @@ class _EntryPanelState extends State<EntryPanel> {
     ),
   );
 
+  /// Deletes the round only once the player confirms, since its points leave the score.
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: t.bg2,
+        title: Text(s.deleteRoundTitle(widget.number ?? 0),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: t.tx)),
+        content: Text(s.deleteRoundDesc, style: TextStyle(fontSize: 14, color: t.tx2)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(s.cancel, style: TextStyle(fontWeight: FontWeight.w600, color: t.tx2)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(s.delete, style: TextStyle(fontWeight: FontWeight.w800, color: t.danger)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) widget.onDelete?.call();
+  }
+
   /// A trash can rather than a word, so an edited round's buttons fit a narrow phone.
   Widget _deleteBtn() => Tooltip(
     message: s.delete,
     child: GestureDetector(
       key: const ValueKey('delete'),
-      onTap: widget.onDelete,
+      onTap: _confirmDelete,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
         decoration: BoxDecoration(color: t.dangerDim, borderRadius: BorderRadius.circular(12)),
