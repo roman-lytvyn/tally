@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
+import '../models.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AppTheme theme;
@@ -9,17 +10,24 @@ class SettingsScreen extends StatelessWidget {
   final String valueInput;
   final String lang;
   final String themeMode;
+  /// The rules new games start with.
+  final bool dealerMustPlay;
+  final TieRule tieRule;
   final void Function(String) onThemeModeChanged;
   final void Function(String) onScoreStyleChanged;
   final void Function(String) onValueInputChanged;
+  final void Function(bool) onDealerMustPlayChanged;
+  final void Function(TieRule) onTieRuleChanged;
   final void Function(String) onLangChanged;
   final VoidCallback onBack;
 
   const SettingsScreen({
     super.key, required this.theme, required this.strings, required this.scoreStyle,
     required this.valueInput, required this.lang, required this.themeMode,
+    required this.dealerMustPlay, required this.tieRule,
     required this.onThemeModeChanged, required this.onScoreStyleChanged,
-    required this.onValueInputChanged, required this.onLangChanged, required this.onBack,
+    required this.onValueInputChanged, required this.onDealerMustPlayChanged,
+    required this.onTieRuleChanged, required this.onLangChanged, required this.onBack,
   });
 
   AppTheme get t => theme;
@@ -116,6 +124,48 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ]),
                 const SizedBox(height: 14),
+                _groupLabel(strings.rules),
+                _group([
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onDealerMustPlayChanged(!dealerMustPlay),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 9, 8, 9),
+                      child: Row(children: [
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(strings.dealerMustPlay,
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+                          const SizedBox(height: 2),
+                          Text(strings.dealerMustPlayDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
+                        ])),
+                        Switch(value: dealerMustPlay, onChanged: onDealerMustPlayChanged, activeThumbColor: t.acc),
+                      ]),
+                    ),
+                  ),
+                  _divider(),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(strings.tieRuleTitle,
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        for (final rule in TieRule.values) ...[
+                          if (rule != TieRule.values.first) const SizedBox(width: 6),
+                          Expanded(child: _option(_tieRuleIcon(rule), strings.tieRuleName(rule),
+                              tieRule == rule, () => onTieRuleChanged(rule))),
+                        ],
+                      ]),
+                      const SizedBox(height: 8),
+                      Text(strings.tieRuleDesc(tieRule), style: TextStyle(fontSize: 12, color: t.tx2)),
+                    ]),
+                  ),
+                ]),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 2),
+                  child: Text(strings.rulesForNewGames, style: TextStyle(fontSize: 11, color: t.tx3)),
+                ),
+                const SizedBox(height: 14),
                 _groupLabel(strings.language),
                 _group([
                   _langRow('🇺🇦', 'Українська', 'uk'),
@@ -167,6 +217,12 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  static String _tieRuleIcon(TieRule r) => switch (r) {
+    TieRule.hanging          => '⏳',
+    TieRule.opponentsTakeAll => '→',
+    TieRule.eachKeepsOwn     => '⇄',
+  };
 
   Widget _styleOpt(String icon, String label, String value) =>
       _option(icon, label, scoreStyle == value, () => onScoreStyleChanged(value));

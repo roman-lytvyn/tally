@@ -29,7 +29,12 @@ void main() {
 
   /// Taps a piece of text, scrolling it into view first.
   Future<void> tapText(WidgetTester tester, String text) async {
+    // A list builds only the rows near the screen, so scroll until it exists.
+    if (find.text(text).evaluate().isEmpty) {
+      await tester.scrollUntilVisible(find.text(text), 200, scrollable: find.byType(Scrollable).first);
+    }
     await tester.ensureVisible(find.text(text));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(text));
     await tester.pumpAndSettle();
   }
@@ -136,15 +141,63 @@ void main() {
     expect(find.widgetWithText(TextField, uk.otherTeamHint), findsOneWidget);
   });
 
-  testWidgets('has the dealer play by default, which players can switch off', (tester) async {
+  testWidgets('keeps the rules off the home screen, which fits a phone without scrolling', (tester) async {
     await openApp(tester);
 
-    final toggle = find.byType(Switch);
-    expect(tester.widget<Switch>(toggle).value, isTrue);
+    expect(find.text(uk.dealerMustPlay), findsNothing);
+    expect(find.text(uk.tieRuleTitle), findsNothing);
+    final scroll = tester.state<ScrollableState>(find.byType(Scrollable).first);
+    expect(scroll.position.maxScrollExtent, 0);
+  });
 
-    await tapText(tester, uk.dealerMustPlay);
+  group('rules in the settings', () {
+    testWidgets('have the dealer play by default, which players can switch off', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
 
-    expect(tester.widget<Switch>(toggle).value, isFalse);
+      final toggle = find.byType(Switch);
+      expect(tester.widget<Switch>(toggle).value, isTrue);
+
+      await tapText(tester, uk.dealerMustPlay);
+
+      expect(tester.widget<Switch>(toggle).value, isFalse);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('deberc_dealer_must_play'), isFalse);
+    });
+
+    testWidgets('explain what a tied deal is worth under the chosen rule', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));
+
+      expect(find.text(uk.tieRuleDesc(TieRule.opponentsTakeAll)), findsOneWidget);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('deberc_tie_rule'), 'opponentsTakeAll');
+    });
+
+    testWidgets('are remembered between launches', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'deberc_lang': 'uk', 'deberc_dealer_must_play': false, 'deberc_tie_rule': 'eachKeepsOwn',
+      });
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+      expect(find.text(uk.tieRuleDesc(TieRule.eachKeepsOwn)), findsOneWidget);
+    });
+
+    testWidgets('leave a game in progress on the rules it started with', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.newGame);
+
+      await tapText(tester, '⚙');
+      await tapText(tester, uk.dealerMustPlay);
+      expect(find.text(uk.rulesForNewGames), findsOneWidget);
+      await tapText(tester, uk.backBtn);
+      await tapText(tester, uk.newRound);
+
+      expect(find.text(uk.allPassed), findsNothing);
+    });
   });
 
   testWidgets('asks who took the trump, offering it first to the player left of the dealer', (tester) async {
@@ -268,7 +321,9 @@ void main() {
 
   testWidgets('records a redeal when everyone passed and hands the deal on', (tester) async {
     await openApp(tester);
+    await tapText(tester, uk.settingsBtn);
     await tapText(tester, uk.dealerMustPlay);
+    await tapText(tester, uk.backBtn);
     await tapText(tester, uk.newGame);
     await tapText(tester, uk.newRound);
 
@@ -362,12 +417,5 @@ void main() {
     await tapText(tester, uk.newRound);
 
     expect(find.text('♠ Вони'), findsOneWidget);
-  });
-
-  testWidgets('explains what a tied deal is worth under the chosen rule', (tester) async {
-    await openApp(tester);
-    await tapText(tester, uk.tieRuleName(TieRule.opponentsTakeAll));
-
-    expect(find.text(uk.tieRuleDesc(TieRule.opponentsTakeAll)), findsOneWidget);
   });
 }

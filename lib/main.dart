@@ -17,6 +17,8 @@ const _themeKey = 'deberc_theme';
 const _styleKey = 'deberc_style';
 const _langKey  = 'deberc_lang';
 const _valueKey = 'deberc_value_input';
+const _dealerMustPlayKey = 'deberc_dealer_must_play';
+const _tieRuleKey = 'deberc_tie_rule';
 
 enum AppScreen { setup, game, settings, win, rules }
 
@@ -53,8 +55,12 @@ class _AppRootState extends State<AppRoot> {
   List<String> _teamNames = ['', ''];
   int _scoreLimit = 1001;
   int _firstDealer = 0;
+  // The rules of the game being played, and those set in the settings for
+  // new games; a game keeps the rules it started with.
   bool _dealerMustPlay = true;
   TieRule _tieRule = TieRule.hanging;
+  bool _newDealerMustPlay = true;
+  TieRule _newTieRule = TieRule.hanging;
   int _players = 4;
   List<Round> _rounds = [];
   GameState? _savedGame;
@@ -95,6 +101,8 @@ class _AppRootState extends State<AppRoot> {
     final theme = prefs.getString(_themeKey) ?? 'system';
     final style = prefs.getString(_styleKey) ?? 'traditional';
     final valueIn = prefs.getString(_valueKey) ?? 'counters';
+    final dealerMustPlay = prefs.getBool(_dealerMustPlayKey) ?? true;
+    final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ?? TieRule.hanging;
     // Until a language is chosen, Ukrainian devices get Ukrainian and every
     // other device English.
     final lang  = prefs.getString(_langKey)
@@ -118,6 +126,8 @@ class _AppRootState extends State<AppRoot> {
       _themeMode   = ['dark', 'light', 'system'].contains(theme) ? theme : 'system';
       _scoreStyle  = style == 'normal' ? 'normal' : 'traditional';
       _valueInput  = valueIn == 'wheel' ? 'wheel' : 'counters';
+      _newDealerMustPlay = dealerMustPlay;
+      _newTieRule  = tieRule;
       _lang        = resolvedLang;
       _teamNames   = saved?.teamNames ?? defaultNames;
       _players     = saved?.players ?? 4;
@@ -149,7 +159,10 @@ class _AppRootState extends State<AppRoot> {
   void _goTo(AppScreen s) => setState(() { _prevScreen = _screen; _screen = s; });
 
   void _startNew() {
-    setState(() { _teamNames = _game.teamNames; _rounds = []; _savedGame = null; });
+    setState(() {
+      _teamNames = _game.teamNames; _rounds = []; _savedGame = null;
+      _dealerMustPlay = _newDealerMustPlay; _tieRule = _newTieRule;
+    });
     _prefs?.remove(_storeKey);
     _goTo(AppScreen.game);
     WidgetsBinding.instance.addPostFrameCallback((_) => _persist());
@@ -227,10 +240,6 @@ class _AppRootState extends State<AppRoot> {
           teamNames: _teamNames,
           players: _players, onPlayersChanged: _setPlayers,
           scoreLimit: _scoreLimit, firstDealer: _firstDealer, hasSavedGame: _savedGame != null,
-          dealerMustPlay: _dealerMustPlay,
-          onDealerMustPlayChanged: (v) => setState(() => _dealerMustPlay = v),
-          tieRule: _tieRule,
-          onTieRuleChanged: (v) => setState(() => _tieRule = v),
           onTeamNamesChanged: (v) => setState(() => _teamNames = v),
           onScoreLimitChanged: (v) => setState(() => _scoreLimit = v),
           onFirstDealerChanged: (v) => setState(() => _firstDealer = v),
@@ -266,6 +275,15 @@ class _AppRootState extends State<AppRoot> {
           theme: theme, strings: strings,
           scoreStyle: _scoreStyle, valueInput: _valueInput, lang: _lang,
           themeMode: _themeMode,
+          dealerMustPlay: _newDealerMustPlay, tieRule: _newTieRule,
+          onDealerMustPlayChanged: (v) {
+            setState(() => _newDealerMustPlay = v);
+            _prefs?.setBool(_dealerMustPlayKey, v);
+          },
+          onTieRuleChanged: (v) {
+            setState(() => _newTieRule = v);
+            _prefs?.setString(_tieRuleKey, v.name);
+          },
           onThemeModeChanged: (v) {
             setState(() => _themeMode = v);
             _prefs?.setString(_themeKey, v);
