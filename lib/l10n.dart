@@ -129,8 +129,6 @@ class AppStrings {
       ? 'Сім козирів підряд — $side виграють гру'
       : 'Seven trumps in a row — $side win the game';
   String get badgeDeberc     => isUk ? 'ДЕБЕРЦ'                             : 'DEBERC';
-  String get inputting       => isUk ? '▼ вводиш'                           : '▼ input';
-  String get auto            => isUk ? 'авто'                               : 'auto';
   String get cancel          => isUk ? 'Скасувати'                          : 'Cancel';
   String get delete          => isUk ? 'Видалити'                           : 'Delete';
   String editingRound(int n) => isUk ? '✎ Роздача #$n'                      : '✎ Round #$n';
