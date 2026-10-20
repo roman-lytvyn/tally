@@ -85,7 +85,7 @@ void main() {
       await tapText(tester, en.newGame);
       await tapText(tester, en.newRound);
 
-      expect(find.text(en.allPassed), findsOneWidget);
+      expect(find.text(en.dealerPlaysIfAllPass), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('deberc')));
       await tester.pump();
       expect(find.text(en.debercWins('Them')), findsOneWidget);
@@ -136,15 +136,15 @@ void main() {
     expect(find.widgetWithText(TextField, uk.otherTeamHint), findsOneWidget);
   });
 
-  testWidgets('lets players agree that the dealer must play', (tester) async {
+  testWidgets('has the dealer play by default, which players can switch off', (tester) async {
     await openApp(tester);
 
     final toggle = find.byType(Switch);
-    expect(tester.widget<Switch>(toggle).value, isFalse);
+    expect(tester.widget<Switch>(toggle).value, isTrue);
 
     await tapText(tester, uk.dealerMustPlay);
 
-    expect(tester.widget<Switch>(toggle).value, isTrue);
+    expect(tester.widget<Switch>(toggle).value, isFalse);
   });
 
   testWidgets('asks who took the trump, offering it first to the player left of the dealer', (tester) async {
@@ -265,7 +265,10 @@ void main() {
   });
 
   testWidgets('records a redeal when everyone passed and hands the deal on', (tester) async {
-    await openRound(tester);
+    await openApp(tester);
+    await tapText(tester, uk.dealerMustPlay);
+    await tapText(tester, uk.newGame);
+    await tapText(tester, uk.newRound);
 
     await tapText(tester, uk.allPassed);
 
@@ -274,10 +277,7 @@ void main() {
   });
 
   testWidgets('offers no redeal when the dealer must play', (tester) async {
-    await openApp(tester);
-    await tapText(tester, uk.dealerMustPlay);
-    await tapText(tester, uk.newGame);
-    await tapText(tester, uk.newRound);
+    await openRound(tester);
 
     expect(find.text(uk.allPassed), findsNothing);
     expect(find.text(uk.dealerPlaysIfAllPass), findsOneWidget);

@@ -169,7 +169,8 @@ class _EntryPanelState extends State<EntryPanel> {
           _takerRow(),
           const SizedBox(height: 6),
           widget.dealerMustPlay
-              ? Text(s.dealerPlaysIfAllPass, style: TextStyle(fontSize: 10, color: t.tx3))
+              ? Text(s.dealerPlaysIfAllPass, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 10, color: t.tx3))
               : Align(
                   alignment: Alignment.centerLeft,
                   child: GestureDetector(

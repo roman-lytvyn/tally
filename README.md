@@ -166,7 +166,8 @@ On the home screen, configure:
   default
 - **First dealer** — which team or player deals the first round
 - **Point limit** — 301 (short game), 501 or 1001
-- **Rules** — whether the dealer must play when everyone else passes, and
+- **Rules** — whether the dealer must play when everyone else passes (on by
+  default), and
   what happens to a tied deal («eggs»)
 
 Tap **«New game»** to start.
