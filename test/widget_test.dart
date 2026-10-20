@@ -262,6 +262,26 @@ void main() {
     expect(find.textContaining('✎'), findsNothing);
   });
 
+  testWidgets('fits the buttons of an edited round on a phone and deletes it with the trash can', (tester) async {
+    await openRound(tester);
+    await tester.tap(find.text('8'));
+    await tester.tap(find.text('2'));
+    await tester.pump();
+    await tapText(tester, uk.save);
+    await tapText(tester, '#1');
+
+    // The panel names the round being changed; nothing in it overflows.
+    expect(find.text(uk.editingRound(1)), findsOneWidget);
+    expect(find.byTooltip(uk.delete), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('delete')));
+    await tester.pumpAndSettle();
+    // The header counts the next round, back to the first one.
+    expect(find.text(uk.editingRound(1)), findsNothing);
+    expect(find.text('#1'), findsOneWidget);
+    expect(find.text('#2'), findsNothing);
+  });
+
   testWidgets('ends the game when a deberc is recorded', (tester) async {
     await openRound(tester);
 

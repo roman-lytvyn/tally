@@ -499,12 +499,17 @@ class _EntryPanelState extends State<EntryPanel> {
     ),
   );
 
-  Widget _deleteBtn() => GestureDetector(
-    onTap: widget.onDelete,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
-      decoration: BoxDecoration(color: t.dangerDim, borderRadius: BorderRadius.circular(12)),
-      child: Text(s.delete, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.danger)),
+  /// A trash can rather than a word, so an edited round's buttons fit a narrow phone.
+  Widget _deleteBtn() => Tooltip(
+    message: s.delete,
+    child: GestureDetector(
+      key: const ValueKey('delete'),
+      onTap: widget.onDelete,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+        decoration: BoxDecoration(color: t.dangerDim, borderRadius: BorderRadius.circular(12)),
+        child: Icon(Icons.delete_outline, size: 21, color: t.danger),
+      ),
     ),
   );
 
