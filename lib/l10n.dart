@@ -100,7 +100,6 @@ class AppStrings {
 
   // Entry panel
   String get newRound        => isUk ? '+ Нова роздача'                     : '+ New round';
-  String get dealsNow        => isUk ? '🃏 Роздає зараз:'                   : '🃏 Deals now:';
   String get trumpTakenBy    => isUk ? 'Козир узяли:'                       : 'Trump taken by:';
   String eggsMsg(TieRule rule, int points, String opponents) => switch (rule) {
     TieRule.hanging => isUk

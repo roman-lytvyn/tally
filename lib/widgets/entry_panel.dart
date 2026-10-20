@@ -158,17 +158,20 @@ class _EntryPanelState extends State<EntryPanel> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // dealer row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(widget.number != null ? s.editingRound(widget.number!) : s.dealsNow,
-                  style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
-              Text(widget.teamNames[_dealer],
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.teamColor(_dealer))),
-            ],
-          ),
-          const SizedBox(height: 8),
+          // An earlier round names itself and who dealt in it; for a new one the
+          // badge above the score already shows who deals.
+          if (widget.number != null) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(s.editingRound(widget.number!),
+                    style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+                Text(widget.teamNames[_dealer],
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.teamColor(_dealer))),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(flex: 2, child: _takerColumn()),
             const SizedBox(width: 10),

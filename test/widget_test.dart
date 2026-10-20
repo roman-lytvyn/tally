@@ -255,6 +255,13 @@ void main() {
     expect(find.text(uk.dealValue(252)), findsOneWidget);
   });
 
+  testWidgets('leaves who deals in a new round to the badge above the score', (tester) async {
+    await openRound(tester);
+
+    expect(find.text(uk.deals), findsWidgets);
+    expect(find.textContaining('✎'), findsNothing);
+  });
+
   testWidgets('ends the game when a deberc is recorded', (tester) async {
     await openRound(tester);
 
