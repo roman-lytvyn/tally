@@ -38,6 +38,9 @@ class EntryPanel extends StatefulWidget {
   State<EntryPanel> createState() => _EntryPanelState();
 }
 
+/// Space between a score and the edge of the score row or the colon.
+const _scoreGap = 14.0;
+
 class _EntryPanelState extends State<EntryPanel> {
   Declarations _decl = const Declarations();
   /// What has been typed for each side; null for a side worked out from the rest.
@@ -181,11 +184,15 @@ class _EntryPanelState extends State<EntryPanel> {
           // score input row
           Container(
             decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(13)),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: _scoreGap, vertical: 9),
             child: Row(
               children: [
                 for (var i = 0; i < _sides; i++) ...[
-                  if (i > 0) Text(':', style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)),
+                  // The colon keeps the highlighted side as far away as the row's edges do.
+                  if (i > 0) Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: _scoreGap),
+                    child: Text(':', style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)),
+                  ),
                   Expanded(child: _teamInput(i, score[i])),
                 ],
               ],
