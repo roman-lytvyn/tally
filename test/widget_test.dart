@@ -46,6 +46,23 @@ void main() {
     await tapText(tester, uk.newRound);
   }
 
+  testWidgets('keeps the highlighted score as far from the colon as from the row edges', (tester) async {
+    await openRound(tester);
+
+    final us = tester.getRect(find.byKey(const ValueKey('score.0')));
+    final them = tester.getRect(find.byKey(const ValueKey('score.1')));
+    final row = tester.getRect(find.ancestor(of: find.byKey(const ValueKey('score.0')), matching: find.byType(DecoratedBox)).first);
+    final colon = tester.getRect(find.descendant(
+        of: find.ancestor(of: find.byKey(const ValueKey('score.0')), matching: find.byType(Row)).first,
+        matching: find.text(':')));
+
+    final edge = us.left - row.left;
+    expect(edge, greaterThan(0));
+    expect(colon.left - us.right, edge);
+    expect(them.left - colon.right, edge);
+    expect(row.right - them.right, edge);
+  });
+
   testWidgets('opens on the setup screen', (tester) async {
     await openApp(tester);
 
