@@ -182,8 +182,8 @@ can learn them at the table without going online.
 
 After each round, tap **«+ New round»** at the bottom of the screen:
 
-1. **Who took the trump** — the side to the dealer's left is preselected; tap the other side if they took it
-2. **Declarations** — use **−** / **+** to count the tierces (20) and fifties (50) and tap **«Bella»** (20) if it was declared; the deal's value is shown next to them
+1. **Who took the trump** — the sides are listed one under another on the left; the side to the dealer's left is preselected, tap the other side if they took it
+2. **Deal value** — on the right, under the deal's value, use **−** / **+** to count the tierces (20) and fifties (50), which sit side by side, and tap **«Bella»** (20) under them if it was declared; with the wheel chosen in the settings, a scroll wheel as tall as the side buttons takes their place
 3. **Enter the score** for one of the teams — the opponent's score is calculated automatically (GV minus what you entered). Tap a team's column to switch which side you are entering. With three players, type two of the scores and the third is worked out
 4. If the scores are equal, an «Eggs» hint appears automatically
 5. If the side that took the trump has fewer points, the app warns that this is bait and gives the whole GV to the opponents; tap **«Bait»** to record bait without entering points
@@ -191,10 +191,10 @@ After each round, tap **«+ New round»** at the bottom of the screen:
 
 In the history the side that took the trump is marked with **♠**.
 
-If everybody passed and the cards were thrown in, tap **«Everyone passed —
-redeal»** instead: the deal is recorded with a «Redeal» badge, nobody scores,
-points held from a tie keep waiting, and the next player deals. The link is
-hidden when the dealer must play.
+When the dealer does not have to play, an **«Everyone passed — redeal»** link
+appears under the sides. If everybody passed and the cards were thrown in, tap
+it instead: the deal is recorded with a «Redeal» badge, nobody scores, points
+held from a tie keep waiting, and the next player deals.
 
 ### 3. Following the Game
 

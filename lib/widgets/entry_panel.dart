@@ -166,21 +166,11 @@ class _EntryPanelState extends State<EntryPanel> {
             ],
           ),
           const SizedBox(height: 8),
-          _takerRow(),
-          const SizedBox(height: 6),
-          widget.dealerMustPlay
-              ? Text(s.dealerPlaysIfAllPass, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 10, color: t.tx3))
-              : Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides)),
-                    child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                        color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
-                  ),
-                ),
-          const SizedBox(height: 8),
-          _declarationsRow(),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(flex: 2, child: _takerColumn()),
+            const SizedBox(width: 10),
+            Expanded(flex: 3, child: _valueColumn()),
+          ]),
           if (_debercBy != null) ...[
             const SizedBox(height: 6),
             _sideRow(s.debercBy, _debercBy!, '✦', (i) => setState(() => _debercBy = i)),
@@ -248,8 +238,71 @@ class _EntryPanelState extends State<EntryPanel> {
     ]),
   );
 
-  Widget _takerRow() => _sideRow(s.trumpTakenBy, _taker, '♠',
-      (i) => setState(() { _taker = i; _startInput(i); }));
+  /// Who took the trump, one side under another, and the way to record a
+  /// redeal when the rules allow one.
+  Widget _takerColumn() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _columnHeader(Text(s.trumpTakenBy,
+          style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600))),
+      for (var i = 0; i < _sides; i++) ...[
+        if (i > 0) const SizedBox(height: _gap),
+        SizedBox(key: ValueKey('taker.$i'), height: _rowHeight, child: _sideChip(i, _taker == i, '♠',
+            () => setState(() { _taker = i; _startInput(i); }))),
+      ],
+      if (!widget.dealerMustPlay) ...[
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides)),
+          child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+              color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
+        ),
+      ],
+    ],
+  );
+
+  /// The value of the deal: counted up from tierces, fifties and bella, or
+  /// picked on a wheel, either way as tall as the side buttons beside it.
+  Widget _valueColumn() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _columnHeader(Text(s.dealValue(_gv),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc))),
+      SizedBox(
+        height: _rowHeight * _sides + _gap * (_sides - 1),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: widget.valueWheel
+              ? Container(
+                  key: const ValueKey('valueWheel'),
+                  decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
+                  clipBehavior: Clip.antiAlias,
+                  child: _ValueWheel(
+                    theme: t, value: _gv,
+                    onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv)),
+                  ),
+                )
+              : Column(key: const ValueKey('counters'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Expanded(child: _counter('tierce', s.tierce, _decl.tierces, (n) => _decl.copyWith(tierces: n))),
+                    const SizedBox(width: _gap),
+                    Expanded(child: _counter('fifty', s.fifty, _decl.fifties, (n) => _decl.copyWith(fifties: n))),
+                  ])),
+                  const SizedBox(height: _gap),
+                  Expanded(child: _bellaChip()),
+                ]),
+        ),
+      ),
+    ],
+  );
+
+  static const double _rowHeight = 31;
+  static const double _gap = 4;
+
+  Widget _columnHeader(Widget child) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: SizedBox(height: 16, child: Align(alignment: Alignment.centerLeft, child: child)),
+  );
 
   /// A label followed by one chip per side, the [selected] one marked.
   Widget _sideRow(String label, int selected, String mark, void Function(int) onSelect) => Row(children: [
@@ -300,53 +353,13 @@ class _EntryPanelState extends State<EntryPanel> {
     );
   }
 
-  /// The declarations made in the deal, which together with the 162 points
-  /// of the cards make up its value.
-  Widget _declarationsRow() => widget.valueWheel ? _valueWheelRow() : Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(s.declarations, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
-          Text(s.dealValue(_gv), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc)),
-        ],
-      ),
-      const SizedBox(height: 5),
-      Row(children: [
-        Expanded(child: _counter('tierce', s.tierce, _decl.tierces,
-            (n) => _decl.copyWith(tierces: n))),
-        const SizedBox(width: 6),
-        Expanded(child: _counter('fifty', s.fifty, _decl.fifties,
-            (n) => _decl.copyWith(fifties: n))),
-        const SizedBox(width: 6),
-        Expanded(child: _bellaChip()),
-      ]),
-    ],
-  );
-
-  /// The value of the deal picked straight from every value it can have.
-  Widget _valueWheelRow() => Row(children: [
-    Expanded(child: Text(s.declarations,
-        style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600))),
-    Container(
-      width: 140, height: 84,
-      decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(10)),
-      clipBehavior: Clip.antiAlias,
-      child: _ValueWheel(
-        theme: t, value: _gv,
-        onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv)),
-      ),
-    ),
-  ]);
-
   Widget _counter(String id, String label, int count, Declarations Function(int) change) {
     final on = count > 0;
     Widget step(String sign, int to, bool enabled) => GestureDetector(
       key: ValueKey('$id.$sign'),
       behavior: HitTestBehavior.opaque,
       onTap: enabled ? () => setState(() => _decl = change(to)) : null,
-      child: SizedBox(width: 26, height: 30, child: Center(child: Text(sign,
+      child: SizedBox(width: 22, child: Center(child: Text(sign,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
     );
     return Container(
@@ -355,12 +368,14 @@ class _EntryPanelState extends State<EntryPanel> {
         border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(children: [
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         step('−', count - 1, on),
-        Expanded(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx3)),
-          Text('$count', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: on ? t.acc : t.tx2)),
+        Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1,
+              style: TextStyle(fontSize: 9, height: 1, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx3))),
+          const SizedBox(height: 2),
+          Text('$count', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w800,
+              color: on ? t.acc : t.tx2)),
         ])),
         step('+', count + 1, count < 9),
       ]),
@@ -373,7 +388,6 @@ class _EntryPanelState extends State<EntryPanel> {
       key: const ValueKey('bella'),
       onTap: () => setState(() => _decl = _decl.copyWith(bella: !on)),
       child: Container(
-        height: 33,
         decoration: BoxDecoration(
           color: on ? t.accDim : Colors.transparent,
           border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
