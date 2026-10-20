@@ -3,7 +3,7 @@
 [![pipeline status](https://git.lytvyn.org/games/deberc/badges/main/pipeline.svg)](https://git.lytvyn.org/games/deberc/-/pipelines)
 [![latest release](https://git.lytvyn.org/games/deberc/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/deberc/-/releases)
 
-A Flutter app for keeping the score in Deberc (Деберц), a trick-taking card
+A Flutter app for keeping the score in Deberc (Деберць), a trick-taking card
 game of the Klaverjas / Klabberjass family that is especially popular in
 Ukraine.
 
