@@ -61,8 +61,6 @@ class AppStrings {
   String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
   String get undoBtn         => '↶';
   String get deals           => isUk ? 'роздає'                             : 'deals';
-  /// Which of the team's two players deals: 1 for the one who dealt first.
-  String dealsSeat(int player) => isUk ? 'роздає гравець $player'           : 'player $player deals';
   String get badgeRedeal     => isUk ? 'ПЕРЕЗДАЧА'                          : 'REDEAL';
   String get allPassed       => isUk ? 'Усі пасували — перездача'           : 'Everyone passed — redeal';
   String get noRoundsYet     => isUk ? 'Ще немає роздач'                    : 'No rounds yet';

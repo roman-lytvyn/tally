@@ -7,16 +7,12 @@ class Tally {
   final List<int> totals;
   final int? winner;
   final int dealer;
-  /// Which of the dealing team's two players deals now, 0 for the one who
-  /// dealt the team's first deal and 1 for the partner. The deal goes round
-  /// the table, so each team's players take turns.
-  final int dealerSeat;
   /// Points from tied deals still waiting for the winner of the next deal.
   final int held;
 
   const Tally({
     required this.earned, required this.totals, required this.winner,
-    required this.dealer, this.dealerSeat = 0, this.held = 0,
+    required this.dealer, this.held = 0,
   });
 }
 
@@ -101,7 +97,6 @@ Tally tally(GameState game) {
     totals: totals,
     winner: winner,
     dealer: (game.firstDealer + game.rounds.length) % game.sides,
-    dealerSeat: game.players == 4 ? (game.rounds.length ~/ 2) % 2 : 0,
     held: held,
   );
 }

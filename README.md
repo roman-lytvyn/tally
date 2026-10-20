@@ -202,9 +202,7 @@ held from a tie keep waiting, and the next player deals.
 The game screen shows:
 - Current score for every team or player
 - Progress toward the point limit (as a bar or numerically, depending on display style)
-- Who is currently dealing; in a team game also which of the team's two
-  players — the one who dealt the team's first deal or the partner — since the
-  deal goes round the table (a «player 1 deals» / «player 2 deals» badge)
+- Who is currently dealing: the team or player is marked «deals»
 - Full round history with **BAIT**, **EGGS** and **DEBERC** badges
 
 ### 4. Correcting a Mistake
