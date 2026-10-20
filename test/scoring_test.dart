@@ -170,11 +170,6 @@ void main() {
     });
   });
 
-  test('the deal goes round the table, so each team\'s players take turns', () {
-    const r = Round(gv: 162, dealer: 0, taker: 0, score: [100, 62]);
-    expect([for (var n = 0; n < 5; n++) tally(game(List.filled(n, r))).dealerSeat], [0, 0, 1, 1, 0]);
-  });
-
   group('when both sides pass the target in the same deal', () {
     const start = Round(gv: 900, dealer: 0, taker: 0, score: [450, 450]);
 

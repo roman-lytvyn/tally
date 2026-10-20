@@ -51,9 +51,6 @@ class _GameScreenState extends State<GameScreen> {
   List<Round> get rounds => widget.rounds;
   bool get isTraditional => widget.scoreStyle == 'traditional';
   int get sides => teamNames.length;
-  // Only a team has two players to tell apart.
-  String get _dealsLabel =>
-      widget.players == 4 ? strings.dealsSeat(widget.tally.dealerSeat + 1) : strings.deals;
 
   void _openEntry([int? index]) => setState(() { _entryOpen = true; _editing = index; _session++; });
 
@@ -158,7 +155,7 @@ class _GameScreenState extends State<GameScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
-                child: Text(_dealsLabel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                child: Text(strings.deals, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
                     color: t.teamColor(i), letterSpacing: 0.5)),
               ),
             ),
@@ -195,7 +192,7 @@ class _GameScreenState extends State<GameScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
-            child: Text(_dealsLabel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: t.teamColor(i))),
+            child: Text(strings.deals, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: t.teamColor(i))),
           ),
         ),
       ]))),

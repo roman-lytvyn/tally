@@ -200,6 +200,14 @@ void main() {
     });
   });
 
+  testWidgets('marks the dealing team in a 2 × 2 game without a player number', (tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.newGame);
+
+    expect(find.text(uk.deals), findsWidgets);
+    expect(find.textContaining('гравець'), findsNothing);
+  });
+
   testWidgets('asks who took the trump, offering it first to the player left of the dealer', (tester) async {
     await openRound(tester);
 
