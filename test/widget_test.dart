@@ -262,7 +262,7 @@ void main() {
     expect(find.textContaining('✎'), findsNothing);
   });
 
-  testWidgets('fits the buttons of an edited round on a phone and deletes it with the trash can', (tester) async {
+  testWidgets('fits the buttons of an edited round on a phone and deletes it with the trash can once confirmed', (tester) async {
     await openRound(tester);
     await tester.tap(find.text('8'));
     await tester.tap(find.text('2'));
@@ -274,7 +274,18 @@ void main() {
     expect(find.text(uk.editingRound(1)), findsOneWidget);
     expect(find.byTooltip(uk.delete), findsOneWidget);
 
+    // Cancelling the question keeps the round.
     await tester.tap(find.byKey(const ValueKey('delete')));
+    await tester.pumpAndSettle();
+    expect(find.text(uk.deleteRoundTitle(1)), findsOneWidget);
+    await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.text(uk.cancel)));
+    await tester.pumpAndSettle();
+    expect(find.text(uk.deleteRoundTitle(1)), findsNothing);
+    expect(find.text(uk.editingRound(1)), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.text(uk.delete)));
     await tester.pumpAndSettle();
     // The header counts the next round, back to the first one.
     expect(find.text(uk.editingRound(1)), findsNothing);
