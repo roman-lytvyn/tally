@@ -17,6 +17,7 @@ class GameScreen extends StatefulWidget {
   final List<Round> rounds;
   final Tally tally;
   final String scoreStyle;
+  final String valueInput;
   final void Function(Round) onAddRound;
   final void Function(int, Round) onReplaceRound;
   final void Function(int) onRemoveRound;
@@ -27,7 +28,7 @@ class GameScreen extends StatefulWidget {
   const GameScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
     required this.scoreLimit, this.players = 4, required this.dealerMustPlay, required this.tieRule, required this.rounds, required this.tally,
-    required this.scoreStyle, required this.onAddRound, required this.onReplaceRound,
+    required this.scoreStyle, this.valueInput = 'counters', required this.onAddRound, required this.onReplaceRound,
     required this.onRemoveRound, required this.onUndo,
     required this.onBack, required this.onSettings,
   });
@@ -91,7 +92,7 @@ class _GameScreenState extends State<GameScreen> {
               key: ValueKey(_session),
               theme: t, strings: strings, teamNames: teamNames, dealer: dealer,
               firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
-              open: _entryOpen,
+              open: _entryOpen, valueWheel: widget.valueInput == 'wheel',
               initial: editing != null ? rounds[editing] : null,
               number: editing != null ? editing + 1 : null,
               onOpen: () => _openEntry(),

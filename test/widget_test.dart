@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -209,6 +210,58 @@ void main() {
     expect(find.text(uk.debercWins('Вони')), findsNothing);
     expect(find.text('5'), findsOneWidget);
     expect(find.text('—'), findsNWidgets(2));
+  });
+
+  group('deal value wheel', () {
+    /// The points shown for side [i] in the score row.
+    Finder shownFor(int i, String text) =>
+        find.descendant(of: find.byKey(ValueKey('score.$i')), matching: find.text(text));
+
+    test('offers every value a deal can have, lowest first', () {
+      expect(kDealValues.take(8), [162, 182, 202, 212, 222, 232, 242, 252]);
+    });
+
+    testWidgets('can be chosen in the settings and is remembered', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      await tapText(tester, uk.valueWheel);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('deberc_value_input'), 'wheel');
+    });
+
+    testWidgets('takes the place of the declaration counters, keeping the keypad', (tester) async {
+      SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_value_input': 'wheel'});
+      await openRound(tester);
+
+      expect(find.byType(CupertinoPicker), findsOneWidget);
+      expect(find.byKey(const ValueKey('tierce.+')), findsNothing);
+      expect(find.text('⌫'), findsOneWidget);
+    });
+
+    testWidgets('sets the value of the deal, raising it when spun up', (tester) async {
+      SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_value_input': 'wheel'});
+      await openRound(tester);
+
+      final wheel = tester.widget<CupertinoPicker>(find.byType(CupertinoPicker)).scrollController!;
+      expect(wheel.selectedItem, 0);
+      await tester.drag(find.byType(CupertinoPicker), const Offset(0, -60));
+      await tester.pumpAndSettle();
+      expect(wheel.selectedItem, greaterThan(0));
+
+      wheel.jumpToItem(kDealValues.indexOf(252));
+      await tester.pumpAndSettle();
+      // The trump-taker is entered first and the rest of the 252 goes to the others.
+      await tester.tap(find.text('1'));
+      await tester.tap(find.text('0').last);
+      await tester.tap(find.text('0').last);
+      await tester.pump();
+      expect(shownFor(0, '152'), findsOneWidget);
+
+      await tapText(tester, uk.save);
+      expect(find.text('#2'), findsOneWidget);
+      expect(find.text('252${uk.pts}'), findsOneWidget);
+    });
   });
 
   testWidgets('records a redeal when everyone passed and hands the deal on', (tester) async {

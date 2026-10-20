@@ -90,6 +90,11 @@ class AppStrings {
   String get displayStyleDesc => isUk ? 'Як рахунок показується на екрані гри' : 'How score looks on game screen';
   String get circlesSticks   => isUk ? 'Кружечки і палички'                 : 'Circles and sticks';
   String get regularNums     => isUk ? 'Звичайні цифри'                     : 'Regular numbers';
+  String get gameValue       => isUk ? 'Скільки йде гра'                    : 'Deal value';
+  String get gameValueDesc   => isUk ? 'Як задається, скільки йде роздача з комбінаціями'
+                                     : 'How the value of a deal with its declarations is set';
+  String get valueCounters   => isUk ? 'Терц, 50, бела'                     : 'Tierce, 50, bella';
+  String get valueWheel      => isUk ? 'Колесо: 162, 182, 202…'             : 'Wheel: 162, 182, 202…';
   String get language        => isUk ? 'Мова'                               : 'Language';
   String get activeLang      => isUk ? 'Активна мова'                       : 'Active language';
 

@@ -16,6 +16,7 @@ const _storeKey = 'deberc_v2';
 const _themeKey = 'deberc_theme';
 const _styleKey = 'deberc_style';
 const _langKey  = 'deberc_lang';
+const _valueKey = 'deberc_value_input';
 
 enum AppScreen { setup, game, settings, win, rules }
 
@@ -44,6 +45,7 @@ class AppRoot extends StatefulWidget {
 class _AppRootState extends State<AppRoot> {
   String _themeMode = 'system';
   String _scoreStyle = 'traditional';
+  String _valueInput = 'counters';
   String _lang = 'uk';
   AppScreen _screen = AppScreen.setup;
   AppScreen _prevScreen = AppScreen.setup;
@@ -92,6 +94,7 @@ class _AppRootState extends State<AppRoot> {
     final prefs = await SharedPreferences.getInstance();
     final theme = prefs.getString(_themeKey) ?? 'system';
     final style = prefs.getString(_styleKey) ?? 'traditional';
+    final valueIn = prefs.getString(_valueKey) ?? 'counters';
     // Until a language is chosen, Ukrainian devices get Ukrainian and every
     // other device English.
     final lang  = prefs.getString(_langKey)
@@ -114,6 +117,7 @@ class _AppRootState extends State<AppRoot> {
       _prefs       = prefs;
       _themeMode   = ['dark', 'light', 'system'].contains(theme) ? theme : 'system';
       _scoreStyle  = style == 'normal' ? 'normal' : 'traditional';
+      _valueInput  = valueIn == 'wheel' ? 'wheel' : 'counters';
       _lang        = resolvedLang;
       _teamNames   = saved?.teamNames ?? defaultNames;
       _players     = saved?.players ?? 4;
@@ -247,7 +251,7 @@ class _AppRootState extends State<AppRoot> {
           teamNames: _game.teamNames, scoreLimit: _scoreLimit, players: _players,
           dealerMustPlay: _dealerMustPlay, tieRule: _tieRule,
           rounds: _rounds, tally: tally(_game),
-          scoreStyle: _scoreStyle,
+          scoreStyle: _scoreStyle, valueInput: _valueInput,
           onAddRound: _addRound, onReplaceRound: _replaceRound, onRemoveRound: _removeRound,
           onUndo: _undoLast,
           onBack: () {
@@ -260,7 +264,7 @@ class _AppRootState extends State<AppRoot> {
         return SettingsScreen(
           key: const ValueKey('settings'),
           theme: theme, strings: strings,
-          scoreStyle: _scoreStyle, lang: _lang,
+          scoreStyle: _scoreStyle, valueInput: _valueInput, lang: _lang,
           themeMode: _themeMode,
           onThemeModeChanged: (v) {
             setState(() => _themeMode = v);
@@ -269,6 +273,10 @@ class _AppRootState extends State<AppRoot> {
           onScoreStyleChanged: (v) {
             setState(() => _scoreStyle = v);
             _prefs?.setString(_styleKey, v);
+          },
+          onValueInputChanged: (v) {
+            setState(() => _valueInput = v);
+            _prefs?.setString(_valueKey, v);
           },
           onLangChanged: _setLang,
           onBack: () => _goTo(_prevScreen),

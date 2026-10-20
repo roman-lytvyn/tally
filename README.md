@@ -224,6 +224,10 @@ Accessible via the ⚙ button:
   20; ten points or more past the last stick are written as one more stick
   with what it lacks noted beside it (36 is two sticks and «−4»), and smaller
   remainders as «+N» (44 is two sticks and «+4»)
+- **Deal value** — count the declarations with the tierce, fifty and bella
+  buttons, or pick the value of the deal straight from a scroll wheel like the
+  ones in the iOS clock (162, 182, 202, 212, 222, …): spin it up to raise the
+  value and down to lower it
 - **Language** — English or Ukrainian. Until one is chosen the app follows
   the device: Ukrainian on a Ukrainian device, English everywhere else. Team
   names still at their defaults switch along with it
