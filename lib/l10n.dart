@@ -95,7 +95,9 @@ class AppStrings {
                                      : 'How the value of a deal with its declarations is set';
   String get valueCounters   => isUk ? 'Терц, 50, бела'                     : 'Tierce, 50, bella';
   String get valueWheel      => isUk ? 'Колесо: 162, 182, 202…'             : 'Wheel: 162, 182, 202…';
-  String get language        => isUk ? 'Мова'                               : 'Language';
+  String get rulesForNewGames => isUk ? 'Правила діють для нових ігор; почата гра лишається на своїх'
+                                      : 'The rules apply to new games; a game in progress keeps its own';
+  String get language        => isUk ? 'Мова'                             : 'Language';
   String get activeLang      => isUk ? 'Активна мова'                       : 'Active language';
 
   // Entry panel

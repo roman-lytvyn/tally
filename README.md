@@ -167,9 +167,9 @@ On the home screen, configure:
   default
 - **First dealer** — which team or player deals the first round
 - **Point limit** — 301 (short game), 501 or 1001
-- **Rules** — whether the dealer must play when everyone else passes (on by
-  default), and
-  what happens to a tied deal («eggs»)
+
+The game rules — whether the dealer must play and what happens to «eggs» —
+are set once in **Settings** and apply to every new game.
 
 Tap **«New game»** to start.
 
@@ -230,6 +230,9 @@ Accessible via the ⚙ button:
   buttons, or pick the value of the deal straight from a scroll wheel like the
   ones in the iOS clock (162, 182, 202, 212, 222, …): spin it up to raise the
   value and down to lower it
+- **Rules** — whether the dealer must play when everyone else passes (on by
+  default), and what happens to a tied deal («eggs»). They are remembered and
+  apply to new games; a game in progress keeps the rules it started with
 - **Language** — English or Ukrainian. Until one is chosen the app follows
   the device: Ukrainian on a Ukrainian device, English everywhere else. Team
   names still at their defaults switch along with it

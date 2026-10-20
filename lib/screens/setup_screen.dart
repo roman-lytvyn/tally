@@ -12,10 +12,6 @@ class SetupScreen extends StatelessWidget {
   final int scoreLimit;
   final int firstDealer;
   final bool hasSavedGame;
-  final bool dealerMustPlay;
-  final void Function(bool) onDealerMustPlayChanged;
-  final TieRule tieRule;
-  final void Function(TieRule) onTieRuleChanged;
   final void Function(List<String>) onTeamNamesChanged;
   final void Function(int) onScoreLimitChanged;
   final void Function(int) onFirstDealerChanged;
@@ -28,8 +24,6 @@ class SetupScreen extends StatelessWidget {
     super.key, required this.theme, required this.strings, required this.teamNames,
     this.players = 4, required this.onPlayersChanged,
     required this.scoreLimit, required this.firstDealer, required this.hasSavedGame,
-    required this.dealerMustPlay, required this.onDealerMustPlayChanged,
-    required this.tieRule, required this.onTieRuleChanged,
     required this.onTeamNamesChanged, required this.onScoreLimitChanged,
     required this.onFirstDealerChanged, required this.onNewGame,
     required this.onContinue, required this.onSettings, required this.onRules,
@@ -112,23 +106,6 @@ class SetupScreen extends StatelessWidget {
                     Expanded(child: _segBtn('$limit', scoreLimit == limit, -1, () => onScoreLimitChanged(limit))),
                   ],
                 ]),
-                const SizedBox(height: 20),
-
-                // rules
-                _label(strings.rules),
-                _toggle(strings.dealerMustPlay, strings.dealerMustPlayDesc, dealerMustPlay, onDealerMustPlayChanged),
-                const SizedBox(height: 12),
-                Text(strings.tieRuleTitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.tx2)),
-                const SizedBox(height: 6),
-                Row(children: [
-                  for (final rule in TieRule.values) ...[
-                    if (rule != TieRule.values.first) const SizedBox(width: 6),
-                    Expanded(child: _segBtn(strings.tieRuleName(rule), tieRule == rule, -1,
-                        () => onTieRuleChanged(rule), fontSize: 12)),
-                  ],
-                ]),
-                const SizedBox(height: 4),
-                Text(strings.tieRuleDesc(tieRule), style: TextStyle(fontSize: 11, color: t.tx2)),
                 const SizedBox(height: 24),
 
                 const Spacer(),
@@ -160,25 +137,6 @@ class SetupScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _toggle(String title, String desc, bool value, void Function(bool) onChanged) => GestureDetector(
-    onTap: () => onChanged(!value),
-    child: Container(
-      padding: const EdgeInsets.fromLTRB(15, 10, 8, 10),
-      decoration: BoxDecoration(
-        color: t.surf, border: Border.all(color: t.bdr, width: 1.5),
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Row(children: [
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: t.tx)),
-          const SizedBox(height: 2),
-          Text(desc, style: TextStyle(fontSize: 11, color: t.tx2)),
-        ])),
-        Switch(value: value, onChanged: onChanged, activeThumbColor: t.acc),
-      ]),
-    ),
-  );
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
