@@ -19,6 +19,7 @@ const _langKey  = 'deberc_lang';
 const _valueKey = 'deberc_value_input';
 const _dealerMustPlayKey = 'deberc_dealer_must_play';
 const _tieRuleKey = 'deberc_tie_rule';
+const _finishRuleKey = 'deberc_finish_rule';
 
 enum AppScreen { setup, game, settings, win, rules }
 
@@ -59,8 +60,10 @@ class _AppRootState extends State<AppRoot> {
   // new games; a game keeps the rules it started with.
   bool _dealerMustPlay = true;
   TieRule _tieRule = TieRule.hanging;
+  FinishRule _finishRule = FinishRule.taker;
   bool _newDealerMustPlay = true;
   TieRule _newTieRule = TieRule.hanging;
+  FinishRule _newFinishRule = FinishRule.taker;
   int _players = 4;
   List<Round> _rounds = [];
   GameState? _savedGame;
@@ -71,7 +74,7 @@ class _AppRootState extends State<AppRoot> {
   GameState get _game => GameState(
     teamNames: AppStrings(_lang).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
-    dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, players: _players,
+    dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, finishRule: _finishRule, players: _players,
   );
 
   /// Switches between team and individual play, starting from the default
@@ -103,6 +106,7 @@ class _AppRootState extends State<AppRoot> {
     final valueIn = prefs.getString(_valueKey) ?? 'counters';
     final dealerMustPlay = prefs.getBool(_dealerMustPlayKey) ?? true;
     final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ?? TieRule.hanging;
+    final finishRule = FinishRule.values.asNameMap()[prefs.getString(_finishRuleKey)] ?? FinishRule.taker;
     // Until a language is chosen, Ukrainian devices get Ukrainian and every
     // other device English.
     final lang  = prefs.getString(_langKey)
@@ -128,6 +132,7 @@ class _AppRootState extends State<AppRoot> {
       _valueInput  = valueIn == 'wheel' ? 'wheel' : 'counters';
       _newDealerMustPlay = dealerMustPlay;
       _newTieRule  = tieRule;
+      _newFinishRule = finishRule;
       _lang        = resolvedLang;
       _teamNames   = saved?.teamNames ?? defaultNames;
       _players     = saved?.players ?? 4;
@@ -161,7 +166,7 @@ class _AppRootState extends State<AppRoot> {
   void _startNew() {
     setState(() {
       _teamNames = _game.teamNames; _rounds = []; _savedGame = null;
-      _dealerMustPlay = _newDealerMustPlay; _tieRule = _newTieRule;
+      _dealerMustPlay = _newDealerMustPlay; _tieRule = _newTieRule; _finishRule = _newFinishRule;
     });
     _prefs?.remove(_storeKey);
     _goTo(AppScreen.game);
@@ -174,7 +179,7 @@ class _AppRootState extends State<AppRoot> {
     setState(() {
       _teamNames = g.teamNames; _scoreLimit = g.scoreLimit;
       _rounds = g.rounds; _firstDealer = g.firstDealer;
-      _dealerMustPlay = g.dealerMustPlay; _tieRule = g.tieRule;
+      _dealerMustPlay = g.dealerMustPlay; _tieRule = g.tieRule; _finishRule = g.finishRule;
       _players = g.players;
       _savedGame = null;
     });
@@ -275,7 +280,7 @@ class _AppRootState extends State<AppRoot> {
           theme: theme, strings: strings,
           scoreStyle: _scoreStyle, valueInput: _valueInput, lang: _lang,
           themeMode: _themeMode,
-          dealerMustPlay: _newDealerMustPlay, tieRule: _newTieRule,
+          dealerMustPlay: _newDealerMustPlay, tieRule: _newTieRule, finishRule: _newFinishRule,
           onDealerMustPlayChanged: (v) {
             setState(() => _newDealerMustPlay = v);
             _prefs?.setBool(_dealerMustPlayKey, v);
@@ -283,6 +288,10 @@ class _AppRootState extends State<AppRoot> {
           onTieRuleChanged: (v) {
             setState(() => _newTieRule = v);
             _prefs?.setString(_tieRuleKey, v.name);
+          },
+          onFinishRuleChanged: (v) {
+            setState(() => _newFinishRule = v);
+            _prefs?.setString(_finishRuleKey, v.name);
           },
           onThemeModeChanged: (v) {
             setState(() => _themeMode = v);

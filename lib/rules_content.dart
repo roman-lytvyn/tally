@@ -78,7 +78,9 @@ const _en = [
   ]),
   RulesSection('Winning', [
     'The first side to reach the agreed target wins: 301 for a short game, 501 or 1001. When both pass the '
-        'target in the same deal, the side that took the trump in that deal goes out first.',
+        'target in the same deal, tables settle it differently, and the app lets you choose before the game:',
+    '• Trump-taker — the side that took the trump in that deal goes out first, even with fewer points.',
+    '• Most points — the side with the higher score wins; on an equal score play goes on.',
   ]),
   RulesSection('Keeping the score in the app', [
     'After each deal tap "New round", pick who took the trump, count the declarations and type the points of '
@@ -152,7 +154,10 @@ const _uk = [
   ]),
   RulesSection('Перемога', [
     'Перемагає сторона, яка першою досягне домовленої суми: 301 для короткої гри, 501 або 1001. Якщо обидві '
-        'сторони перейшли межу в одній роздачі, виходить та, що в ній узяла козир.',
+        'сторони перейшли межу в одній роздачі, за різними столами це вирішують по-різному, і застосунок дає '
+        'обрати правило перед грою:',
+    '• Хто грав — виходить сторона, що в цій роздачі взяла козир, навіть якщо в неї менше очок.',
+    '• Більше очок — перемагає сторона з більшим рахунком; за рівного рахунку гра триває.',
   ]),
   RulesSection('Як вести рахунок у застосунку', [
     'Після кожної роздачі натисни «Нова роздача», обери, хто взяв козир, порахуй комбінації та введи очки '

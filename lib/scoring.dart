@@ -40,14 +40,14 @@ List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
 }
 
 /// The side that wins once the [totals] after a deal reach the [limit].
-/// When several sides pass it together the one that took the trump in that
-/// deal goes out first; otherwise the highest total wins, and on an equal
-/// total nobody has won yet and play goes on.
-int? _finisher(List<int> totals, int limit, int taker) {
+/// When several sides pass it together and the [rule] says so, the one that
+/// took the trump in that deal goes out first; otherwise the highest total
+/// wins, and on an equal total nobody has won yet and play goes on.
+int? _finisher(List<int> totals, int limit, int taker, FinishRule rule) {
   final passed = [for (var i = 0; i < totals.length; i++) if (totals[i] >= limit) i];
   if (passed.isEmpty) return null;
   if (passed.length == 1) return passed.single;
-  if (passed.contains(taker)) return taker;
+  if (rule == FinishRule.taker && passed.contains(taker)) return taker;
   passed.sort((a, b) => totals[b] - totals[a]);
   return totals[passed[0]] == totals[passed[1]] ? null : passed[0];
 }
@@ -88,7 +88,7 @@ Tally tally(GameState game) {
     for (var i = 0; i < totals.length; i++) {
       totals[i] += e[i];
     }
-    winner = _finisher(totals, game.scoreLimit, r.taker);
+    winner = _finisher(totals, game.scoreLimit, r.taker, game.finishRule);
     if (winner != null) break;
   }
 

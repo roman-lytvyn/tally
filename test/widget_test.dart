@@ -192,6 +192,18 @@ void main() {
       expect(prefs.getString('deberc_tie_rule'), 'opponentsTakeAll');
     });
 
+    testWidgets('let players choose who wins when both sides pass the target together', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      expect(find.text(uk.finishRuleDesc(FinishRule.taker)), findsOneWidget);
+
+      await tapText(tester, uk.finishRuleName(FinishRule.mostPoints));
+
+      expect(find.text(uk.finishRuleDesc(FinishRule.mostPoints)), findsOneWidget);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('deberc_finish_rule'), 'mostPoints');
+    });
+
     testWidgets('are remembered between launches', (tester) async {
       SharedPreferences.setMockInitialValues({
         'deberc_lang': 'uk', 'deberc_dealer_must_play': false, 'deberc_tie_rule': 'eachKeepsOwn',
