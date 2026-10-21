@@ -60,7 +60,8 @@ msix_config:
   identity_name: com.deberc.deberc
   msix_version: 1.0.0.0
   logo_path: windows\runner\resources\app_icon.ico
-  capabilities: ""
+  # Internet access is for the anonymous usage statistics only.
+  capabilities: internetClient
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
