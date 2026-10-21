@@ -6,7 +6,6 @@ import 'theme.dart';
 import 'models.dart';
 import 'scoring.dart';
 import 'l10n.dart';
-import 'stats.dart';
 import 'screens/setup_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/settings_screen.dart';
@@ -21,7 +20,6 @@ const _valueKey = 'deberc_value_input';
 const _dealerMustPlayKey = 'deberc_dealer_must_play';
 const _tieRuleKey = 'deberc_tie_rule';
 const _finishRuleKey = 'deberc_finish_rule';
-const _statsKey = 'deberc_stats';
 
 enum AppScreen { setup, game, settings, win, rules }
 
@@ -72,7 +70,6 @@ class _AppRootState extends State<AppRoot> {
 
   SharedPreferences? _prefs;
   bool _ready = false;
-  final Stats _stats = Stats();
 
   GameState get _game => GameState(
     teamNames: AppStrings(_lang).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
@@ -142,14 +139,6 @@ class _AppRootState extends State<AppRoot> {
       _savedGame   = saved;
       _ready       = true;
     });
-    _stats.enabled = prefs.getBool(_statsKey) ?? true;
-    _stats.appOpened(resolvedLang);
-    _stats.screen(_screen.name, resolvedLang);
-  }
-
-  void _setStats(bool on) {
-    setState(() => _stats.enabled = on);
-    _prefs?.setBool(_statsKey, on);
   }
 
   void _persist() {
@@ -172,10 +161,7 @@ class _AppRootState extends State<AppRoot> {
     if (_rounds.isNotEmpty) _persist();
   }
 
-  void _goTo(AppScreen s) {
-    setState(() { _prevScreen = _screen; _screen = s; });
-    _stats.screen(s.name, _lang);
-  }
+  void _goTo(AppScreen s) => setState(() { _prevScreen = _screen; _screen = s; });
 
   void _startNew() {
     setState(() {
@@ -320,7 +306,6 @@ class _AppRootState extends State<AppRoot> {
             _prefs?.setString(_valueKey, v);
           },
           onLangChanged: _setLang,
-          stats: _stats.enabled, onStatsChanged: _setStats,
           onBack: () => _goTo(_prevScreen),
         );
       case AppScreen.win:

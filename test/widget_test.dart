@@ -167,26 +167,12 @@ void main() {
     expect(scroll.position.maxScrollExtent, 0);
   });
 
-  testWidgets('sends anonymous statistics by default, which can be switched off and stays off', (tester) async {
-    await openApp(tester);
-    await tapText(tester, uk.settingsBtn);
-    await tapText(tester, uk.statsTitle);
-
-    final toggle = find.descendant(
-      of: find.ancestor(of: find.text(uk.statsTitle), matching: find.byType(Row)).first,
-      matching: find.byType(Switch),
-    );
-    expect(tester.widget<Switch>(toggle).value, isFalse);
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getBool('deberc_stats'), isFalse);
-  });
-
   group('rules in the settings', () {
     testWidgets('have the dealer play by default, which players can switch off', (tester) async {
       await openApp(tester);
       await tapText(tester, uk.settingsBtn);
 
-      final toggle = find.byType(Switch).first;
+      final toggle = find.byType(Switch);
       expect(tester.widget<Switch>(toggle).value, isTrue);
 
       await tapText(tester, uk.dealerMustPlay);
