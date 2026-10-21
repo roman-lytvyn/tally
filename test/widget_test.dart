@@ -261,7 +261,8 @@ void main() {
       await openApp(tester);
       await playDeal(tester);
 
-      expect(find.text('82/1001'), findsOneWidget);
+      // The score itself is left to the large digits above the bars.
+      expect(find.textContaining('/1001'), findsNothing);
       expect(find.text(uk.toGo(1001 - 82)), findsOneWidget);
       expect(find.text(uk.toGo(1001 - 80)), findsOneWidget);
     });

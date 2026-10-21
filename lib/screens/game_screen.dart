@@ -224,19 +224,10 @@ class _GameScreenState extends State<GameScreen> {
       ]),
       const SizedBox(height: 4),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        for (var i = 0; i < sides; i++) _progressLabel(i),
+        for (var i = 0; i < sides; i++) _toGo(i),
       ]),
     ]),
   );
-
-  /// The score against the target, with what is still missing on the side
-  /// facing the middle.
-  Widget _progressLabel(int i) {
-    final fraction = Text('${scores[i]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3));
-    final last = i > 0 && i == sides - 1;
-    return Row(mainAxisSize: MainAxisSize.min, spacing: 6,
-        children: last ? [_toGo(i), fraction] : [fraction, _toGo(i)]);
-  }
 
   /// A small label with the points side [i] still needs to reach the target;
   /// nothing once it has.
