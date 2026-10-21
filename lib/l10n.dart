@@ -81,6 +81,7 @@ class AppStrings {
   String get badgeBait       => isUk ? 'БАЙТ'                               : 'BAIT';
   String get badgeEggs       => isUk ? 'ЯЙЦЯ'                               : 'EGGS';
   String get pts             => isUk ? 'оч'                                 : 'pts';
+  String toGo(int points)    => isUk ? 'ще $points'                         : '$points to go';
 
   // Win
   String get winLabel        => isUk ? 'перемагають!'                       : 'win!';

@@ -237,6 +237,37 @@ void main() {
     expect(find.textContaining('гравець'), findsNothing);
   });
 
+  group('shows how many points each side still needs', () {
+    Future<void> playDeal(WidgetTester tester) async {
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+      // One side takes 82 of 162, the other the remaining 80.
+      await tester.tap(find.text('8'));
+      await tester.tap(find.text('2'));
+      await tester.pump();
+      await tapText(tester, uk.save);
+    }
+
+    testWidgets('beside the circles and sticks', (tester) async {
+      await openApp(tester);
+      await playDeal(tester);
+
+      expect(find.text(uk.toGo(1001 - 82)), findsOneWidget);
+      expect(find.text(uk.toGo(1001 - 80)), findsOneWidget);
+    });
+
+    testWidgets('beside the regular numbers', (tester) async {
+      SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_style': 'normal'});
+      await openApp(tester);
+      await playDeal(tester);
+
+      // The score itself is left to the large digits above the bars.
+      expect(find.textContaining('/1001'), findsNothing);
+      expect(find.text(uk.toGo(1001 - 82)), findsOneWidget);
+      expect(find.text(uk.toGo(1001 - 80)), findsOneWidget);
+    });
+  });
+
   testWidgets('asks who took the trump, offering it first to the player left of the dealer', (tester) async {
     await openRound(tester);
 
