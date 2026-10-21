@@ -21,9 +21,6 @@ class SettingsScreen extends StatelessWidget {
   final void Function(TieRule) onTieRuleChanged;
   final void Function(FinishRule) onFinishRuleChanged;
   final void Function(String) onLangChanged;
-  /// Whether anonymous usage statistics are sent.
-  final bool stats;
-  final void Function(bool) onStatsChanged;
   final VoidCallback onBack;
 
   const SettingsScreen({
@@ -33,8 +30,7 @@ class SettingsScreen extends StatelessWidget {
     required this.onThemeModeChanged, required this.onScoreStyleChanged,
     required this.onValueInputChanged, required this.onDealerMustPlayChanged,
     required this.onTieRuleChanged, required this.onFinishRuleChanged,
-    required this.onLangChanged, required this.stats, required this.onStatsChanged,
-    required this.onBack,
+    required this.onLangChanged, required this.onBack,
   });
 
   AppTheme get t => theme;
@@ -196,26 +192,6 @@ class SettingsScreen extends StatelessWidget {
                   _langRow('🇺🇦', 'Українська', 'uk'),
                   _divider(),
                   _langRow('🇬🇧', 'English', 'en'),
-                ]),
-                const SizedBox(height: 14),
-                _groupLabel(strings.privacy),
-                _group([
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onStatsChanged(!stats),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 9, 8, 9),
-                      child: Row(children: [
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(strings.statsTitle,
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                          const SizedBox(height: 2),
-                          Text(strings.statsDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
-                        ])),
-                        Switch(value: stats, onChanged: onStatsChanged, activeThumbColor: t.acc),
-                      ]),
-                    ),
-                  ),
                 ]),
               ],
             ),
