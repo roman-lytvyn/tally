@@ -159,6 +159,8 @@ class _GameScreenState extends State<GameScreen> {
                     color: t.teamColor(i), letterSpacing: 0.5)),
               ),
             ),
+            const Spacer(),
+            _toGo(i),
           ]),
           const SizedBox(height: 4),
           SizedBox(
@@ -222,11 +224,31 @@ class _GameScreenState extends State<GameScreen> {
       ]),
       const SizedBox(height: 4),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        for (var i = 0; i < sides; i++)
-          Text('${scores[i]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3)),
+        for (var i = 0; i < sides; i++) _progressLabel(i),
       ]),
     ]),
   );
+
+  /// The score against the target, with what is still missing on the side
+  /// facing the middle.
+  Widget _progressLabel(int i) {
+    final fraction = Text('${scores[i]}/${widget.scoreLimit}', style: TextStyle(fontSize: 11, color: t.tx3));
+    final last = i > 0 && i == sides - 1;
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 6,
+        children: last ? [_toGo(i), fraction] : [fraction, _toGo(i)]);
+  }
+
+  /// A small label with the points side [i] still needs to reach the target;
+  /// nothing once it has.
+  Widget _toGo(int i) {
+    final left = widget.scoreLimit - scores[i];
+    if (left <= 0) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+      decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
+      child: Text(strings.toGo(left), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: t.teamColor(i))),
+    );
+  }
 
   Widget _progressBar(int i) => ClipRRect(
     borderRadius: BorderRadius.circular(3),
