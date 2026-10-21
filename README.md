@@ -248,28 +248,34 @@ The game state is automatically saved after every change. Only the recorded deal
 - **Flutter** — cross-platform UI framework
 - **Dart** — programming language
 - **shared_preferences** — game state and settings persistence
-- Supported platforms: **Android**, **iOS**, **Windows**
-- On Windows the app opens in a fixed, phone-sized window centred on the screen, which cannot be resized or maximised
+- Supported platforms: **Android**, **iOS**, **Windows**, **Linux**
+- On Windows and Linux the app opens in a fixed, phone-sized window centred on the screen, which cannot be resized or maximised
 
 ## Delivery
 
-Every merge into `main` analyses the code, runs the tests, builds a release APK
-and AAB on the Linux runners and a Windows package on the Windows runner, and
-records the version as a git tag named `YYYY.MM.BUILD`. The build number doubles
-as the Android version code, so it only ever grows. Nothing is published at that
-point.
+Every merge into `main` analyses the code, runs the tests, builds a release APK,
+AAB and Linux `.deb` on the Linux runners and a Windows package on the Windows
+runner, and records the version as a git tag named `YYYY.MM.BUILD`. The build
+number doubles as the Android version code, so it only ever grows. Nothing is
+published at that point.
 
 Creating a release for one of those tags publishes it: a release webhook starts
 the publish pipeline, which rebuilds that exact tag on each platform, attaches
-the APK and the Windows `.msix` to the release for direct download, and — once
-store credentials are configured — uploads the AAB to the internal track of
-Google Play and the package to the Microsoft Store, both as drafts.
+the APK, the Windows `.msix` and the Linux `.deb` to the release for direct
+download, and — once store credentials are configured — uploads the AAB to the
+internal track of Google Play and the package to the Microsoft Store, both as
+drafts.
 
 ### Platforms
 
-Android and the AAB build on the Kubernetes Linux runners. Windows builds on a
-self-hosted runner tagged `windows` with the Visual Studio build tools. iOS is
-not built yet: it may only be built on Apple hardware, which no runner provides.
+Android, the AAB and the Linux `.deb` build on the Kubernetes Linux runners.
+The `.deb` installs the app to `/opt/deberc` with a `deberc` command and an
+entry in the applications menu, and runs on Debian, Ubuntu and their
+derivatives (amd64): `sudo apt install ./deberc-<version>.deb`.
+
+Windows builds on a self-hosted runner tagged `windows` with the Visual Studio
+build tools. iOS is not built yet: it may only be built on Apple hardware, which
+no runner provides.
 
 ### Signing
 

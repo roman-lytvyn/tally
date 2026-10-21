@@ -76,8 +76,8 @@ test:
       junit: report.xml
 
 # ── Build ────────────────────────────────────────────────────────────────────
-# Android is the only platform that builds here: Windows needs a Windows runner
-# and iOS may only be built on Apple hardware, and this cluster has neither.
+# Android and Linux build here: Windows needs a Windows runner and iOS may only
+# be built on Apple hardware, and this cluster has neither.
 
 .android-build:
   extends: .flutter
@@ -122,6 +122,34 @@ build:
       - deberc-*.aab
     reports:
       dotenv: build.env
+
+# The Linux desktop build is packed into a .deb that installs the app with its
+# menu entry and icon. The Flutter image carries no desktop toolchain, so the
+# compiler and GTK headers are installed first.
+.linux-build:
+  extends: .flutter
+  script:
+    - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
+    - apt-get update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev > /dev/null
+    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
+    - sh devops/linux/build-deb.sh "$VERSION" "deberc-$VERSION.deb"
+
+build-linux:
+  extends: .linux-build
+  stage: build
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+    # A merge request that touches the Linux app or the build checks it still packs.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - linux/**/*
+        - devops/**/*
+  artifacts:
+    paths:
+      - deberc-*.deb
 
 # The GitLab Runner service runs under its own account, so a Flutter that was
 # added to a user's PATH is invisible to it. This puts Flutter on PATH for the
@@ -285,6 +313,42 @@ publish:
     paths:
       - deberc-*.apk
       - deberc-*.aab
+
+# The released tag is packed for Linux and the .deb attached to the release,
+# next to the Android and Windows builds.
+publish-linux:
+  extends: .linux-build
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  variables:
+    GIT_DEPTH: 0
+  needs:
+    - release-version
+  before_script:
+    - |
+      if [ -z "$VERSION" ]; then
+        echo "Nothing to publish"
+        exit 0
+      fi
+    - git checkout "$VERSION"
+    - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    - flutter pub get
+  after_script:
+    - |
+      [ -z "$VERSION" ] && exit 0
+      deb="deberc-$VERSION.deb"
+      [ -f "$deb" ] || exit 0
+      url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$deb"
+      curl -sf -X POST -H "PRIVATE-TOKEN: $TAG_PUSH_TOKEN" \
+        --data-urlencode "name=$deb" --data-urlencode "url=$url" \
+        --data-urlencode "link_type=package" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$VERSION/assets/links" > /dev/null \
+        && echo "Attached $deb to release $VERSION" \
+        || echo "Could not attach $deb to release $VERSION"
+  artifacts:
+    paths:
+      - deberc-*.deb
 
 # Runs only once Play credentials exist, so the rest of the pipeline works
 # without them.
