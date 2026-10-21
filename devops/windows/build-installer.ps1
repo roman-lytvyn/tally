@@ -43,14 +43,17 @@ if (-not $iscc) {
         Remove-Item $setup -Force
         throw "Inno Setup download checksum mismatch: $hash"
     }
+    $log = Join-Path $env:TEMP "innosetup-$InnoVersion-install.log"
     $proc = Start-Process -FilePath $setup -Wait -PassThru -ArgumentList @(
         "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER",
-        "/DIR=`"$InnoCache`""
+        "/DIR=`"$InnoCache`"", "/LOG=`"$log`""
     )
     Remove-Item $setup -Force
-    if ($proc.ExitCode -ne 0) { throw "Inno Setup install failed with exit code $($proc.ExitCode)" }
     $iscc = Join-Path $InnoCache "ISCC.exe"
-    if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after installing Inno Setup" }
+    if ($proc.ExitCode -ne 0 -or -not (Test-Path $iscc)) {
+        if (Test-Path $log) { Get-Content $log | Write-Host }
+        throw "Inno Setup install failed (exit code $($proc.ExitCode))"
+    }
 }
 
 $script = Join-Path $PSScriptRoot "deberc.iss"
