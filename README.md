@@ -241,6 +241,25 @@ Accessible via the ⚙ button:
 - **Language** — English or Ukrainian. Until one is chosen the app follows
   the device: Ukrainian on a Ukrainian device, English everywhere else. Team
   names still at their defaults switch along with it
+- **Anonymous statistics** — on by default; switching it off stops every event
+
+---
+
+## Usage Statistics
+
+To see which versions, platforms and languages are in use and which screens
+people open, the app sends a short event when it starts and whenever a screen
+opens: app version, platform, the app's language and the screen name. Names,
+scores and settings are never sent. There is no identifier that outlives a
+launch: each start picks a fresh random one held only in memory, so events
+cannot be tied to a person or to earlier launches.
+
+Events go to the self-hosted PostHog given by `STATS_HOST` and `STATS_KEY` in
+`devops/.gitlab-ci.yml`, which the build passes in with `--dart-define`
+together with `APP_VERSION`. A build without them, such as `flutter run` or
+the tests, sends nothing. The server uses the address of the request only to
+look up the country and then discards it. Sending is best effort: without a
+connection the event is dropped and the app carries on.
 
 ---
 

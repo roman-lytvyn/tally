@@ -111,6 +111,10 @@ class AppStrings {
                                       : 'The rules apply to new games; a game in progress keeps its own';
   String get language        => isUk ? 'Мова'                             : 'Language';
   String get activeLang      => isUk ? 'Активна мова'                       : 'Active language';
+  String get privacy         => isUk ? 'Приватність'                        : 'Privacy';
+  String get statsTitle      => isUk ? 'Анонімна статистика'                : 'Anonymous statistics';
+  String get statsDesc       => isUk ? 'Країна, версія застосунку й відкриті екрани — без імен, рахунку й ідентифікаторів'
+                                     : 'Country, app version and screens opened, with no names, scores or identifiers';
 
   // Entry panel
   String get newRound        => isUk ? '+ Нова роздача'                     : '+ New round';

@@ -8,6 +8,11 @@ stages:
 variables:
   FLUTTER_IMAGE: ghcr.io/cirruslabs/flutter:stable
   GIT_DEPTH: 1
+  # Where the built app sends its anonymous usage statistics. The project key
+  # is public by design: it can only add events, not read them. Builds made
+  # without these (local runs, tests) send nothing.
+  STATS_HOST: https://analytics.lytvyn.org
+  STATS_KEY: phc_zpFqBN9nnJ3DHpPD6qvjBA7V7d2aUZF3DzAS6pkEXmMh
 
 workflow:
   rules:
@@ -103,8 +108,9 @@ test:
       else
         echo "No upload key configured, building with the debug key: not publishable to Play"
       fi
-    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
-    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
+    - DEFINES="--dart-define=APP_VERSION=$VERSION --dart-define=STATS_HOST=$STATS_HOST --dart-define=STATS_KEY=$STATS_KEY"
+    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" $DEFINES
+    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" $DEFINES
     - mv build/app/outputs/flutter-apk/app-release.apk "deberc-$VERSION.apk"
     - mv build/app/outputs/bundle/release/app-release.aab "deberc-$VERSION.aab"
     - rm -f android/key.properties android/upload-keystore.jks
@@ -132,7 +138,7 @@ build:
     - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
     - apt-get update -qq
     - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev > /dev/null
-    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
+    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=APP_VERSION="$VERSION" --dart-define=STATS_HOST="$STATS_HOST" --dart-define=STATS_KEY="$STATS_KEY"
     - sh devops/linux/build-deb.sh "$VERSION" "deberc-$VERSION.deb"
 
 build-linux:
@@ -213,7 +219,7 @@ build-windows:
     # padded month in $VERSION is reparsed as plain integers and a fourth part
     # is appended.
     - $MSIX_VERSION = (($VERSION.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
-    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID"
+    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=APP_VERSION="$VERSION" --dart-define=STATS_HOST="$env:STATS_HOST" --dart-define=STATS_KEY="$env:STATS_KEY"
     # A self-signed .msix, installable for smoke-testing the Windows build. The
     # Store-signed package is produced only when a release is published.
     # --install-certificate false keeps the test certificate out of the machine
@@ -430,7 +436,7 @@ publish-windows:
     - flutter pub get
   script:
     - if (-not $env:VERSION) { exit 0 }
-    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID"
+    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=APP_VERSION="$env:VERSION" --dart-define=STATS_HOST="$env:STATS_HOST" --dart-define=STATS_KEY="$env:STATS_KEY"
     # Always produce a downloadable package to attach to the release. When a
     # Store publisher identity is configured, build the variant the Store signs
     # (--store plus the identity reserved in Partner Center); otherwise a
