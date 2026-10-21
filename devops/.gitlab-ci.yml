@@ -200,6 +200,12 @@ build-windows:
     - if: $RELEASE_DEPLOY
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
+    # A merge request that touches the Windows app or the build checks it still
+    # builds and packs.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - windows/**/*
+        - devops/**/*
   script:
     - $ErrorActionPreference = "Stop"
     - $VERSION = "$(Get-Date -Format yyyy.MM).$env:CI_PIPELINE_IID"
@@ -213,9 +219,12 @@ build-windows:
     # --install-certificate false keeps the test certificate out of the machine
     # trust store, which also avoids the interactive prompt that would hang CI.
     - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$MSIX_VERSION" --install-certificate false
+    # The per-user setup.exe that the website offers for download.
+    - devops\windows\build-installer.ps1 "$VERSION" .
   artifacts:
     paths:
       - deberc-*.msix
+      - deberc-*-setup.exe
 
 # ── Tag ──────────────────────────────────────────────────────────────────────
 # Tags every build that passed, so a release is picked from a list of
@@ -360,6 +369,7 @@ website:
     - release-version
     - publish
     - publish-linux
+    - publish-windows
   inherit:
     variables: false
   variables:
@@ -445,24 +455,29 @@ publish-windows:
         $args += @("--install-certificate", "false")
       }
       dart @args
+    # The per-user setup.exe that the website offers for download.
+    - devops\windows\build-installer.ps1 "$env:VERSION" .
   after_script:
-    # Attach the Windows package to the release next to the Android build.
+    # Attach the Windows installer and package to the release next to the
+    # Android build.
     - |
       if (-not $env:VERSION) { exit 0 }
-      $msix = "deberc-$env:VERSION.msix"
-      if (-not (Test-Path $msix)) { exit 0 }
-      $url = "$env:CI_PROJECT_URL/-/jobs/$env:CI_JOB_ID/artifacts/raw/$msix"
-      try {
-        Invoke-RestMethod -Method Post -Uri "$env:CI_API_V4_URL/projects/$env:CI_PROJECT_ID/releases/$env:VERSION/assets/links" `
-          -Headers @{ "PRIVATE-TOKEN" = $env:TAG_PUSH_TOKEN } `
-          -Body @{ name = $msix; url = $url; link_type = "package" } | Out-Null
-        Write-Host "Attached $msix to release $env:VERSION"
-      } catch {
-        Write-Host "Could not attach $msix to release $env:VERSION"
+      foreach ($file in @("deberc-$env:VERSION-setup.exe", "deberc-$env:VERSION.msix")) {
+        if (-not (Test-Path $file)) { continue }
+        $url = "$env:CI_PROJECT_URL/-/jobs/$env:CI_JOB_ID/artifacts/raw/$file"
+        try {
+          Invoke-RestMethod -Method Post -Uri "$env:CI_API_V4_URL/projects/$env:CI_PROJECT_ID/releases/$env:VERSION/assets/links" `
+            -Headers @{ "PRIVATE-TOKEN" = $env:TAG_PUSH_TOKEN } `
+            -Body @{ name = $file; url = $url; link_type = "package" } | Out-Null
+          Write-Host "Attached $file to release $env:VERSION"
+        } catch {
+          Write-Host "Could not attach $file to release $env:VERSION"
+        }
       }
   artifacts:
     paths:
       - deberc-*.msix
+      - deberc-*-setup.exe
 
 # Submits the Store package to Partner Center. Runs only once the Store
 # credentials exist, so the rest of the pipeline works without them.
