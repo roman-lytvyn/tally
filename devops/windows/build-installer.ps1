@@ -15,7 +15,14 @@ $ErrorActionPreference = "Stop"
 $InnoVersion = "6.7.3"
 $InnoUrl = "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe"
 $InnoSha256 = "9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732"
-$InnoCache = Join-Path $env:LOCALAPPDATA "deberc-ci\innosetup-$InnoVersion"
+# The Inno Setup installer is a 32-bit program, so for an account whose profile
+# lives under System32 (the runner service running as SYSTEM) Windows redirects
+# its writes to SysWOW64. Such accounts get a cache folder in ProgramData.
+$cacheRoot = $env:LOCALAPPDATA
+if ($cacheRoot.StartsWith([Environment]::SystemDirectory, [StringComparison]::OrdinalIgnoreCase)) {
+    $cacheRoot = $env:ProgramData
+}
+$InnoCache = Join-Path $cacheRoot "deberc-ci\innosetup-$InnoVersion"
 
 function Find-Iscc {
     $onPath = Get-Command ISCC.exe -ErrorAction SilentlyContinue
