@@ -5,9 +5,10 @@ import 'package:deberc/scoring.dart';
 
 GameState game(List<Round> rounds, {
   int limit = 501, int firstDealer = 0, TieRule tieRule = TieRule.hanging,
+  FinishRule finishRule = FinishRule.taker,
 }) => GameState(
   teamNames: const ['A', 'B'], scoreLimit: limit, rounds: rounds, firstDealer: firstDealer,
-  tieRule: tieRule,
+  tieRule: tieRule, finishRule: finishRule,
 );
 
 const tie = Round(gv: 182, dealer: 0, taker: 1, score: [91, 91]);
@@ -196,6 +197,26 @@ void main() {
     test('nobody wins while neither has reached the target', () {
       final t = tally(game(const [start], tieRule: TieRule.eachKeepsOwn));
 
+      expect(t.winner, isNull);
+    });
+
+    test('the side with the most points wins when the table plays it that way', () {
+      final t = tally(game(const [
+        Round(gv: 900, dealer: 0, taker: 0, score: [480, 420]),
+        Round(gv: 162, dealer: 1, taker: 1, score: [62, 100]),
+      ], tieRule: TieRule.eachKeepsOwn, finishRule: FinishRule.mostPoints));
+
+      expect(t.totals, [542, 520]);
+      expect(t.winner, 0);
+    });
+
+    test('play goes on on an equal score when the most points win', () {
+      final t = tally(game(const [
+        start,
+        Round(gv: 162, dealer: 1, taker: 1, score: [81, 81]),
+      ], tieRule: TieRule.eachKeepsOwn, finishRule: FinishRule.mostPoints));
+
+      expect(t.totals, [531, 531]);
       expect(t.winner, isNull);
     });
   });

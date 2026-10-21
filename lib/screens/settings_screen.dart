@@ -13,21 +13,24 @@ class SettingsScreen extends StatelessWidget {
   /// The rules new games start with.
   final bool dealerMustPlay;
   final TieRule tieRule;
+  final FinishRule finishRule;
   final void Function(String) onThemeModeChanged;
   final void Function(String) onScoreStyleChanged;
   final void Function(String) onValueInputChanged;
   final void Function(bool) onDealerMustPlayChanged;
   final void Function(TieRule) onTieRuleChanged;
+  final void Function(FinishRule) onFinishRuleChanged;
   final void Function(String) onLangChanged;
   final VoidCallback onBack;
 
   const SettingsScreen({
     super.key, required this.theme, required this.strings, required this.scoreStyle,
     required this.valueInput, required this.lang, required this.themeMode,
-    required this.dealerMustPlay, required this.tieRule,
+    required this.dealerMustPlay, required this.tieRule, required this.finishRule,
     required this.onThemeModeChanged, required this.onScoreStyleChanged,
     required this.onValueInputChanged, required this.onDealerMustPlayChanged,
-    required this.onTieRuleChanged, required this.onLangChanged, required this.onBack,
+    required this.onTieRuleChanged, required this.onFinishRuleChanged,
+    required this.onLangChanged, required this.onBack,
   });
 
   AppTheme get t => theme;
@@ -160,6 +163,24 @@ class SettingsScreen extends StatelessWidget {
                       Text(strings.tieRuleDesc(tieRule), style: TextStyle(fontSize: 12, color: t.tx2)),
                     ]),
                   ),
+                  _divider(),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(strings.finishRuleTitle,
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        for (final rule in FinishRule.values) ...[
+                          if (rule != FinishRule.values.first) const SizedBox(width: 6),
+                          Expanded(child: _option(_finishRuleIcon(rule), strings.finishRuleName(rule),
+                              finishRule == rule, () => onFinishRuleChanged(rule))),
+                        ],
+                      ]),
+                      const SizedBox(height: 8),
+                      Text(strings.finishRuleDesc(finishRule), style: TextStyle(fontSize: 12, color: t.tx2)),
+                    ]),
+                  ),
                 ]),
                 Padding(
                   padding: const EdgeInsets.only(top: 6, left: 2),
@@ -222,6 +243,11 @@ class SettingsScreen extends StatelessWidget {
     TieRule.hanging          => '⏳',
     TieRule.opponentsTakeAll => '→',
     TieRule.eachKeepsOwn     => '⇄',
+  };
+
+  static String _finishRuleIcon(FinishRule r) => switch (r) {
+    FinishRule.taker      => '♣',
+    FinishRule.mostPoints => '↑',
   };
 
   Widget _styleOpt(String icon, String label, String value) =>

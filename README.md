@@ -110,9 +110,13 @@ total value is 162 plus every declaration that is scored.
 ### Winning
 
 The first side to reach the agreed target wins: **301** (short game), **501**
-or **1001**. When both sides pass the target in the same deal, the side that
-took the trump in that deal goes out first, even if the other side has more
-points; the app applies this rule automatically.
+or **1001**. When both sides pass the target in the same deal, tables settle
+it differently, and the app lets you choose before the game:
+
+- **Most points** (default) — the side with the higher score wins; on an equal
+  score play goes on.
+- **Trump-taker** — the side that took the trump in that deal wins, even if
+  the other side has more points.
 
 ### Sources
 
@@ -168,8 +172,9 @@ On the home screen, configure:
 - **First dealer** — which team or player deals the first round
 - **Point limit** — 301 (short game), 501 or 1001
 
-The game rules — whether the dealer must play and what happens to «eggs» —
-are set once in **Settings** and apply to every new game.
+The game rules — whether the dealer must play, what happens to «eggs» and who
+wins when both sides reach the target together — are set once in
+**Settings** and apply to every new game.
 
 Tap **«New game»** to start.
 
@@ -229,8 +234,10 @@ Accessible via the ⚙ button:
   ones in the iOS clock (162, 182, 202, 212, 222, …): spin it up to raise the
   value and down to lower it
 - **Rules** — whether the dealer must play when everyone else passes (on by
-  default), and what happens to a tied deal («eggs»). They are remembered and
-  apply to new games; a game in progress keeps the rules it started with
+  default), what happens to a tied deal («eggs»), and who wins when both
+  sides reach the target in the same deal (the most points by default, or
+  the side that took the trump). They are remembered and apply to new games;
+  a game in progress keeps the rules it started with
 - **Language** — English or Ukrainian. Until one is chosen the app follows
   the device: Ukrainian on a Ukrainian device, English everywhere else. Team
   names still at their defaults switch along with it

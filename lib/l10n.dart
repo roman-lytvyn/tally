@@ -56,6 +56,19 @@ class AppStrings {
         ? 'Кожна сторона записує те, що набрала'
         : 'Each side scores what it took',
   };
+  String get finishRuleTitle => isUk ? 'Обидві сторони набрали суму гри'    :'Both sides pass the target';
+  String finishRuleName(FinishRule r) => switch (r) {
+    FinishRule.taker      => isUk ? 'Хто грав'                              : 'Trump-taker',
+    FinishRule.mostPoints => isUk ? 'Більше очок'                           : 'Most points',
+  };
+  String finishRuleDesc(FinishRule r) => switch (r) {
+    FinishRule.taker => isUk
+        ? 'Перемагає сторона, що взяла козир в останній роздачі, навіть якщо в неї менше очок'
+        : 'The side that took the trump in the last deal wins, even with fewer points',
+    FinishRule.mostPoints => isUk
+        ? 'Перемагає сторона, в якої більше очок; за рівного рахунку гра триває'
+        : 'The side with more points wins; on an equal score play goes on',
+  };
 
   // Game
   String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
