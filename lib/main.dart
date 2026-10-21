@@ -60,10 +60,10 @@ class _AppRootState extends State<AppRoot> {
   // new games; a game keeps the rules it started with.
   bool _dealerMustPlay = true;
   TieRule _tieRule = TieRule.hanging;
-  FinishRule _finishRule = FinishRule.taker;
+  FinishRule _finishRule = FinishRule.mostPoints;
   bool _newDealerMustPlay = true;
   TieRule _newTieRule = TieRule.hanging;
-  FinishRule _newFinishRule = FinishRule.taker;
+  FinishRule _newFinishRule = FinishRule.mostPoints;
   int _players = 4;
   List<Round> _rounds = [];
   GameState? _savedGame;
@@ -106,7 +106,7 @@ class _AppRootState extends State<AppRoot> {
     final valueIn = prefs.getString(_valueKey) ?? 'counters';
     final dealerMustPlay = prefs.getBool(_dealerMustPlayKey) ?? true;
     final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ?? TieRule.hanging;
-    final finishRule = FinishRule.values.asNameMap()[prefs.getString(_finishRuleKey)] ?? FinishRule.taker;
+    final finishRule = FinishRule.values.asNameMap()[prefs.getString(_finishRuleKey)] ?? FinishRule.mostPoints;
     // Until a language is chosen, Ukrainian devices get Ukrainian and every
     // other device English.
     final lang  = prefs.getString(_langKey)

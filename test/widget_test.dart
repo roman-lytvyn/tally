@@ -195,13 +195,13 @@ void main() {
     testWidgets('let players choose who wins when both sides pass the target together', (tester) async {
       await openApp(tester);
       await tapText(tester, uk.settingsBtn);
-      expect(find.text(uk.finishRuleDesc(FinishRule.taker)), findsOneWidget);
-
-      await tapText(tester, uk.finishRuleName(FinishRule.mostPoints));
-
       expect(find.text(uk.finishRuleDesc(FinishRule.mostPoints)), findsOneWidget);
+
+      await tapText(tester, uk.finishRuleName(FinishRule.taker));
+
+      expect(find.text(uk.finishRuleDesc(FinishRule.taker)), findsOneWidget);
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('deberc_finish_rule'), 'mostPoints');
+      expect(prefs.getString('deberc_finish_rule'), 'taker');
     });
 
     testWidgets('are remembered between launches', (tester) async {

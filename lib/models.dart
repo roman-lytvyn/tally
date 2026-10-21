@@ -69,10 +69,10 @@ enum TieRule {
 
 /// Who wins when several sides pass the target in the same deal.
 enum FinishRule {
-  /// The side that took the trump in that deal goes out first.
-  taker,
   /// The side with the highest total wins.
   mostPoints,
+  /// The side that took the trump in that deal wins.
+  taker,
 }
 
 /// One deal exactly as the players entered it; what each side earns from it
@@ -177,7 +177,7 @@ class GameState {
     required this.rounds, required this.firstDealer,
     this.dealerMustPlay = false,
     this.tieRule = TieRule.hanging,
-    this.finishRule = FinishRule.taker,
+    this.finishRule = FinishRule.mostPoints,
     this.players = 4,
   });
 
@@ -207,6 +207,7 @@ class GameState {
       dealerMustPlay: j['dealerMustPlay'] ?? false,
       // Games saved before the rule was chosen kept each side's own points.
       tieRule: TieRule.values.asNameMap()[j['tieRule']] ?? TieRule.eachKeepsOwn,
+      // Games saved before the rule was chosen let the trump-taker win.
       finishRule: FinishRule.values.asNameMap()[j['finishRule']] ?? FinishRule.taker,
       players: j['players'] ?? 4,
     );
