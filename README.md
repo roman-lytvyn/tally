@@ -271,7 +271,12 @@ the publish pipeline, which rebuilds that exact tag on each platform, attaches
 the APK, the Windows `.msix` and the Linux `.deb` to the release for direct
 download, and — once store credentials are configured — uploads the AAB to the
 internal track of Google Play and the package to the Microsoft Store, both as
-drafts.
+drafts. Once the APK and the `.deb` are attached, the `website` job rebuilds
+[deberc.lytvyn.org](https://deberc.lytvyn.org) from the
+[website project](https://git.lytvyn.org/games/deberc-landing), which then
+offers this release for download and goes live on its own. The website reads
+the release files with its CI job token, so this project's job token allowlist
+includes the website project.
 
 ### Platforms
 

@@ -350,6 +350,24 @@ publish-linux:
     paths:
       - deberc-*.deb
 
+# The website offers the Android and Linux files of the latest release, so once
+# both are attached it is rebuilt with this release and goes live with it.
+website:
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  needs:
+    - release-version
+    - publish
+    - publish-linux
+  inherit:
+    variables: false
+  variables:
+    APP_RELEASE: $VERSION
+  trigger:
+    project: games/deberc-landing
+    branch: main
+
 # Runs only once Play credentials exist, so the rest of the pipeline works
 # without them.
 google-play:
