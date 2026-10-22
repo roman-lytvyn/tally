@@ -384,6 +384,10 @@ void main() {
       expect(kDealValues.take(8), [162, 182, 202, 212, 222, 232, 242, 252]);
     });
 
+    test('goes no higher than a deal can reach', () {
+      expect(kDealValues.last, 662);
+    });
+
     testWidgets('can be chosen in the settings and is remembered', (tester) async {
       await openApp(tester);
       await tapText(tester, uk.settingsBtn);
