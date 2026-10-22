@@ -463,6 +463,10 @@ void main() {
         greaterThan(tester.getRect(find.text('162').first).right));
     expect(find.byKey(const ValueKey('eggs.1')), findsOneWidget);
     expect(find.byKey(const ValueKey('eggs.0')), findsNothing);
+
+    // The line between the two sides runs down the middle of each row.
+    expect(tester.getCenter(find.byKey(const ValueKey('divider.0.1'))).dx,
+        moreOrLessEquals(tester.getCenter(find.byType(ListView)).dx, epsilon: 0.5));
   });
 
   testWidgets('offers no redeal when the dealer must play', (tester) async {
