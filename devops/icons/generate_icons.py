@@ -1,0 +1,159 @@
+"""Builds every platform's app icon from the logo in this folder.
+
+The logo is two cards on a light backdrop. The cards are cut out of the
+backdrop, keeping their soft shadow, and laid out the way each platform wants:
+
+- Android: a legacy launcher icon per density, and an adaptive icon whose
+  foreground keeps the cards inside the circle every launcher mask leaves.
+- iOS: opaque icons on the backdrop colour, in every size the asset catalog
+  lists.
+- Windows: a multi-size .ico for the executable and installer, and a large
+  PNG the MSIX package builds its tiles from.
+- Linux: menu icons in the hicolor sizes the .deb installs.
+
+Run from the repository root: python devops/icons/generate_icons.py
+"""
+
+import json
+import re
+from pathlib import Path
+
+import numpy as np
+from PIL import Image, ImageDraw
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE = Path(__file__).with_name("deberc_logo.jpg")
+
+# The light grey of the logo's backdrop, used wherever an icon must be opaque.
+BACKDROP = (225, 229, 230)
+# Pixels darker than this belong to a card; the backdrop and shadow are lighter.
+CARD_EDGE = 90
+
+
+def cut_out_cards(logo: Image.Image) -> Image.Image:
+    """The cards on a transparent background, cropped to their shadow."""
+    rgb = np.asarray(logo.convert("RGB")).astype(np.float32)
+    lum = rgb @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    h, w = lum.shape
+
+    # Everything light that can be reached from the border is backdrop or
+    # shadow; the cards' dark outline encloses their gold marks.
+    # Copied, as an image wrapping a NumPy array is read-only to flood fill.
+    light = Image.fromarray(np.where(lum > CARD_EDGE, 255, 0).astype(np.uint8)).copy()
+    for x, y in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)):
+        if light.getpixel((x, y)) == 255:
+            ImageDraw.floodfill(light, (x, y), 128)
+    outside = np.asarray(light) == 128
+
+    # The backdrop darkens from top to bottom; a shadow or a card's soft edge
+    # is how far a pixel is from the backdrop towards the card colour.
+    row_bg = np.array([np.median(lum[y][outside[y]]) if outside[y].any() else 220.0 for y in range(h)],
+                      dtype=np.float32)[:, None]
+    card = np.median(rgb[~outside], axis=0)
+    card_lum = float(card @ np.array([0.299, 0.587, 0.114]))
+    edge_alpha = np.clip((row_bg - lum) / (row_bg - card_lum), 0, 1)
+    # The backdrop's own grain is not shadow.
+    edge_alpha[edge_alpha < 0.05] = 0
+
+    alpha = np.where(outside, edge_alpha, 1.0)
+    out = rgb.copy()
+    out[outside] = card
+    rgba = np.dstack([out, alpha * 255]).round().astype(np.uint8)
+    cut = Image.fromarray(rgba, "RGBA")
+    # Cropped to what is clearly visible, so a faint shadow at the edge does
+    # not shift or shrink the cards.
+    return cut.crop(cut.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox())
+
+
+def fitted(cards: Image.Image, size: int, *, radius: float | None = None, box: float | None = None,
+           background: tuple[int, int, int] | None = None) -> Image.Image:
+    """The cards centred on a square canvas of [size] pixels.
+
+    [box] fits the cards' bounding box into that share of the side; [radius]
+    instead keeps every visible pixel within that share of the side from the
+    centre, which is what a launcher's round mask needs.
+    """
+    a = np.asarray(cards)[:, :, 3]
+    if radius is not None:
+        ys, xs = np.nonzero(a > 40)
+        cy, cx = (cards.height - 1) / 2, (cards.width - 1) / 2
+        reach = np.sqrt((xs - cx) ** 2 + (ys - cy) ** 2).max()
+        scale = radius * size / reach
+    else:
+        scale = (box or 1.0) * size / max(cards.size)
+    w, h = max(1, round(cards.width * scale)), max(1, round(cards.height * scale))
+    # Large steps first with a cheap filter, then the last step with Lanczos,
+    # keeps the thin gold lines crisp at small sizes.
+    small = cards
+    while small.width > 2 * w:
+        small = small.resize((small.width // 2, small.height // 2), Image.Resampling.BOX)
+    small = small.resize((w, h), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (size, size), (*background, 255) if background else (0, 0, 0, 0))
+    canvas.alpha_composite(small, ((size - w) // 2, (size - h) // 2))
+    return canvas.convert("RGB") if background else canvas
+
+
+def android(cards: Image.Image) -> None:
+    res = ROOT / "android/app/src/main/res"
+    densities = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
+    for name, k in densities.items():
+        # Legacy icons are 48dp with the art inside a 44dp keyline circle.
+        fitted(cards, round(48 * k), radius=0.46).save(res / f"mipmap-{name}/ic_launcher.png", optimize=True)
+        # Adaptive foregrounds are 108dp, of which only a 66dp circle is
+        # guaranteed to stay visible under any mask.
+        fitted(cards, round(108 * k), radius=0.30).save(
+            res / f"mipmap-{name}/ic_launcher_foreground.png", optimize=True)
+
+    (res / "mipmap-anydpi-v26").mkdir(exist_ok=True)
+    (res / "mipmap-anydpi-v26/ic_launcher.xml").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
+        '    <background android:drawable="@color/ic_launcher_background"/>\n'
+        '    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n'
+        '</adaptive-icon>\n', encoding="utf-8")
+    (res / "values/ic_launcher_background.xml").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<resources>\n'
+        '    <color name="ic_launcher_background">#{:02X}{:02X}{:02X}</color>\n'
+        '</resources>\n'.format(*BACKDROP), encoding="utf-8")
+
+
+def ios(cards: Image.Image) -> None:
+    folder = ROOT / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
+    images = json.loads((folder / "Contents.json").read_text(encoding="utf-8"))["images"]
+    for image in images:
+        base = float(image["size"].split("x")[0])
+        scale = int(image["scale"].rstrip("x"))
+        size = round(base * scale)
+        # iOS rounds the corners itself and rejects transparency.
+        fitted(cards, size, box=0.82, background=BACKDROP).save(folder / image["filename"], optimize=True)
+
+
+def windows(cards: Image.Image) -> None:
+    resources = ROOT / "windows/runner/resources"
+    sizes = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256]
+    # Each size is drawn on its own so small ones are resampled from the
+    # full-size art rather than from a blurred larger icon.
+    frames = [fitted(cards, s, box=0.96) for s in sizes]
+    frames[-1].save(resources / "app_icon.ico", format="ICO", sizes=[(s, s) for s in sizes],
+                    append_images=frames[:-1])
+    fitted(cards, 1024, box=0.92).save(resources / "app_logo.png", optimize=True)
+
+
+def linux(cards: Image.Image) -> None:
+    folder = ROOT / "devops/linux/icons"
+    folder.mkdir(exist_ok=True)
+    for size in (16, 24, 32, 48, 64, 128, 256, 512):
+        fitted(cards, size, box=0.94).save(folder / f"{size}.png", optimize=True)
+
+
+def main() -> None:
+    cards = cut_out_cards(Image.open(SOURCE))
+    android(cards)
+    ios(cards)
+    windows(cards)
+    linux(cards)
+
+
+if __name__ == "__main__":
+    main()
