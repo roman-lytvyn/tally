@@ -10,12 +10,16 @@ const kPlayerCounts = [2, 3, 4];
 /// How many sides keep a score when [players] play.
 int sidesFor(int players) => players == 4 ? 2 : players;
 
+/// The most a deal can be worth: the cards, every suit split into a hundred
+/// and a tierce held by two players (4 × 120) and the bella.
+const kMaxDealValue = kBaseGV + 4 * 120 + 20;
+
 /// Every value a deal can have, lowest first: the cards plus any mix of
-/// tierces and bella (20 each) and fifties (50 each).
+/// tierces and bella (20 each) and fifties (50 each), up to [kMaxDealValue].
 final List<int> kDealValues = {
   for (var twenties = 0; twenties <= 10; twenties++)
     for (var fifties = 0; fifties <= 9; fifties++) kBaseGV + twenties * 20 + fifties * 50,
-}.toList()..sort();
+}.where((v) => v <= kMaxDealValue).toList()..sort();
 
 /// The combinations declared in a deal, which raise its game value.
 class Declarations {
