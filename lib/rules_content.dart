@@ -65,6 +65,14 @@ const _en = [
         'whole value of the deal and the trump-taker gets nothing. With three players the deal goes to the '
         'opponent who scored more, and two opponents level on the most share it.',
   ]),
+  RulesSection('Penalties', [
+    'Many tables add penalties, settled before the game; the app lets you choose them in the settings and '
+        'takes them off the score on its own:',
+    '• Repeated bait — a side loses 50 or 100 more points for its third bait, for the third and each one '
+        'after it, or for every third. Baits count over the whole game or only in a row; in a pair the bait '
+        'counts for the team.',
+    '• Skis — a side that takes no tricks in a deal loses 50 or 100 points.',
+  ]),
   RulesSection('Eggs — a tied deal', [
     'If the trump-taker scores exactly as much as the opponents, the deal is "eggs". Tables settle it '
         'differently, and the app lets you choose before the game:',
@@ -140,6 +148,13 @@ const _uk = [
     'Якщо сторона, що взяла козир, набрала менше за суперника, це байт: суперники отримують усю вартість '
         'роздачі, а ті, хто грав, — нуль. Утрьох роздачу отримує суперник, що набрав більше, а двоє з однаковим '
         'найбільшим результатом ділять її.',
+  ]),
+  RulesSection('Штрафи', [
+    'За багатьма столами грають зі штрафами, про які домовляються перед грою; застосунок дає обрати їх у '
+        'налаштуваннях і сам знімає їх з рахунку:',
+    '• Повторні байти — сторона втрачає ще 50 або 100 очок за третій байт, за третій і кожен наступний або '
+        'за кожен третій. Байти рахуються за всю гру або лише підряд; у парі байт пишеться на команду.',
+    '• Лижі — сторона, що за роздачу не взяла жодної взятки, втрачає 50 або 100 очок.',
   ]),
   RulesSection('Яйця — нічия', [
     'Якщо ті, хто взяв козир, набрали рівно стільки ж, скільки суперники, це «яйця». За різними столами їх '

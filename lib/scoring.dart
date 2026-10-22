@@ -9,10 +9,18 @@ class Tally {
   final int dealer;
   /// Points from tied deals still waiting for the winner of the next deal.
   final int held;
+  /// What each side lost in each deal for a penalised bait.
+  final List<List<int>> baitPenalties;
+  /// What each side lost in each deal for taking no tricks in it.
+  final List<List<int>> noTricksPenalties;
+  /// The baits each side has counted so far: over the game, or the ones in a
+  /// row when only those count.
+  final List<int> baits;
 
   const Tally({
     required this.earned, required this.totals, required this.winner,
     required this.dealer, this.held = 0,
+    this.baitPenalties = const [], this.noTricksPenalties = const [], this.baits = const [],
   });
 }
 
@@ -62,12 +70,20 @@ int _best(List<int> values) {
 
 Tally tally(GameState game) {
   final earned = <List<int>>[];
+  final baitPenalties = <List<int>>[];
+  final noTricksPenalties = <List<int>>[];
   final totals = List.filled(game.sides, 0);
+  final baits = List.filled(game.sides, 0);
+  final penalties = game.penalties;
   var held = 0;
   int? winner;
 
   for (final r in game.rounds) {
     final e = scoreRound(r, tieRule: game.tieRule);
+    final baitPenalty = List.filled(game.sides, 0);
+    final noTricksPenalty = List.filled(game.sides, 0);
+    baitPenalties.add(baitPenalty);
+    noTricksPenalties.add(noTricksPenalty);
     if (r.isDeberc) {
       earned.add(e);
       winner = r.deberc;
@@ -78,6 +94,18 @@ Tally tally(GameState game) {
       earned.add(e);
       continue;
     }
+    // A tie the opponents take counts as bait here as well.
+    if (r.isBaited || (r.isTie && game.tieRule == TieRule.opponentsTakeAll)) {
+      baits[r.taker]++;
+      if (penalties.penalisesBait(baits[r.taker])) baitPenalty[r.taker] = penalties.baitPoints;
+    } else if (penalties.baitsInARow) {
+      baits[r.taker] = 0;
+    }
+    if (penalties.noTricksPoints > 0) {
+      for (var i = 0; i < game.sides; i++) {
+        if (r.tookNoTricks(i)) noTricksPenalty[i] = penalties.noTricksPoints;
+      }
+    }
     if (r.isTie && game.tieRule == TieRule.hanging) {
       held += r.score[r.taker];
     } else if (held > 0) {
@@ -86,7 +114,7 @@ Tally tally(GameState game) {
     }
     earned.add(e);
     for (var i = 0; i < totals.length; i++) {
-      totals[i] += e[i];
+      totals[i] += e[i] - baitPenalty[i] - noTricksPenalty[i];
     }
     winner = _finisher(totals, game.scoreLimit, r.taker, game.finishRule);
     if (winner != null) break;
@@ -98,5 +126,8 @@ Tally tally(GameState game) {
     winner: winner,
     dealer: (game.firstDealer + game.rounds.length) % game.sides,
     held: held,
+    baitPenalties: baitPenalties,
+    noTricksPenalties: noTricksPenalties,
+    baits: baits,
   );
 }

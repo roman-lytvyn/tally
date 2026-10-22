@@ -217,12 +217,34 @@ void main() {
       expect(find.text(uk.tieRuleDesc(TieRule.eachKeepsOwn)), findsOneWidget);
     });
 
+    testWidgets('let players choose penalties for repeated bait and for skis', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      expect(find.byKey(const ValueKey('baitPoints.50')), findsNothing);
+
+      await tapText(tester, uk.baitPenaltyName(BaitPenalty.thirdAndAfter));
+      await tester.ensureVisible(find.byKey(const ValueKey('baitPoints.50')));
+      await tester.tap(find.byKey(const ValueKey('baitPoints.50')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('baitsInARow')));
+      await tester.tap(find.byKey(const ValueKey('baitsInARow')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('noTricks.100')));
+      await tester.tap(find.byKey(const ValueKey('noTricks.100')));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(jsonDecode(prefs.getString('deberc_penalties')!), const Penalties(
+          bait: BaitPenalty.thirdAndAfter, baitPoints: 50, baitsInARow: true, noTricksPoints: 100).toJson());
+    });
+
     testWidgets('leave a game in progress on the rules it started with', (tester) async {
       await openApp(tester);
       await tapText(tester, uk.newGame);
 
       await tapText(tester, '⚙');
       await tapText(tester, uk.dealerMustPlay);
+      await tester.scrollUntilVisible(find.text(uk.rulesForNewGames), 200, scrollable: find.byType(Scrollable).first);
       expect(find.text(uk.rulesForNewGames), findsOneWidget);
       await tapText(tester, uk.backBtn);
       await tapText(tester, uk.newRound);
@@ -471,6 +493,29 @@ void main() {
     // The line between the two sides runs down the middle of each row.
     expect(tester.getCenter(find.byKey(const ValueKey('divider.0.1'))).dx,
         moreOrLessEquals(tester.getCenter(find.byType(ListView)).dx, epsilon: 0.5));
+  });
+
+  testWidgets('counts baits and marks the penalties taken off in the history', (tester) async {
+    const game = GameState(
+      teamNames: ['Ми', 'Вони'], scoreLimit: 501, firstDealer: 0,
+      penalties: Penalties(bait: BaitPenalty.third, noTricksPoints: 50),
+      rounds: [
+        Round(gv: 162, dealer: 0, taker: 0, score: [0, 0], isBait: true),
+        Round(gv: 162, dealer: 1, taker: 0, score: [0, 0], isBait: true),
+        Round(gv: 162, dealer: 0, taker: 0, score: [0, 0], isBait: true),
+        Round(gv: 162, dealer: 1, taker: 1, score: [0, 162]),
+      ],
+    );
+    SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_v2': jsonEncode(game.toJson())});
+    await openApp(tester);
+    await tapText(tester, uk.continuePrev);
+
+    expect(find.byKey(const ValueKey('baits.0')), findsOneWidget);
+    expect(find.text(uk.baitsSoFar(3)), findsOneWidget);
+    expect(find.byKey(const ValueKey('baits.1')), findsNothing);
+    expect(find.byKey(const ValueKey('baitPenalty.2.0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('baitPenalty.1.0')), findsNothing);
+    expect(find.byKey(const ValueKey('noTricks.3.0')), findsOneWidget);
   });
 
   testWidgets('offers no redeal when the dealer must play', (tester) async {

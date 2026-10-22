@@ -119,4 +119,22 @@ void main() {
       expect(d.tierces, 0);
     });
   });
+
+  group('Penalties', () {
+    test('survive being saved with a game and read back', () {
+      const p = Penalties(bait: BaitPenalty.everyThird, baitPoints: 50, baitsInARow: true, noTricksPoints: 100);
+      final restored = GameState.fromJson(
+          const GameState(teamNames: ['A', 'B'], scoreLimit: 501, rounds: [], firstDealer: 0, penalties: p).toJson());
+
+      expect(restored.penalties.toJson(), p.toJson());
+    });
+
+    test('are absent from games saved before they could be chosen', () {
+      final restored = GameState.fromJson(
+          {'teamNames': ['A', 'B'], 'scoreLimit': 501, 'rounds': [], 'firstDealer': 0});
+
+      expect(restored.penalties.bait, BaitPenalty.none);
+      expect(restored.penalties.noTricksPoints, 0);
+    });
+  });
 }

@@ -14,6 +14,8 @@ class GameScreen extends StatefulWidget {
   final int players;
   final bool dealerMustPlay;
   final TieRule tieRule;
+  /// Each side's baits so far are shown while bait can be penalised.
+  final bool showBaits;
   final List<Round> rounds;
   final Tally tally;
   final String scoreStyle;
@@ -27,7 +29,7 @@ class GameScreen extends StatefulWidget {
 
   const GameScreen({
     super.key, required this.theme, required this.strings, required this.teamNames,
-    required this.scoreLimit, this.players = 4, required this.dealerMustPlay, required this.tieRule, required this.rounds, required this.tally,
+    required this.scoreLimit, this.players = 4, required this.dealerMustPlay, required this.tieRule, this.showBaits = false, required this.rounds, required this.tally,
     required this.scoreStyle, this.valueInput = 'counters', required this.onAddRound, required this.onReplaceRound,
     required this.onRemoveRound, required this.onUndo,
     required this.onBack, required this.onSettings,
@@ -159,6 +161,7 @@ class _GameScreenState extends State<GameScreen> {
                     color: t.teamColor(i), letterSpacing: 0.5)),
               ),
             ),
+            if (_baitsShown(i)) ...[const SizedBox(width: 6), _baitCount(i)],
             const Spacer(),
             _toGo(i),
           ]),
@@ -188,15 +191,18 @@ class _GameScreenState extends State<GameScreen> {
         Text(teamNames[i], style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
             letterSpacing: 0.4, color: t.teamColor(i))),
         const SizedBox(height: 2),
-        AnimatedOpacity(
-          duration: const Duration(milliseconds: 200),
-          opacity: dealer == i ? 1.0 : 0.0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
-            child: Text(strings.deals, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: t.teamColor(i))),
+        Row(mainAxisSize: MainAxisSize.min, children: [
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: dealer == i ? 1.0 : 0.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
+              child: Text(strings.deals, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: t.teamColor(i))),
+            ),
           ),
-        ),
+          if (_baitsShown(i)) ...[const SizedBox(width: 4), _baitCount(i)],
+        ]),
       ]))),
       const SizedBox(height: 2),
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -209,6 +215,12 @@ class _GameScreenState extends State<GameScreen> {
       ]),
     ]),
   );
+
+  bool _baitsShown(int i) => widget.showBaits && widget.tally.baits.length > i && widget.tally.baits[i] > 0;
+
+  /// How many baits side [i] has towards the penalty.
+  Widget _baitCount(int i) => _badge(strings.baitsSoFar(widget.tally.baits[i]), t.danger, t.dangerDim,
+      key: ValueKey('baits.$i'));
 
   /// Whether side [i] is ahead of every other side.
   bool _leads(int i) => [for (var j = 0; j < sides; j++) if (j != i) scores[j]].every((s) => scores[i] > s);
@@ -309,7 +321,7 @@ class _GameScreenState extends State<GameScreen> {
                         key: ValueKey('divider.$index.$i'),
                         width: 1, color: t.bdr,
                         margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
-                    Expanded(child: _roundScore(r, earned, i)),
+                    Expanded(child: _roundScore(r, earned, i, index)),
                   ],
                   SizedBox(
                     width: _metaWidth,
@@ -340,7 +352,9 @@ class _GameScreenState extends State<GameScreen> {
     ],
   );
 
-  Widget _roundScore(Round r, List<int> earned, int i) {
+  Widget _roundScore(Round r, List<int> earned, int i, int index) {
+    final baitPenalty = widget.tally.baitPenalties[index][i];
+    final noTricksPenalty = widget.tally.noTricksPenalties[index][i];
     // On a tie the trump-taker's own points, when not scored, show crossed out.
     final lost = r.isTie && r.taker == i && earned[i] < r.score[i];
     // The trump-taker's points carry a ♠ on the side facing away from the divider.
@@ -366,6 +380,11 @@ class _GameScreenState extends State<GameScreen> {
       points,
       if (taker) ...[gap, spade],
       if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
+      // Penalties are taken off the side's score, so they follow its points.
+      if (baitPenalty > 0)
+        ...[gap, _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i'))],
+      if (noTricksPenalty > 0) ...[gap, _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim,
+          key: ValueKey('noTricks.$index.$i'))],
     ];
     return Align(
       alignment: sides > 2 ? Alignment.center : first ? Alignment.centerRight : Alignment.centerLeft,

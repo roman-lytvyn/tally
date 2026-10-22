@@ -20,6 +20,7 @@ const _valueKey = 'deberc_value_input';
 const _dealerMustPlayKey = 'deberc_dealer_must_play';
 const _tieRuleKey = 'deberc_tie_rule';
 const _finishRuleKey = 'deberc_finish_rule';
+const _penaltiesKey = 'deberc_penalties';
 
 enum AppScreen { setup, game, settings, win, rules }
 
@@ -64,6 +65,8 @@ class _AppRootState extends State<AppRoot> {
   bool _newDealerMustPlay = true;
   TieRule _newTieRule = TieRule.hanging;
   FinishRule _newFinishRule = FinishRule.mostPoints;
+  Penalties _penalties = const Penalties();
+  Penalties _newPenalties = const Penalties();
   int _players = 4;
   List<Round> _rounds = [];
   GameState? _savedGame;
@@ -75,6 +78,7 @@ class _AppRootState extends State<AppRoot> {
     teamNames: AppStrings(_lang).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
     dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, finishRule: _finishRule, players: _players,
+    penalties: _penalties,
   );
 
   /// Switches between team and individual play, starting from the default
@@ -107,6 +111,11 @@ class _AppRootState extends State<AppRoot> {
     final dealerMustPlay = prefs.getBool(_dealerMustPlayKey) ?? true;
     final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ?? TieRule.hanging;
     final finishRule = FinishRule.values.asNameMap()[prefs.getString(_finishRuleKey)] ?? FinishRule.mostPoints;
+    var penalties = const Penalties();
+    try {
+      final rawPenalties = prefs.getString(_penaltiesKey);
+      if (rawPenalties != null) penalties = Penalties.fromJson(jsonDecode(rawPenalties) as Map<String, dynamic>);
+    } catch (_) {}
     // Until a language is chosen, Ukrainian devices get Ukrainian and every
     // other device English.
     final lang  = prefs.getString(_langKey)
@@ -133,7 +142,8 @@ class _AppRootState extends State<AppRoot> {
       _newDealerMustPlay = dealerMustPlay;
       _newTieRule  = tieRule;
       _newFinishRule = finishRule;
-      _lang        = resolvedLang;
+      _newPenalties = penalties;
+      _lang      = resolvedLang;
       _teamNames   = saved?.teamNames ?? defaultNames;
       _players     = saved?.players ?? 4;
       _savedGame   = saved;
@@ -167,6 +177,7 @@ class _AppRootState extends State<AppRoot> {
     setState(() {
       _teamNames = _game.teamNames; _rounds = []; _savedGame = null;
       _dealerMustPlay = _newDealerMustPlay; _tieRule = _newTieRule; _finishRule = _newFinishRule;
+      _penalties = _newPenalties;
     });
     _prefs?.remove(_storeKey);
     _goTo(AppScreen.game);
@@ -180,6 +191,7 @@ class _AppRootState extends State<AppRoot> {
       _teamNames = g.teamNames; _scoreLimit = g.scoreLimit;
       _rounds = g.rounds; _firstDealer = g.firstDealer;
       _dealerMustPlay = g.dealerMustPlay; _tieRule = g.tieRule; _finishRule = g.finishRule;
+      _penalties = g.penalties;
       _players = g.players;
       _savedGame = null;
     });
@@ -264,6 +276,7 @@ class _AppRootState extends State<AppRoot> {
           theme: theme, strings: strings,
           teamNames: _game.teamNames, scoreLimit: _scoreLimit, players: _players,
           dealerMustPlay: _dealerMustPlay, tieRule: _tieRule,
+          showBaits: _penalties.bait != BaitPenalty.none,
           rounds: _rounds, tally: tally(_game),
           scoreStyle: _scoreStyle, valueInput: _valueInput,
           onAddRound: _addRound, onReplaceRound: _replaceRound, onRemoveRound: _removeRound,
@@ -281,6 +294,11 @@ class _AppRootState extends State<AppRoot> {
           scoreStyle: _scoreStyle, valueInput: _valueInput, lang: _lang,
           themeMode: _themeMode,
           dealerMustPlay: _newDealerMustPlay, tieRule: _newTieRule, finishRule: _newFinishRule,
+          penalties: _newPenalties,
+          onPenaltiesChanged: (v) {
+            setState(() => _newPenalties = v);
+            _prefs?.setString(_penaltiesKey, jsonEncode(v.toJson()));
+          },
           onDealerMustPlayChanged: (v) {
             setState(() => _newDealerMustPlay = v);
             _prefs?.setBool(_dealerMustPlayKey, v);

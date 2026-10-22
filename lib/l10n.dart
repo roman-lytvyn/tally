@@ -69,9 +69,49 @@ class AppStrings {
         ? 'Перемагає сторона, в якої більше очок; за рівного рахунку гра триває'
         : 'The side with more points wins; on an equal score play goes on',
   };
+  String get baitPenaltyTitle => isUk ? 'Штраф за байти'                    : 'Penalty for bait';
+  String baitPenaltyName(BaitPenalty p) => switch (p) {
+    BaitPenalty.none          => isUk ? 'Немає'                             : 'None',
+    BaitPenalty.third         => isUk ? 'Третій'                            : 'The third',
+    BaitPenalty.thirdAndAfter => isUk ? 'Третій і далі'                     : 'Third and after',
+    BaitPenalty.everyThird    => isUk ? 'Кожен третій'                      : 'Every third',
+  };
+  String baitPenaltyDesc(BaitPenalty p, int points) => switch (p) {
+    BaitPenalty.none => isUk
+        ? 'Байт коштує лише програної роздачі'
+        : 'Bait costs nothing more than the lost deal',
+    BaitPenalty.third => isUk
+        ? 'За третій байт сторона втрачає ще $points очок'
+        : 'A side loses $points more points for its third bait',
+    BaitPenalty.thirdAndAfter => isUk
+        ? 'За третій і кожен наступний байт сторона втрачає ще по $points очок'
+        : 'A side loses $points more points for its third bait and each one after it',
+    BaitPenalty.everyThird => isUk
+        ? 'За кожен третій байт — третій, шостий, дев\'ятий — сторона втрачає ще $points очок'
+        : 'A side loses $points more points for every third bait: the third, sixth, ninth',
+  };
+  String get penaltySize     => isUk ? 'Розмір штрафу'                      : 'Penalty size';
+  String get points          => isUk ? 'очок'                               : 'points';
+  String get baitsCountTitle => isUk ? 'Байти рахуються'                    : 'Baits are counted';
+  String get baitsPerGame    => isUk ? 'За всю гру'                         : 'Over the game';
+  String get baitsInARow     => isUk ? 'Лише підряд'                        : 'Only in a row';
+  String baitsCountDesc(bool inARow) => inARow
+      ? (isUk
+          ? 'Рахунок байтів починається знову, щойно сторона зіграє роздачу без байта'
+          : 'The count starts again once the side plays a deal without bait')
+      : (isUk
+          ? 'Рахуються всі байти сторони за гру, не обов\'язково підряд'
+          : 'All of a side\'s baits in the game count, not only those in a row');
+  String get noTricksTitle   => isUk ? 'Лижі — жодної взятки'               : 'Skis — no tricks taken';
+  String get noPenalty       => isUk ? 'Немає'                              : 'None';
+  String noTricksDesc(int points) => points == 0
+      ? (isUk ? 'Роздача без жодної взятки нічого не коштує' : 'A deal without a trick costs nothing more')
+      : (isUk
+          ? 'Сторона, що за роздачу не взяла жодної взятки (записано 0 очок), втрачає $points очок'
+          : 'A side that took no tricks in a deal (0 points entered) loses $points points');
 
   // Game
-  String get exitBtn         => isUk ? '← Вихід'                           : '← Exit';
+  String get exitBtn        => isUk ? '← Вихід'                           : '← Exit';
   String get undoBtn         => '↶';
   String get deals           => isUk ? 'роздає'                             : 'deals';
   String get badgeRedeal     => isUk ? 'ПЕРЕЗДАЧА'                          : 'REDEAL';
@@ -81,6 +121,8 @@ class AppStrings {
   String get badgeBait       => isUk ? 'БАЙТ'                               : 'BAIT';
   String get badgeEggs       => isUk ? 'ЯЙЦЯ'                               : 'EGGS';
   String get pts             => isUk ? 'оч'                                 : 'pts';
+  String badgeNoTricks(int points) => isUk ? 'ЛИЖІ −$points'                : 'SKIS −$points';
+  String baitsSoFar(int n)   => isUk ? 'байти: $n'                          : 'baits: $n';
   String toGo(int points)    => isUk ? 'ще $points'                         : '$points to go';
 
   // Win
