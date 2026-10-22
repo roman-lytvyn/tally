@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -437,6 +439,30 @@ void main() {
 
     expect(find.text(uk.badgeRedeal), findsOneWidget);
     expect(find.text('#2'), findsOneWidget);
+  });
+
+  testWidgets('marks bait and eggs in the column of the side that took the trump', (tester) async {
+    const game = GameState(
+      teamNames: ['Ми', 'Вони'], scoreLimit: 501, firstDealer: 0, tieRule: TieRule.hanging,
+      rounds: [
+        Round(gv: 162, dealer: 0, taker: 0, score: [0, 0], isBait: true),
+        Round(gv: 162, dealer: 1, taker: 1, score: [0, 0], isBait: true),
+        Round(gv: 162, dealer: 0, taker: 1, score: [81, 81]),
+      ],
+    );
+    SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_v2': jsonEncode(game.toJson())});
+    await openApp(tester);
+    await tapText(tester, uk.continuePrev);
+
+    // Newer deals are listed first: the second deal's 162 sits in the first
+    // column, and the first deal's 162 in the second.
+    expect(find.text(uk.badgeBait), findsNWidgets(2));
+    expect(tester.getRect(find.byKey(const ValueKey('bait.0'))).right,
+        lessThan(tester.getRect(find.text('162').last).left));
+    expect(tester.getRect(find.byKey(const ValueKey('bait.1'))).left,
+        greaterThan(tester.getRect(find.text('162').first).right));
+    expect(find.byKey(const ValueKey('eggs.1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('eggs.0')), findsNothing);
   });
 
   testWidgets('offers no redeal when the dealer must play', (tester) async {
