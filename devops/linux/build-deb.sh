@@ -17,13 +17,12 @@ cp -r "$bundle"/. "$root/opt/deberc/"
 ln -s /opt/deberc/deberc "$root/usr/bin/deberc"
 cp devops/linux/com.deberc.deberc.desktop "$root/usr/share/applications/"
 
-# The launcher icon in the sizes Android already ships it in.
-for pair in mdpi:48 hdpi:72 xhdpi:96 xxxhdpi:192; do
-  density=${pair%%:*}
-  size=${pair##*:}
+# The menu icon in every size the desktop may ask for.
+for icon in devops/linux/icons/*.png; do
+  size=$(basename "$icon" .png)
   dir="$root/usr/share/icons/hicolor/${size}x${size}/apps"
   mkdir -p "$dir"
-  cp "android/app/src/main/res/mipmap-$density/ic_launcher.png" "$dir/com.deberc.deberc.png"
+  cp "$icon" "$dir/com.deberc.deberc.png"
 done
 
 # Ubuntu 24.04 renamed the GTK library package, so either name satisfies it.

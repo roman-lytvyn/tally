@@ -59,7 +59,8 @@ msix_config:
   publisher_display_name: Roman Lytvyn
   identity_name: com.deberc.deberc
   msix_version: 1.0.0.0
-  logo_path: windows\runner\resources\app_icon.ico
+  # A large PNG, from which the package builds its tiles and Start menu icons.
+  logo_path: windows\runner\resources\app_logo.png
   capabilities: ""
 
 # For information on the generic Dart part of this file, see the
