@@ -268,7 +268,7 @@ published at that point.
 
 Creating a release for one of those tags publishes it: a release webhook starts
 the publish pipeline, which rebuilds that exact tag on each platform, attaches
-the APK, the Windows installer (`-setup.exe`) and `.msix` and the Linux `.deb` to the release for direct
+the APK, the Windows installer (`-setup.exe`), archive (`-windows.zip`) and `.msix` and the Linux `.deb` to the release for direct
 download, and — once store credentials are configured — uploads the AAB to the
 internal track of Google Play and the package to the Microsoft Store, both as
 drafts. Once the APK, the `.deb` and the Windows installer are attached, the `website` job rebuilds
@@ -290,7 +290,9 @@ build tools. `devops/windows/build-installer.ps1` packs the build into a
 `deberc-<version>-setup.exe` with [Inno Setup](https://jrsoftware.org/isinfo.php),
 which it downloads and installs for the runner account on first use. The
 installer needs no administrator rights: it installs the app for the current
-user with a Start-menu shortcut and an uninstaller. It is not code-signed yet,
+user with a Start-menu shortcut and an uninstaller. `devops/windows/build-zip.ps1`
+packs the same build into `deberc-<version>-windows.zip`, a single `Deberc`
+folder that runs from wherever it is unpacked. Neither is code-signed yet,
 so Windows SmartScreen asks to confirm the first launch (More info → Run
 anyway). iOS is not built yet: it may only be built on Apple hardware, which
 no runner provides.
