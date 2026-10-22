@@ -330,9 +330,7 @@ class _GameScreenState extends State<GameScreen> {
     children: [
       if (r.isRedeal) _badge(strings.badgeRedeal, t.tx3, t.surf2),
       if (r.isDeberc) _badge(strings.badgeDeberc, t.acc, t.accDim),
-      if (r.isBaited) _badge(strings.badgeBait, t.danger, t.dangerDim),
-      if (r.isTie) _badge(strings.badgeEggs, t.egg, t.eggDim),
-      if (r.isDeberc || r.isBaited || r.isTie) const SizedBox(width: 3),
+      if (r.isDeberc) const SizedBox(width: 3),
       if (!r.isRedeal) Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );
@@ -344,21 +342,41 @@ class _GameScreenState extends State<GameScreen> {
     final value = r.isRedeal ? '—' : '${lost ? r.score[i] : earned[i]}';
     // With three sides every column is centred and the ♠ follows the points.
     final first = i == 0 && sides == 2;
-    final label = r.taker != i || r.isRedeal ? value : (first ? '♠ $value' : '$value ♠');
+    final taker = r.taker == i && !r.isRedeal;
+    // Bait and eggs belong to the side that took the trump, so their marks sit
+    // in its column: bait in place of its zero, eggs on the outer side.
+    final baited = taker && r.isBaited;
+    final eggs = taker && r.isTie;
+    final style = TextStyle(
+      fontSize: 14, fontWeight: FontWeight.w700,
+      color: lost ? t.danger : t.teamColor(i),
+      decoration: lost ? TextDecoration.lineThrough : null,
+    );
+    final points = baited
+        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'))
+        : Text(value, style: style);
+    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
+    const gap = SizedBox(width: 4);
+    final parts = <Widget>[
+      points,
+      if (taker) ...[gap, spade],
+      if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
+    ];
     return Align(
       alignment: sides > 2 ? Alignment.center : first ? Alignment.centerRight : Alignment.centerLeft,
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14, fontWeight: FontWeight.w700,
-          color: lost ? t.danger : t.teamColor(i),
-          decoration: lost ? TextDecoration.lineThrough : null,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          // The left column reads towards the divider, so its parts run in reverse.
+          children: first ? parts.reversed.toList() : parts,
         ),
       ),
     );
   }
 
-  Widget _badge(String text, Color color, Color bg) => Container(
+  Widget _badge(String text, Color color, Color bg, {Key? key}) => Container(
+    key: key,
     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
     decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
     child: Text(text, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
