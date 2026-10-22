@@ -299,17 +299,20 @@ class _GameScreenState extends State<GameScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(width: 26,
-                      child: Center(child: Text('#${index + 1}',
+                  // The round number and the deal value get slots of the same
+                  // width, so the sides' columns stay centred in the row.
+                  SizedBox(width: _metaWidth,
+                      child: Align(alignment: Alignment.centerLeft, child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 11, color: t.tx3, fontWeight: FontWeight.w700)))),
                   for (var i = 0; i < sides; i++) ...[
                     if (i > 0) Container(
+                        key: ValueKey('divider.$index.$i'),
                         width: 1, color: t.bdr,
                         margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
                     Expanded(child: _roundScore(r, earned, i)),
                   ],
                   SizedBox(
-                    width: 72,
+                    width: _metaWidth,
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: FittedBox(fit: BoxFit.scaleDown, child: _roundMeta(r)),
@@ -323,6 +326,8 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
   }
+
+  static const double _metaWidth = 64;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
