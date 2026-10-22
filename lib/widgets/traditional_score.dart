@@ -39,12 +39,15 @@ class TraditionalScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value == 0) {
+    // Nothing, or a score penalties have taken below nothing, has no marks to
+    // write and is written as a number.
+    if (value <= 0) {
       return SizedBox(
         height: u,
         child: Align(
           alignment: Alignment.centerLeft,
-          child: Text('0', style: TextStyle(fontSize: u * 0.5, color: color.withValues(alpha: 0.3), fontWeight: FontWeight.w700)),
+          child: Text(value == 0 ? '0' : '−${-value}', style: TextStyle(fontSize: u * 0.5,
+              color: value == 0 ? color.withValues(alpha: 0.3) : color, fontWeight: FontWeight.w700)),
         ),
       );
     }

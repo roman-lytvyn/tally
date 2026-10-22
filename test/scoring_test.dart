@@ -5,11 +5,18 @@ import 'package:deberc/scoring.dart';
 
 GameState game(List<Round> rounds, {
   int limit = 501, int firstDealer = 0, TieRule tieRule = TieRule.hanging,
-  FinishRule finishRule = FinishRule.taker,
+  FinishRule finishRule = FinishRule.taker, Penalties penalties = const Penalties(),
 }) => GameState(
   teamNames: const ['A', 'B'], scoreLimit: limit, rounds: rounds, firstDealer: firstDealer,
-  tieRule: tieRule, finishRule: finishRule,
+  tieRule: tieRule, finishRule: finishRule, penalties: penalties,
 );
+
+/// A deal side [taker] took the trump in and lost.
+Round baited(int taker) => Round(gv: 162, dealer: 0, taker: taker, score: const [0, 0], isBait: true);
+
+/// A deal side [taker] took the trump in and won, 100 to 62.
+Round won(int taker) => Round(gv: 162, dealer: 0, taker: taker,
+    score: taker == 0 ? const [100, 62] : const [62, 100]);
 
 const tie = Round(gv: 182, dealer: 0, taker: 1, score: [91, 91]);
 
@@ -270,5 +277,82 @@ void main() {
 
     expect(t.totals, [400, 112]);
     expect(t.winner, isNull);
+  });
+
+  group('bait penalty', () {
+    /// The bait penalties of side 0, deal by deal.
+    List<int> penalised(List<Round> rounds, Penalties p) =>
+        [for (final d in tally(game(rounds, limit: 5001, penalties: p)).baitPenalties) d[0]];
+
+    final fiveBaits = [for (var k = 0; k < 5; k++) baited(0)];
+
+    test('costs nothing by default', () {
+      final t = tally(game([baited(0), baited(0), baited(0)], limit: 5001));
+
+      expect(t.totals, [0, 486]);
+      expect(t.baits, [3, 0]);
+    });
+
+    test('can fall on the third bait only', () {
+      expect(penalised(fiveBaits, const Penalties(bait: BaitPenalty.third)), [0, 0, 100, 0, 0]);
+    });
+
+    test('can fall on the third bait and every one after it', () {
+      expect(penalised(fiveBaits, const Penalties(bait: BaitPenalty.thirdAndAfter)), [0, 0, 100, 100, 100]);
+    });
+
+    test('can fall on every third bait', () {
+      final six = [...fiveBaits, baited(0)];
+      expect(penalised(six, const Penalties(bait: BaitPenalty.everyThird)), [0, 0, 100, 0, 0, 100]);
+    });
+
+    test('can be 50 points and is taken off the score', () {
+      final t = tally(game([baited(0), baited(0), baited(0)], limit: 5001,
+          penalties: const Penalties(bait: BaitPenalty.third, baitPoints: 50)));
+
+      expect(t.totals, [-50, 486]);
+      expect(t.earned.last, [0, 162]);
+    });
+
+    test('counts baits over the game, with won deals in between', () {
+      final rounds = [baited(0), won(0), baited(0), won(0), baited(0)];
+      expect(penalised(rounds, const Penalties(bait: BaitPenalty.third)), [0, 0, 0, 0, 100]);
+    });
+
+    test('counts only baits in a row when the rules say so', () {
+      const p = Penalties(bait: BaitPenalty.third, baitsInARow: true);
+      // A won deal of the other side does not break the run.
+      expect(penalised([baited(0), won(1), baited(0), won(0), baited(0)], p), [0, 0, 0, 0, 0]);
+      expect(penalised([baited(0), won(1), baited(0), baited(0)], p), [0, 0, 0, 100]);
+    });
+
+    test('counts a tie the opponents take as bait', () {
+      final t = tally(game([tie, tie, tie], limit: 5001, tieRule: TieRule.opponentsTakeAll,
+          penalties: const Penalties(bait: BaitPenalty.third)));
+
+      expect(t.baits, [0, 3]);
+      expect(t.baitPenalties.last, [0, 100]);
+    });
+  });
+
+  group('no tricks penalty', () {
+    const skis = Round(gv: 162, dealer: 0, taker: 0, score: [162, 0]);
+
+    test('costs nothing by default', () {
+      expect(tally(game(const [skis])).totals, [162, 0]);
+    });
+
+    test('takes the chosen points off a side that scored nothing', () {
+      final t = tally(game(const [skis], penalties: const Penalties(noTricksPoints: 50)));
+
+      expect(t.noTricksPenalties, [[0, 50]]);
+      expect(t.totals, [162, -50]);
+    });
+
+    test('leaves bait recorded without points alone', () {
+      final t = tally(game([baited(0)], penalties: const Penalties(noTricksPoints: 100)));
+
+      expect(t.noTricksPenalties, [[0, 0]]);
+    });
   });
 }

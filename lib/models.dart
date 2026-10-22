@@ -79,6 +79,66 @@ enum FinishRule {
   taker,
 }
 
+/// Which of a side's baits cost it a penalty on top of the lost deal.
+enum BaitPenalty {
+  /// Bait costs nothing more than the deal.
+  none,
+  /// Only the third bait.
+  third,
+  /// The third bait and every one after it.
+  thirdAndAfter,
+  /// Every third bait: the third, the sixth and so on.
+  everyThird,
+}
+
+/// The sizes a penalty can have.
+const kPenaltyPoints = [50, 100];
+
+/// The penalties a game is played with; by default there are none.
+class Penalties {
+  final BaitPenalty bait;
+  /// What a penalised bait costs.
+  final int baitPoints;
+  /// Baits count only in a row: a deal the side takes the trump in and does
+  /// not lose starts its count again. Otherwise they count over the game.
+  final bool baitsInARow;
+  /// What a side loses for a deal in which it took no tricks ("skis"); 0
+  /// when that costs nothing.
+  final int noTricksPoints;
+
+  const Penalties({
+    this.bait = BaitPenalty.none, this.baitPoints = 100,
+    this.baitsInARow = false, this.noTricksPoints = 0,
+  });
+
+  /// Whether a side's [count]-th bait is penalised.
+  bool penalisesBait(int count) => switch (bait) {
+    BaitPenalty.none          => false,
+    BaitPenalty.third         => count == 3,
+    BaitPenalty.thirdAndAfter => count >= 3,
+    BaitPenalty.everyThird    => count > 0 && count % 3 == 0,
+  };
+
+  Penalties copyWith({BaitPenalty? bait, int? baitPoints, bool? baitsInARow, int? noTricksPoints}) => Penalties(
+    bait: bait ?? this.bait,
+    baitPoints: baitPoints ?? this.baitPoints,
+    baitsInARow: baitsInARow ?? this.baitsInARow,
+    noTricksPoints: noTricksPoints ?? this.noTricksPoints,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'bait': bait.name, 'baitPoints': baitPoints, 'baitsInARow': baitsInARow, 'noTricksPoints': noTricksPoints,
+  };
+
+  factory Penalties.fromJson(Map<String, dynamic> j) => Penalties(
+    bait: BaitPenalty.values.asNameMap()[j['bait']] ?? BaitPenalty.none,
+    baitPoints: kPenaltyPoints.contains(j['baitPoints']) ? j['baitPoints'] : 100,
+    baitsInARow: j['baitsInARow'] ?? false,
+    noTricksPoints: j['noTricksPoints'] == 0 || kPenaltyPoints.contains(j['noTricksPoints'])
+        ? j['noTricksPoints'] : 0,
+  );
+}
+
 /// One deal exactly as the players entered it; what each side earns from it
 /// is worked out by the scoring rules, never stored.
 class Round {
@@ -142,6 +202,10 @@ class Round {
   /// the points entered or because the deal was recorded straight as bait.
   bool get isBaited => isPlayed && (isBait || score[taker] < _bestOpponentScore);
 
+  /// Whether side [i] took no tricks in the deal: its points were entered as
+  /// none at all. Bait recorded without points tells nothing about the tricks.
+  bool tookNoTricks(int i) => isPlayed && !isBait && score[i] == 0;
+
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
     if (_declarations != null) 'declarations': _declarations.toJson(),
@@ -175,6 +239,7 @@ class GameState {
   final FinishRule finishRule;
   /// 2 or 3 playing each for themselves, or 4 in two teams.
   final int players;
+  final Penalties penalties;
 
   const GameState({
     required this.teamNames, required this.scoreLimit,
@@ -183,6 +248,7 @@ class GameState {
     this.tieRule = TieRule.hanging,
     this.finishRule = FinishRule.mostPoints,
     this.players = 4,
+    this.penalties = const Penalties(),
   });
 
   int get sides => sidesFor(players);
@@ -197,6 +263,7 @@ class GameState {
     'tieRule': tieRule.name,
     'finishRule': finishRule.name,
     'players': players,
+    'penalties': penalties.toJson(),
   };
 
   factory GameState.fromJson(Map<String, dynamic> j) {
@@ -214,6 +281,10 @@ class GameState {
       // Games saved before the rule was chosen let the trump-taker win.
       finishRule: FinishRule.values.asNameMap()[j['finishRule']] ?? FinishRule.taker,
       players: j['players'] ?? 4,
+      // Games saved before penalties were chosen play without them.
+      penalties: j['penalties'] == null
+          ? const Penalties()
+          : Penalties.fromJson(j['penalties'] as Map<String, dynamic>),
     );
   }
 

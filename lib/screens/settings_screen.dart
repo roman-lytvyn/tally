@@ -14,12 +14,14 @@ class SettingsScreen extends StatelessWidget {
   final bool dealerMustPlay;
   final TieRule tieRule;
   final FinishRule finishRule;
+  final Penalties penalties;
   final void Function(String) onThemeModeChanged;
   final void Function(String) onScoreStyleChanged;
   final void Function(String) onValueInputChanged;
   final void Function(bool) onDealerMustPlayChanged;
   final void Function(TieRule) onTieRuleChanged;
   final void Function(FinishRule) onFinishRuleChanged;
+  final void Function(Penalties) onPenaltiesChanged;
   final void Function(String) onLangChanged;
   final VoidCallback onBack;
 
@@ -27,9 +29,11 @@ class SettingsScreen extends StatelessWidget {
     super.key, required this.theme, required this.strings, required this.scoreStyle,
     required this.valueInput, required this.lang, required this.themeMode,
     required this.dealerMustPlay, required this.tieRule, required this.finishRule,
+    this.penalties = const Penalties(),
     required this.onThemeModeChanged, required this.onScoreStyleChanged,
     required this.onValueInputChanged, required this.onDealerMustPlayChanged,
     required this.onTieRuleChanged, required this.onFinishRuleChanged,
+    required this.onPenaltiesChanged,
     required this.onLangChanged, required this.onBack,
   });
 
@@ -181,6 +185,10 @@ class SettingsScreen extends StatelessWidget {
                       Text(strings.finishRuleDesc(finishRule), style: TextStyle(fontSize: 12, color: t.tx2)),
                     ]),
                   ),
+                  _divider(),
+                  _baitPenalty(),
+                  _divider(),
+                  _noTricksPenalty(),
                 ]),
                 Padding(
                   padding: const EdgeInsets.only(top: 6, left: 2),
@@ -239,6 +247,85 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Widget _title(String text) =>
+      Text(text, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx));
+
+  Widget _desc(String text) => Text(text, style: TextStyle(fontSize: 12, color: t.tx2));
+
+  /// Which baits are penalised and, once some are, by how much and how they
+  /// are counted.
+  Widget _baitPenalty() {
+    final p = penalties;
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _title(strings.baitPenaltyTitle),
+        const SizedBox(height: 10),
+        Row(children: [
+          for (final rule in BaitPenalty.values) ...[
+            if (rule != BaitPenalty.values.first) const SizedBox(width: 6),
+            Expanded(child: _option(_baitPenaltyIcon(rule), strings.baitPenaltyName(rule), p.bait == rule,
+                () => onPenaltiesChanged(p.copyWith(bait: rule)), key: ValueKey('baitPenalty.${rule.name}'))),
+          ],
+        ]),
+        const SizedBox(height: 8),
+        _desc(strings.baitPenaltyDesc(p.bait, p.baitPoints)),
+        if (p.bait != BaitPenalty.none) ...[
+          const SizedBox(height: 14),
+          _title(strings.penaltySize),
+          const SizedBox(height: 10),
+          Row(children: [
+            for (final points in kPenaltyPoints) ...[
+              if (points != kPenaltyPoints.first) const SizedBox(width: 6),
+              Expanded(child: _option('−$points', strings.points, p.baitPoints == points,
+                  () => onPenaltiesChanged(p.copyWith(baitPoints: points)), key: ValueKey('baitPoints.$points'))),
+            ],
+          ]),
+          const SizedBox(height: 14),
+          _title(strings.baitsCountTitle),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: _option('Σ', strings.baitsPerGame, !p.baitsInARow,
+                () => onPenaltiesChanged(p.copyWith(baitsInARow: false)), key: const ValueKey('baitsPerGame'))),
+            const SizedBox(width: 6),
+            Expanded(child: _option('⋯', strings.baitsInARow, p.baitsInARow,
+                () => onPenaltiesChanged(p.copyWith(baitsInARow: true)), key: const ValueKey('baitsInARow'))),
+          ]),
+          const SizedBox(height: 8),
+          _desc(strings.baitsCountDesc(p.baitsInARow)),
+        ],
+      ]),
+    );
+  }
+
+  Widget _noTricksPenalty() {
+    final p = penalties;
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _title(strings.noTricksTitle),
+        const SizedBox(height: 10),
+        Row(children: [
+          for (final points in [0, ...kPenaltyPoints]) ...[
+            if (points != 0) const SizedBox(width: 6),
+            Expanded(child: _option(points == 0 ? '✕' : '−$points', points == 0 ? strings.noPenalty : strings.points,
+                p.noTricksPoints == points, () => onPenaltiesChanged(p.copyWith(noTricksPoints: points)),
+                key: ValueKey('noTricks.$points'))),
+          ],
+        ]),
+        const SizedBox(height: 8),
+        _desc(strings.noTricksDesc(p.noTricksPoints)),
+      ]),
+    );
+  }
+
+  static String _baitPenaltyIcon(BaitPenalty p) => switch (p) {
+    BaitPenalty.none          => '✕',
+    BaitPenalty.third         => '3',
+    BaitPenalty.thirdAndAfter => '3, 4, 5…',
+    BaitPenalty.everyThird    => '3, 6, 9…',
+  };
+
   static String _tieRuleIcon(TieRule r) => switch (r) {
     TieRule.hanging          => '⏳',
     TieRule.opponentsTakeAll => '→',
@@ -253,8 +340,9 @@ class SettingsScreen extends StatelessWidget {
   Widget _styleOpt(String icon, String label, String value) =>
       _option(icon, label, scoreStyle == value, () => onScoreStyleChanged(value));
 
-  Widget _option(String icon, String label, bool on, VoidCallback onTap) {
+  Widget _option(String icon, String label, bool on, VoidCallback onTap, {Key? key}) {
     return GestureDetector(
+      key: key,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
