@@ -24,6 +24,7 @@ class AppStrings {
   bool get isFr => lang == 'fr';
   bool get _belote => game.id == 'belote';
   bool get _belot => game.id == 'belot';
+  bool get _bela => game.id == 'bela';
 
   /// The text in the current language: Ukrainian, English, French or Bulgarian.
   String _t(String uk, String en, String fr, String bg) => switch (lang) {
@@ -34,7 +35,9 @@ class AppStrings {
   };
 
   // Setup
-  String get appTitle        => _belot
+  String get appTitle        => _bela
+      ? _t('Бела', 'Bela', 'Bela', 'Бела')
+      : _belot
       ? _t('Белот', 'Belot', 'Belot', 'Белот')
       : _belote
           ? _t('Белот', 'Belote', 'Belote', 'Белот')
@@ -77,14 +80,18 @@ class AppStrings {
       'Ако всички пасуват, раздаващият трябва да вземе коза');
 
   /// What a lost contract is called in the game.
-  String get _lost           => _belot
+  String get _lost           => _bela
+      ? _t('пад', 'fall', 'chute', 'пад')
+      : _belot
       ? _t('вътре', 'inside', 'dedans', 'вътре')
       : _belote
           ? _t('дедан', 'dedans', 'dedans', 'дедан')
           : _t('байт', 'bait', 'dedans', 'байт');
   String get _lostTitle           => _lost[0].toUpperCase() + _lost.substring(1);
   /// What a tied deal is called in the game.
-  String get _tie            => _belot
+  String get _tie            => _bela
+      ? _t('Нарівно', 'Equal points', 'Égalité', 'Равни')
+      : _belot
       ? _t('Висячі', 'Hanging', 'Litige', 'Висящи')
       : _belote
           ? _t('Літиж', 'Litige', 'Litige', 'Литиж')
@@ -200,7 +207,9 @@ class AppStrings {
   String get badgeEggs       => _tie.toUpperCase();
   String get pts             => _t('оч', 'pts', 'pts', 'т.');
   String badgeNoTricks(int points) => _t('ЛИЖІ −$points', 'SKIS −$points', 'SANS PLI −$points', 'СКИ −$points');
-  String baitsSoFar(int n)   => _belote
+  String baitsSoFar(int n)   => _bela
+      ? _t('пади: $n', 'falls: $n', 'chutes : $n', 'падове: $n')
+      : _belote
       ? _t('дедани: $n', 'dedans: $n', 'dedans : $n', 'дедани: $n')
       : _t('байти: $n', 'baits: $n', 'dedans : $n', 'байтове: $n');
   String toGo(int points)    => _t('ще $points', '$points to go', 'encore $points', 'още $points');
@@ -300,6 +309,7 @@ class AppStrings {
     'capot'   => _t('Капот', 'Capot', 'Capot', 'Капот'),
     'belot'   => _t('Белот', 'Belot', 'Belote', 'Белот'),
     'valat'   => _t('Валат', 'Valat', 'Capot', 'Валат'),
+    'stiglja' => _t('Штиґля', 'Štiglja', 'Štiglja', 'Щигля'),
     _         => id,
   };
   /// The name of the contract [id] in the entry panel.
@@ -329,14 +339,25 @@ class AppStrings {
   /// The label before the side that holds the declaration [name].
   String heldBy(String name) => _t('$name у', '$name held by', '$name chez', '$name у');
   String dealValue(int gv)   => _t('Гра: $gv', 'Deal: $gv', 'Donne : $gv', 'Раздача: $gv');
-  String get deberc          => _t('Деберць', 'Deberc', 'Deberc', 'Деберц');
-  String get debercBy        => _t('Деберць у', 'Deberc held by', 'Deberc chez', 'Деберц у');
-  String debercWins(String side) => _t(
+  /// The hand that wins the game on its own: a deberc, or a belot in Bela.
+  String get deberc          => _bela
+      ? _t('Белот', 'Belot', 'Belote', 'Белот')
+      : _t('Деберць', 'Deberc', 'Deberc', 'Деберц');
+  String get debercBy        => _bela
+      ? _t('Белот у', 'Belot held by', 'Belote chez', 'Белот у')
+      : _t('Деберць у', 'Deberc held by', 'Deberc chez', 'Деберц у');
+  String debercWins(String side) => _bela
+      ? _t(
+          'Усі вісім карт однієї масті — $side виграють гру',
+          'All eight cards of one suit — $side win the game',
+          'Les huit cartes d\'une couleur — $side gagnent la partie',
+          'Осемте карти от една боя — $side печелят играта')
+      : _t(
       'Сім козирів підряд — $side виграють гру',
       'Seven trumps in a row — $side win the game',
       'Sept atouts de suite — $side gagnent la partie',
       'Седем поредни коза — $side печелят играта');
-  String get badgeDeberc     => _t('ДЕБЕРЦЬ', 'DEBERC', 'DEBERC', 'ДЕБЕРЦ');
+  String get badgeDeberc     => deberc.toUpperCase();
   String get cancel          => _t('Скасувати', 'Cancel', 'Annuler', 'Отказ');
   String get delete          => _t('Видалити', 'Delete', 'Supprimer', 'Изтрий');
   String deleteRoundTitle(int n) => _t('Видалити роздачу #$n?', 'Delete round #$n?', 'Supprimer la donne n° $n ?',

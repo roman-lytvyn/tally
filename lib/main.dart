@@ -118,7 +118,8 @@ class _AppRootState extends State<AppRoot> {
     final style = prefs.getString(_styleKey) ?? 'traditional';
     final valueIn = prefs.getString(_valueKey) ?? 'counters';
     final dealerMustPlay = prefs.getBool(_dealerMustPlayKey) ?? true;
-    final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ?? TieRule.hanging;
+    final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ??
+        (widget.rules.tieFallsByDefault ? TieRule.opponentsTakeAll : TieRule.hanging);
     final finishRule = FinishRule.values.asNameMap()[prefs.getString(_finishRuleKey)] ?? FinishRule.mostPoints;
     var penalties = const Penalties();
     try {
