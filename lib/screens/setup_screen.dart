@@ -69,15 +69,17 @@ class SetupScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // how many play
+                if (rules.playerCounts.length > 1) ...[
                 _label(strings.howManyPlay),
                 Row(children: [
-                  for (final n in kPlayerCounts) ...[
-                    if (n != kPlayerCounts.first) const SizedBox(width: 8),
+                  for (final n in rules.playerCounts) ...[
+                    if (n != rules.playerCounts.first) const SizedBox(width: 8),
                     Expanded(child: _segBtn(strings.playersOption(n), players == n, -1,
                         () => onPlayersChanged(n), key: ValueKey('players.$n'))),
                   ],
                 ]),
                 const SizedBox(height: 20),
+                ],
 
                 // team or player names
                 _label(players == 4 ? strings.teams : strings.players),

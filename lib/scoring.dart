@@ -13,6 +13,8 @@ class Tally {
   final List<List<int>> baitPenalties;
   /// What each side lost in each deal for taking no tricks in it.
   final List<List<int>> noTricksPenalties;
+  /// The points each deal left hanging for the winner of the next one.
+  final List<int> heldIn;
   /// The baits each side has counted so far: over the game, or the ones in a
   /// row when only those count.
   final List<int> baits;
@@ -20,12 +22,67 @@ class Tally {
   const Tally({
     required this.earned, required this.totals, required this.winner,
     required this.dealer, this.held = 0,
-    this.baitPenalties = const [], this.noTricksPenalties = const [], this.baits = const [],
+    this.baitPenalties = const [], this.noTricksPenalties = const [], this.heldIn = const [],
+    this.baits = const [],
   });
+}
+
+/// The tens of [points], rounded up once the last digit reaches [upFrom].
+int _tens(int points, int upFrom) => points ~/ 10 + (points % 10 >= upFrom ? 1 : 0);
+
+/// The card points of side [i] in a deal played in contract [c], doubled
+/// when the contract says so; a valat's 90 is never doubled.
+int _counted(Round r, Contract c, int i) {
+  final points = r.score[i];
+  if (!c.doubled) return points;
+  final other = i == r.taker ? r.opponents.first : r.taker;
+  final valat = r.isValat && points > r.score[other] && points >= 90 ? 90 : 0;
+  return (points - valat) * 2 + valat;
+}
+
+/// What a deal played in a contract earns each side in game points, and how
+/// much of it hangs for the winner of the next deal.
+///
+/// Each side's card points become tens, the side with fewer points and the
+/// side with more rounding up from the digits the contract sets; on equal
+/// points the opponents round as the side with more. The contract side keeps
+/// its points only when it scored more than its opponents: when it scored
+/// less, the opponents take the whole deal, and on equal points its own hang.
+/// A doubled or redoubled deal goes whole, multiplied, to the side with more
+/// points, or hangs whole on equal points.
+({List<int> earned, int held}) contractScore(Round r) {
+  final c = Contract.of(r.contract)!;
+  final earned = List.filled(r.score.length, 0);
+  if (!r.isPlayed) return (earned: earned, held: 0);
+  final taker = r.taker;
+  final opponent = r.opponents.first;
+  if (r.isBait) {
+    // Recorded without points: the opponents take what the deal is worth.
+    final valat = r.isValat ? 90 : 0;
+    final counted = c.doubled ? (r.gv - valat) * 2 + valat : r.gv;
+    earned[opponent] = (counted + 5) ~/ 10 * r.doubling;
+    return (earned: earned, held: 0);
+  }
+  final ahead = r.score[taker] > r.score[opponent];
+  final points = List.filled(r.score.length, 0)
+    ..[taker] = _tens(_counted(r, c, taker), ahead ? c.higherRoundsUpFrom : c.lowerRoundsUpFrom)
+    ..[opponent] = _tens(_counted(r, c, opponent), ahead ? c.lowerRoundsUpFrom : c.higherRoundsUpFrom);
+  final whole = (points[taker] + points[opponent]) * r.doubling;
+  if (r.isTie) {
+    if (r.doubling > 1) return (earned: earned, held: whole);
+    earned[opponent] = points[opponent];
+    return (earned: earned, held: points[taker]);
+  }
+  if (r.doubling > 1 || r.isBaited) {
+    earned[ahead ? taker : opponent] = whole;
+    return (earned: earned, held: 0);
+  }
+  return (earned: points, held: 0);
 }
 
 /// What each side earns from a single deal, before any held points.
 List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
+  if (r.contract != null) return contractScore(r).earned;
   // A deberc decides the game on its own and a thrown-in deal is not played;
   // neither adds any points.
   if (!r.isPlayed) return List.filled(r.score.length, 0);
@@ -74,6 +131,7 @@ Tally tally(GameState game) {
   final earned = <List<int>>[];
   final baitPenalties = <List<int>>[];
   final noTricksPenalties = <List<int>>[];
+  final heldIn = <int>[];
   final totals = List.filled(game.sides, 0);
   final baits = List.filled(game.sides, 0);
   final penalties = game.penalties;
@@ -86,6 +144,7 @@ Tally tally(GameState game) {
     final noTricksPenalty = List.filled(game.sides, 0);
     baitPenalties.add(baitPenalty);
     noTricksPenalties.add(noTricksPenalty);
+    heldIn.add(0);
     if (r.isDeberc) {
       earned.add(e);
       winner = r.deberc;
@@ -109,7 +168,9 @@ Tally tally(GameState game) {
       }
     }
     if (r.isTie && game.tieRule == TieRule.hanging) {
-      held += r.score[r.taker] - e[r.taker];
+      final hung = r.contract != null ? contractScore(r).held : r.score[r.taker] - e[r.taker];
+      heldIn[heldIn.length - 1] = hung;
+      held += hung;
     } else if (held > 0) {
       e[_best(e)] += held;
       held = 0;
@@ -118,6 +179,8 @@ Tally tally(GameState game) {
     for (var i = 0; i < totals.length; i++) {
       totals[i] += e[i] - baitPenalty[i] - noTricksPenalty[i];
     }
+    // Where a valat cannot win the game, the deal after it decides.
+    if (game.rules.noWinByValat && r.isValat) continue;
     winner = _finisher(totals, game.scoreLimit, r.taker, game.finishRule);
     if (winner != null) break;
   }
@@ -130,6 +193,7 @@ Tally tally(GameState game) {
     held: held,
     baitPenalties: baitPenalties,
     noTricksPenalties: noTricksPenalties,
+    heldIn: heldIn,
     baits: baits,
   );
 }

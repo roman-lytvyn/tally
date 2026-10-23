@@ -349,7 +349,10 @@ class _GameScreenState extends State<GameScreen> {
       if (r.isRedeal) _badge(strings.badgeRedeal, t.tx3, t.surf2),
       if (r.isDeberc) _badge(strings.badgeDeberc, t.acc, t.accDim),
       if (r.isDeberc) const SizedBox(width: 3),
-      if (!r.isRedeal) Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
+      if (!r.isRedeal && r.contract != null)
+        Text('${strings.contractShort(r.contract!)}${r.doubling > 1 ? ' ×${r.doubling}' : ''}',
+            style: TextStyle(fontSize: 9, color: t.tx3)),
+      if (!r.isRedeal && r.contract == null) Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );
 
@@ -357,9 +360,13 @@ class _GameScreenState extends State<GameScreen> {
     final baitPenalty = widget.tally.baitPenalties[index][i];
     final noTricksPenalty = widget.tally.noTricksPenalties[index][i];
     // On a tie the trump-taker's own points, when not scored, show crossed out.
-    final lost = r.isTie && r.taker == i && earned[i] < r.score[i];
+    // A deal played in a contract is scored in game points, so what it left
+    // hanging stands for its own points.
+    final held = r.contract != null ? widget.tally.heldIn[index] : r.score[i];
+    final lost = r.isTie && r.taker == i &&
+        (r.contract != null ? held > 0 : earned[i] < r.score[i]);
     // The trump-taker's points carry a ♠ on the side facing away from the divider.
-    final value = r.isRedeal ? '—' : '${lost ? r.score[i] : earned[i]}';
+    final value = r.isRedeal ? '—' : '${lost ? held : earned[i]}';
     // With three sides every column is centred and the ♠ follows the points.
     final first = i == 0 && sides == 2;
     final taker = r.taker == i && !r.isRedeal;

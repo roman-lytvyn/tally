@@ -92,9 +92,13 @@ class SettingsScreen extends StatelessWidget {
                     ]),
                   ),
                 ]),
+                // A game scored in game points has neither circles nor a
+                // deal value to enter.
+                if (rules.hasCirclesAndSticks || !rules.hasContracts) ...[
                 const SizedBox(height: 14),
                 _groupLabel(strings.scoreDisplay),
                 _group([
+                  if (rules.hasCirclesAndSticks) ...[
                   Padding(
                     padding: const EdgeInsets.all(15),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -110,8 +114,9 @@ class SettingsScreen extends StatelessWidget {
                       ]),
                     ]),
                   ),
-                  _divider(),
-                  Padding(
+                  ],
+                  if (rules.hasCirclesAndSticks && !rules.hasContracts) _divider(),
+                  if (!rules.hasContracts) Padding(
                     padding: const EdgeInsets.all(15),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(strings.gameValue,
@@ -129,6 +134,8 @@ class SettingsScreen extends StatelessWidget {
                     ]),
                   ),
                 ]),
+                ],
+                if (!rules.hasFixedTableRules) ...[
                 const SizedBox(height: 14),
                 _groupLabel(strings.rules),
                 _group([
@@ -195,6 +202,7 @@ class SettingsScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 6, left: 2),
                   child: Text(strings.rulesForNewGames, style: TextStyle(fontSize: 11, color: t.tx3)),
                 ),
+                ],
                 const SizedBox(height: 14),
                 _groupLabel(strings.language),
                 _group([

@@ -132,6 +132,38 @@ void main() {
       await tester.pump();
       expect(find.text(const AppStrings('uk', GameRules.belote).baitMsg('Ми', 162)), findsOneWidget);
     });
+
+    testWidgets('score a Bulgarian Belot deal by its contract and doubling', (tester) async {
+      const bg = AppStrings('uk', GameRules.belot);
+      await openApp(tester, rules: GameRules.belot);
+      expect(find.text(uk.howManyPlay), findsNothing);
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+
+      await tester.tap(find.byKey(const ValueKey('contract.noTrumps')));
+      await tester.pump();
+      expect(find.text(uk.dealValue(130)), findsOneWidget);
+      expect(find.byKey(const ValueKey('tierce.+')), findsNothing);
+
+      await tester.tap(find.text('8'));
+      await tester.tap(find.text('0').last);
+      await tester.pump();
+      // The player left of the dealer takes the trump and scores 80 of 130.
+      expect(find.text(bg.recordedMsg([10, 16])), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('doubling.2')));
+      await tester.pump();
+      expect(find.text(bg.takesAllMsg('Вони', 52)), findsOneWidget);
+
+      await tapText(tester, uk.save);
+      expect(find.text('БК ×2'), findsOneWidget);
+      expect(find.text('52'), findsWidgets);
+
+      await tapText(tester, uk.exitBtn);
+      await tapText(tester, uk.settingsBtn);
+      expect(find.text(uk.tieRuleTitle), findsNothing);
+      expect(find.text(uk.displayStyle), findsNothing);
+    });
   });
 
   group('theme', () {

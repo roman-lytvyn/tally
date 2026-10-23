@@ -56,10 +56,27 @@ class _EntryPanelState extends State<EntryPanel> {
   int? _debercBy;
   /// The side holding what stays with its holder, such as the belote.
   int? _keeper;
+  /// The contract of the deal, in a game that has contracts.
+  String? _contract;
+  /// 1, or 2 when the contract was doubled and 4 when redoubled.
+  late int _doubling;
 
   int get _sides => widget.teamNames.length;
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
-  int get _gv => _decl.gv;
+  Contract? get _c => Contract.of(_contract);
+  int get _gv => (_c?.cardPoints ?? widget.rules.cardPoints) + _decl.value;
+
+  /// How many of the declaration [k] the deal can have.
+  int _max(DeclarationKind k) => _c?.allows(k) ?? k.max;
+
+  /// Switches the deal to contract [id], dropping what it does not allow.
+  void _setContract(String id) {
+    _contract = id;
+    _decl = Declarations(widget.rules, {
+      for (final k in widget.rules.declarations)
+        if (_decl[k.id] > 0 && _max(k) > 0) k.id: _decl[k.id] < _max(k) ? _decl[k.id] : _max(k),
+    });
+  }
   Round? get _scored {
     final r = widget.initial;
     return r != null && r.isPlayed && !r.isBait ? r : null;
@@ -73,6 +90,8 @@ class _EntryPanelState extends State<EntryPanel> {
     _decl = r?.declarationsIn(widget.rules) ?? Declarations(widget.rules);
     _debercBy = r?.deberc;
     _keeper = r?.keeper;
+    _contract = r?.contract ?? (widget.rules.hasContracts ? widget.rules.contracts.first.id : null);
+    _doubling = r?.doubling ?? 1;
     _startInput(_taker);
     final scored = _scored;
     if (scored != null) {
@@ -123,11 +142,18 @@ class _EntryPanelState extends State<EntryPanel> {
   int? get _keptBy => _hasKept ? _keeper ?? _taker : null;
 
   Round get _round => Round(gv: _gv, dealer: _dealer, taker: _taker,
-      score: [for (final v in _score) v ?? 0], declarations: _decl, keeper: _keptBy);
+      score: [for (final v in _score) v ?? 0], declarations: _decl, keeper: _keptBy,
+      contract: _contract, doubling: _doubling);
 
   bool get _yaytsia => _complete && _round.isTie;
 
   bool get _baited => _complete && _round.isBaited;
+
+  /// A doubled deal the contract side won, which it takes whole.
+  bool get _doubledWin => _complete && _doubling > 1 && !_round.isTie && !_round.isBaited;
+
+  /// The points a tied deal leaves hanging.
+  int get _hanging => _c != null ? contractScore(_round).held : _score[_taker] ?? 0;
 
   void _save() {
     if (_debercBy != null) {
@@ -141,7 +167,7 @@ class _EntryPanelState extends State<EntryPanel> {
 
   void _bait() {
     widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: List.filled(_sides, 0), isBait: true,
-        declarations: _decl, keeper: _keptBy));
+        declarations: _decl, keeper: _keptBy, contract: _contract, doubling: _doubling));
   }
 
   /// What the opponents taking a lost deal get between them.
@@ -197,6 +223,14 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(width: 10),
             Expanded(flex: 3, child: _valueColumn()),
           ]),
+          if (widget.rules.hasContracts) ...[
+            const SizedBox(height: _gap),
+            _choiceRow([
+              for (final c in widget.rules.contracts)
+                (ValueKey('contract.${c.id}'), s.contractName(c.id), _contract == c.id,
+                    () => setState(() => _setContract(c.id))),
+            ]),
+          ],
           if (_keptBy != null && _debercBy == null) ...[
             const SizedBox(height: 6),
             _sideRow(s.heldBy(_keptNames), _keptBy!, '✓', (i) => setState(() => _keeper = i)),
@@ -227,11 +261,22 @@ class _EntryPanelState extends State<EntryPanel> {
           ),
           if (_yaytsia) ...[
             const SizedBox(height: 6),
-            _hint('🥚', s.eggsMsg(widget.tieRule, score[_taker] ?? 0, _names(_round.opponents)), t.egg, t.eggDim),
+            _hint('🥚', s.eggsMsg(widget.tieRule, _hanging, _names(_round.opponents)), t.egg, t.eggDim),
           ],
           if (_baited) ...[
             const SizedBox(height: 6),
             _hint('⚠', s.baitMsg(_names(_round.baitTakers), _baitValue), t.danger, t.dangerDim),
+          ],
+          if (_doubledWin) ...[
+            const SizedBox(height: 6),
+            _hint('×$_doubling', s.takesAllMsg(widget.teamNames[_taker], scoreRound(_round)[_taker]),
+                t.acc, t.accDim),
+          ],
+          // Card points are entered, so a deal scored in game points shows
+          // what it adds to the score.
+          if (_c != null && _complete && !_yaytsia && !_baited && !_doubledWin) ...[
+            const SizedBox(height: 6),
+            _hint('=', s.recordedMsg(scoreRound(_round)), t.acc, t.accDim),
           ],
           ],
           const SizedBox(height: 8),
@@ -284,6 +329,15 @@ class _EntryPanelState extends State<EntryPanel> {
         SizedBox(key: ValueKey('taker.$i'), height: _rowHeight, child: _sideChip(i, _taker == i, '♠',
             () => setState(() { _taker = i; _startInput(i); }))),
       ],
+      // A contra and a re-contra are said about the contract the taker set.
+      if (widget.rules.hasDoubling) ...[
+        const SizedBox(height: _gap),
+        _choiceRow([
+          for (final d in const [2, 4])
+            (ValueKey('doubling.$d'), s.doublingName(d), _doubling == d,
+                () => setState(() => _doubling = _doubling == d ? 1 : d)),
+        ]),
+      ],
       if (!widget.dealerMustPlay) ...[
         const SizedBox(height: 8),
         GestureDetector(
@@ -306,7 +360,7 @@ class _EntryPanelState extends State<EntryPanel> {
         height: _rowHeight * _valueRows + _gap * (_valueRows - 1),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
-          child: widget.valueWheel
+          child: widget.valueWheel && !widget.rules.hasContracts
               ? Container(
                   key: const ValueKey('valueWheel'),
                   decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
@@ -317,12 +371,16 @@ class _EntryPanelState extends State<EntryPanel> {
                   ),
                 )
               : Column(key: const ValueKey('counters'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  for (final (i, row) in _declarationRows.indexed) ...[
+                  for (final (i, row) in [
+                    ..._declarationRows,
+                    if (widget.rules.hasContracts)
+                      for (var n = _declarationRows.length; n < _valueRows; n++) <DeclarationKind>[],
+                  ].indexed) ...[
                     if (i > 0) const SizedBox(height: _gap),
                     Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       for (final (j, k) in row.indexed) ...[
                         if (j > 0) const SizedBox(width: _gap),
-                        Expanded(child: k.isSingle ? _toggle(k) : _counter(k)),
+                        Expanded(child: _max(k) == 1 ? _toggle(k) : _counter(k)),
                       ],
                     ])),
                   ],
@@ -332,15 +390,46 @@ class _EntryPanelState extends State<EntryPanel> {
     ],
   );
 
-  /// The declarations laid out two to a row, in the order the rules give them.
+  /// Options side by side, the selected ones marked.
+  Widget _choiceRow(List<(Key, String, bool, VoidCallback)> options) => SizedBox(
+    height: _rowHeight,
+    child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (final (i, (key, label, on, onTap)) in options.indexed) ...[
+        if (i > 0) const SizedBox(width: _gap),
+        Expanded(child: GestureDetector(
+          key: key,
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: on ? t.accDim : Colors.transparent,
+              border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1,
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2))),
+          ),
+        )),
+      ],
+    ]),
+  );
+
+  /// The declarations the deal can have laid out two to a row, in the order
+  /// the rules give them.
   List<List<DeclarationKind>> get _declarationRows {
-    final kinds = widget.rules.declarations;
+    final kinds = [for (final k in widget.rules.declarations) if (_max(k) > 0) k];
     return [for (var i = 0; i < kinds.length; i += 2) kinds.sublist(i, i + 2 > kinds.length ? kinds.length : i + 2)];
   }
 
   /// The value column is as tall as the side buttons, or as the declarations
   /// when there are more rows of them.
-  int get _valueRows => _declarationRows.length > _sides ? _declarationRows.length : _sides;
+  /// Where contracts allow different declarations, rows for every one of
+  /// the game count, so the panel keeps its height between contracts.
+  int get _valueRows {
+    final rows = widget.rules.hasContracts ? (widget.rules.declarations.length + 1) ~/ 2 : _declarationRows.length;
+    return rows > _sides ? rows : _sides;
+  }
 
   static const double _rowHeight = 31;
   static const double _gap = 4;
@@ -429,7 +518,7 @@ class _EntryPanelState extends State<EntryPanel> {
           Text('$count', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w800,
               color: on ? t.acc : t.tx2)),
         ])),
-        step('+', count + 1, count < k.max),
+        step('+', count + 1, count < _max(k)),
       ]),
     );
   }
