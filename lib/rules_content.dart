@@ -1,6 +1,7 @@
 import 'bela_rules_content.dart';
 import 'belot_rules_content.dart';
 import 'belote_rules_content.dart';
+import 'coinche_rules_content.dart';
 import 'game_rules.dart';
 import 'klaverjas_rules_content.dart';
 
@@ -21,6 +22,7 @@ List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]
     : game.id == GameRules.belot.id ? belotRulesContent(lang)
     : game.id == GameRules.bela.id ? belaRulesContent(lang)
     : game.id == GameRules.klaverjas.id ? klaverjasRulesContent(lang)
+    : game.id == GameRules.coinche.id ? coincheRulesContent(lang)
     : lang == 'uk' ? _uk : _en;
 
 const _en = [

@@ -468,6 +468,20 @@ void main() {
     }
   });
 
+  test('gives every Coinche rules language the same sections and table rows', () {
+    final en = rulesContent('en', GameRules.coinche);
+    expect(rulesContent('fr', GameRules.coinche).first.title, 'Les origines du jeu');
+    expect(rulesContent('nl', GameRules.coinche), en);
+    for (final lang in ['fr', 'uk']) {
+      final other = rulesContent(lang, GameRules.coinche);
+      expect(other.length, en.length);
+      for (var i = 0; i < en.length; i++) {
+        expect(other[i].paragraphs.length, en[i].paragraphs.length);
+        expect(other[i].table.length, en[i].table.length);
+      }
+    }
+  });
+
   test('gives every Bela rules language the same sections and table rows', () {
     final en = rulesContent('en', GameRules.bela);
     expect(rulesContent('hr', GameRules.bela).first.title, 'Odakle dolazi igra');
