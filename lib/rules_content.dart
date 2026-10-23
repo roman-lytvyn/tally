@@ -2,6 +2,7 @@ import 'bela_rules_content.dart';
 import 'belot_rules_content.dart';
 import 'belote_rules_content.dart';
 import 'game_rules.dart';
+import 'klaverjas_rules_content.dart';
 
 /// A section of the rules page: a heading, its paragraphs and, optionally,
 /// a table of rows.
@@ -19,6 +20,7 @@ List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]
     game.id == GameRules.belote.id ? beloteRulesContent(lang)
     : game.id == GameRules.belot.id ? belotRulesContent(lang)
     : game.id == GameRules.bela.id ? belaRulesContent(lang)
+    : game.id == GameRules.klaverjas.id ? klaverjasRulesContent(lang)
     : lang == 'uk' ? _uk : _en;
 
 const _en = [
