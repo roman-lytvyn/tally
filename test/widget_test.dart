@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:deberc/rules_content.dart';
 import 'package:deberc/main.dart';
 import 'package:deberc/l10n.dart';
 import 'package:deberc/models.dart';
@@ -274,6 +275,30 @@ void main() {
 
     await tapText(tester, uk.backBtn);
     expect(find.text(uk.newGame), findsOneWidget);
+  });
+
+  testWidgets('explains the rules of Belote in the language of the app', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+    tester.platformDispatcher.localeTestValue = const Locale('fr', 'FR');
+    await openApp(tester, rules: GameRules.belote);
+    await tapText(tester, const AppStrings('fr', GameRules.belote).rulesBtn);
+
+    expect(find.text('D\'OÙ VIENT LE JEU'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('BELOTE-REBELOTE'), 300);
+    expect(find.text('BELOTE-REBELOTE'), findsOneWidget);
+  });
+
+  test('has the rules of every game in every language', () {
+    for (final game in GameRules.all) {
+      for (final lang in kLanguages) {
+        expect(rulesContent(lang, game), isNotEmpty);
+      }
+    }
+    expect(rulesContent('fr', GameRules.belote).first.title, 'D\'où vient le jeu');
+    expect(rulesContent('uk', GameRules.belote).first.title, 'Звідки походить гра');
+    expect(rulesContent('uk', GameRules.belote), isNot(rulesContent('uk')));
+    expect(rulesContent('fr'), rulesContent('en'));
   });
 
   testWidgets('offers no way to continue when nothing was played', (tester) async {

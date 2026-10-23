@@ -49,7 +49,7 @@ class RulesScreen extends StatelessWidget {
               top: false,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-                children: [for (final s in rulesContent(strings.lang)) _section(s)],
+                children: [for (final s in rulesContent(strings.lang, strings.game)) _section(s)],
               ),
             ),
           ),
