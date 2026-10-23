@@ -31,6 +31,7 @@ const places = <(String, String, String)>[
   ('android/app/src/main/res/values/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME'),
   ('android/app/src/main/res/values-uk/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME_UK'),
   ('android/app/src/main/res/values-fr/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME_FR'),
+  ('android/app/src/main/res/values-bg/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME_BG'),
   ('linux/CMakeLists.txt', r'(set\(BINARY_NAME ")([^"]*)(")', 'APP_FILE_NAME'),
   ('linux/CMakeLists.txt', r'(set\(APPLICATION_ID ")([^"]*)(")', 'APP_PACKAGE_ID'),
   ('linux/runner/my_application.cc', r'(_set_title\(\w+, ")([^"]*)(")', 'APP_TITLE'),
