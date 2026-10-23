@@ -1,14 +1,16 @@
-# Builds the Windows installer (deberc-<version>-setup.exe) from the Flutter
-# release bundle. Run `flutter build windows --release` first.
+# Builds the Windows installer (<name>-<version>-setup.exe) for the app
+# described by devops\apps\<app>.env from the Flutter release bundle. Run
+# `flutter build windows --release` first.
 #
-# Usage: devops\windows\build-installer.ps1 <version> [output-dir]
+# Usage: devops\windows\build-installer.ps1 <version> [output-dir] [app]
 #
 # Uses Inno Setup's ISCC.exe when it is installed; otherwise downloads the
 # pinned Inno Setup release, checks its checksum and installs it for the
 # current user into a cache folder that later runs reuse.
 param(
     [Parameter(Mandatory = $true)][string]$Version,
-    [string]$OutputDir = "."
+    [string]$OutputDir = ".",
+    [string]$App = "deberc"
 )
 $ErrorActionPreference = "Stop"
 
@@ -63,9 +65,22 @@ if (-not $iscc) {
     }
 }
 
-$script = Join-Path $PSScriptRoot "deberc.iss"
+. (Join-Path $PSScriptRoot "..\apps\profile.ps1")
+$identity = Read-AppProfile $App
+# The app's identity reaches the script as an include file, which keeps its
+# non-Latin names intact where command-line defines would not.
+$defines = Join-Path $env:TEMP "app-$App.iss"
+$lines = @(
+    '#define AppGuid "{0}"' -f $identity.APP_WINDOWS_ID
+    '#define AppName "{0}"' -f $identity.APP_NAME
+    '#define AppNameUk "{0}"' -f $identity.APP_NAME_UK
+    '#define AppFile "{0}"' -f $identity.APP_FILE_NAME
+    '#define AppWebsite "{0}"' -f $identity.APP_WEBSITE
+)
+[IO.File]::WriteAllLines($defines, $lines, (New-Object Text.UTF8Encoding $true))
+$script = Join-Path $PSScriptRoot "app.iss"
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 $out = (Resolve-Path $OutputDir).Path
-& $iscc /Q "/DAppVersion=$Version" "/DOutputDir=$out" $script
+& $iscc /Q "/DAppVersion=$Version" "/DOutputDir=$out" "/DAppDefines=$defines" $script
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
-Write-Host "Built $(Join-Path $out "deberc-$Version-setup.exe")"
+Write-Host "Built $(Join-Path $out "$($identity.APP_FILE_NAME)-$Version-setup.exe")"

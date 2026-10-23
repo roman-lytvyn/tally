@@ -58,5 +58,5 @@ key.properties
 *.jks
 report.xml
 *.svg
-deberc-*.apk
-deberc-*.aab
+*.apk
+*.aab
