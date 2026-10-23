@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
+import '../scoring.dart';
 
 /// The bottom panel for entering a new deal or correcting a recorded one.
 /// It starts from [initial] when given and is reset by giving it a new key.
@@ -53,6 +54,8 @@ class _EntryPanelState extends State<EntryPanel> {
   late int _taker;
   /// The side holding a deberc, when one was declared.
   int? _debercBy;
+  /// The side holding what stays with its holder, such as the belote.
+  int? _keeper;
 
   int get _sides => widget.teamNames.length;
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
@@ -69,6 +72,7 @@ class _EntryPanelState extends State<EntryPanel> {
     _taker = r?.taker ?? widget.firstToBid;
     _decl = r?.declarationsIn(widget.rules) ?? Declarations(widget.rules);
     _debercBy = r?.deberc;
+    _keeper = r?.keeper;
     _startInput(_taker);
     final scored = _scored;
     if (scored != null) {
@@ -113,8 +117,13 @@ class _EntryPanelState extends State<EntryPanel> {
 
   bool get _complete => _score.every((v) => v != null);
 
+  /// Whether something that stays with its holder was declared.
+  bool get _hasKept => widget.rules.declarations.any((k) => k.staysWithHolder && _decl[k.id] > 0);
+
+  int? get _keptBy => _hasKept ? _keeper ?? _taker : null;
+
   Round get _round => Round(gv: _gv, dealer: _dealer, taker: _taker,
-      score: [for (final v in _score) v ?? 0], declarations: _decl);
+      score: [for (final v in _score) v ?? 0], declarations: _decl, keeper: _keptBy);
 
   bool get _yaytsia => _complete && _round.isTie;
 
@@ -132,8 +141,18 @@ class _EntryPanelState extends State<EntryPanel> {
 
   void _bait() {
     widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: List.filled(_sides, 0), isBait: true,
-        declarations: _decl));
+        declarations: _decl, keeper: _keptBy));
   }
+
+  /// What the opponents taking a lost deal get between them.
+  int get _baitValue {
+    final earned = scoreRound(_round, tieRule: widget.tieRule);
+    return _round.baitTakers.fold(0, (sum, i) => sum + earned[i]);
+  }
+
+  String get _keptNames => [
+    for (final k in widget.rules.declarations) if (k.staysWithHolder && _decl[k.id] > 0) s.declaration(k.id),
+  ].join(', ');
 
   String _names(Iterable<int> sides) => sides.map((i) => widget.teamNames[i]).join(', ');
 
@@ -178,6 +197,10 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(width: 10),
             Expanded(flex: 3, child: _valueColumn()),
           ]),
+          if (_keptBy != null && _debercBy == null) ...[
+            const SizedBox(height: 6),
+            _sideRow(s.heldBy(_keptNames), _keptBy!, '✓', (i) => setState(() => _keeper = i)),
+          ],
           if (_debercBy != null) ...[
             const SizedBox(height: 6),
             _sideRow(s.debercBy, _debercBy!, '✦', (i) => setState(() => _debercBy = i)),
@@ -208,7 +231,7 @@ class _EntryPanelState extends State<EntryPanel> {
           ],
           if (_baited) ...[
             const SizedBox(height: 6),
-            _hint('⚠', s.baitMsg(_names(_round.baitTakers), _gv), t.danger, t.dangerDim),
+            _hint('⚠', s.baitMsg(_names(_round.baitTakers), _baitValue), t.danger, t.dangerDim),
           ],
           ],
           const SizedBox(height: 8),
@@ -280,7 +303,7 @@ class _EntryPanelState extends State<EntryPanel> {
       _columnHeader(Text(s.dealValue(_gv),
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc))),
       SizedBox(
-        height: _rowHeight * _sides + _gap * (_sides - 1),
+        height: _rowHeight * _valueRows + _gap * (_valueRows - 1),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: widget.valueWheel
@@ -309,16 +332,15 @@ class _EntryPanelState extends State<EntryPanel> {
     ],
   );
 
-  /// The declarations laid out in rows: the counted ones two to a row, then
-  /// the ones simply declared or not together on the last.
+  /// The declarations laid out two to a row, in the order the rules give them.
   List<List<DeclarationKind>> get _declarationRows {
-    final counted = [for (final k in widget.rules.declarations) if (!k.isSingle) k];
-    final single = [for (final k in widget.rules.declarations) if (k.isSingle) k];
-    return [
-      for (var i = 0; i < counted.length; i += 2) counted.sublist(i, i + 2 > counted.length ? counted.length : i + 2),
-      if (single.isNotEmpty) single,
-    ];
+    final kinds = widget.rules.declarations;
+    return [for (var i = 0; i < kinds.length; i += 2) kinds.sublist(i, i + 2 > kinds.length ? kinds.length : i + 2)];
   }
+
+  /// The value column is as tall as the side buttons, or as the declarations
+  /// when there are more rows of them.
+  int get _valueRows => _declarationRows.length > _sides ? _declarationRows.length : _sides;
 
   static const double _rowHeight = 31;
   static const double _gap = 4;

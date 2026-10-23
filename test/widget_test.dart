@@ -114,6 +114,23 @@ void main() {
       expect(find.text(uk.baitPenaltyTitle), findsNothing);
       expect(find.text(uk.noTricksTitle), findsNothing);
     });
+
+    testWidgets('ask who holds the belote, which a lost contract leaves to its holder', (tester) async {
+      await openApp(tester, rules: GameRules.belote);
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+      expect(find.text(uk.heldBy(uk.declaration('belote'))), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('belote')));
+      await tester.pump();
+      expect(find.text(uk.dealValue(182)), findsOneWidget);
+      expect(find.text(uk.heldBy(uk.declaration('belote'))), findsOneWidget);
+
+      await tester.tap(find.text('5'));
+      await tester.tap(find.text('0').last);
+      await tester.pump();
+      expect(find.text(uk.baitMsg('Ми', 162)), findsOneWidget);
+    });
   });
 
   group('theme', () {

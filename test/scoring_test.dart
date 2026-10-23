@@ -355,4 +355,64 @@ void main() {
       expect(t.noTricksPenalties, [[0, 0]]);
     });
   });
+
+  group('belote', () {
+    const rules = GameRules.belote;
+    Declarations decl(Map<String, int> counts) => Declarations(rules, counts);
+    GameState belote(List<Round> rounds) => GameState(
+      rules: rules, teamNames: const ['A', 'B'], scoreLimit: 1000, rounds: rounds, firstDealer: 0,
+    );
+
+    test('a deal is worth its cards and declarations, a capot 252', () {
+      expect(decl({'tierce': 1, 'belote': 1}).gv, 202);
+      expect(decl({'capot': 1}).gv, 252);
+      expect(decl({'jacks': 1, 'nines': 1, 'hundred': 1}).gv, 612);
+      expect(rules.dealValues, containsAll([162, 182, 252, 362, 512]));
+    });
+
+    test('a lost contract gives the opponents everything but the taker\'s belote', () {
+      final t = tally(belote([
+        Round(gv: 202, dealer: 0, taker: 0, score: const [90, 112],
+            declarations: decl({'tierce': 1, 'belote': 1}), keeper: 0),
+      ]));
+
+      expect(t.totals, [20, 182]);
+    });
+
+    test('the opponents\' belote is simply part of the deal they take', () {
+      final t = tally(belote([
+        Round(gv: 182, dealer: 0, taker: 0, score: const [0, 0], isBait: true,
+            declarations: decl({'belote': 1}), keeper: 1),
+      ]));
+
+      expect(t.totals, [0, 182]);
+    });
+
+    test('on equal points the taker keeps its belote and the rest is held', () {
+      final t = tally(belote([
+        Round(gv: 182, dealer: 0, taker: 0, score: const [91, 91],
+            declarations: decl({'belote': 1}), keeper: 0),
+        Round(gv: 162, dealer: 1, taker: 1, score: const [62, 100]),
+      ]));
+
+      expect(t.earned.first, [20, 91]);
+      expect(t.totals, [82, 262]);
+    });
+
+    test('remembers who held the belote', () {
+      final r = Round(gv: 182, dealer: 0, taker: 0, score: const [100, 82],
+          declarations: decl({'belote': 1}), keeper: 1);
+      final back = Round.fromJson(r.toJson(), rules: rules);
+
+      expect(back.keeper, 1);
+      expect(back.keptPoints, 20);
+    });
+
+    test('has no Deberc win or penalties and plays to 501 or 1000', () {
+      expect(rules.hasDebercWin, isFalse);
+      expect(rules.hasPenalties, isFalse);
+      expect(rules.scoreLimits, [501, 1000]);
+      expect(GameRules.of('belote'), same(rules));
+    });
+  });
 }

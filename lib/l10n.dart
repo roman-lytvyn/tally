@@ -181,8 +181,15 @@ class AppStrings {
     'tierce' => tierce,
     'fifty'  => fifty,
     'bella'  => bella,
+    'hundred' => isUk ? 'Сотня'                                : 'Hundred',
+    'belote' => isUk ? 'Белот'                                 : 'Belote',
+    'jacks'  => isUk ? 'Каре J'                                : 'Carré J',
+    'nines'  => isUk ? 'Каре 9'                                : 'Carré 9',
+    'capot'  => isUk ? 'Капот'                                 : 'Capot',
     _        => id,
   };
+  /// The label before the side that holds the declaration [name].
+  String heldBy(String name) => isUk ? ' у'                : ' held by';
   String dealValue(int gv)   => isUk ? 'Гра: $gv'                           : 'Deal: $gv';
   String get deberc          => isUk ? 'Деберць'                            : 'Deberc';
   String get debercBy        => isUk ? 'Деберць у'                          : 'Deberc held by';
