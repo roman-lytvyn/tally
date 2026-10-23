@@ -39,7 +39,7 @@ class DebertsApp extends StatelessWidget {
   const DebertsApp({super.key, this.rules = GameRules.deberc});
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Deberc',
+    title: AppStrings('en', rules).appTitle,
     debugShowCheckedModeBanner: false,
     home: AppRoot(rules: rules),
   );
@@ -82,7 +82,7 @@ class _AppRootState extends State<AppRoot> {
 
   GameState get _game => GameState(
     rules: widget.rules,
-    teamNames: AppStrings(_lang).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
+    teamNames: AppStrings(_lang, widget.rules).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
     dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, finishRule: _finishRule, players: _players,
     // Penalties apply only where the game has them.
@@ -93,7 +93,7 @@ class _AppRootState extends State<AppRoot> {
   /// names whenever the number of sides changes.
   void _setPlayers(int players) {
     if (players == _players) return;
-    final strings = AppStrings(_lang);
+    final strings = AppStrings(_lang, widget.rules);
     setState(() {
       final wasTeams = _players == 4;
       _players = players;
@@ -125,10 +125,10 @@ class _AppRootState extends State<AppRoot> {
       final rawPenalties = prefs.getString(_penaltiesKey);
       if (rawPenalties != null) penalties = Penalties.fromJson(jsonDecode(rawPenalties) as Map<String, dynamic>);
     } catch (_) {}
-    // Until a language is chosen, Ukrainian devices get Ukrainian and every
-    // other device English.
+    // Until a language is chosen the app follows the device where players of
+    // the game commonly speak its language, and is in English elsewhere.
     final lang  = prefs.getString(_langKey)
-        ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+        ?? defaultLanguage(widget.rules, WidgetsBinding.instance.platformDispatcher.locale.languageCode);
     final raw   = prefs.getString(_storeKey);
 
     GameState? saved;
@@ -139,8 +139,8 @@ class _AppRootState extends State<AppRoot> {
       } catch (_) {}
     }
 
-    final resolvedLang = lang == 'uk' ? 'uk' : 'en';
-    final defaultNames = AppStrings(resolvedLang).defaultNames(4);
+    final resolvedLang = kLanguages.contains(lang) ? lang : 'en';
+    final defaultNames = AppStrings(resolvedLang, widget.rules).defaultNames(4);
 
     if (!mounted) return;
     setState(() {
@@ -170,8 +170,8 @@ class _AppRootState extends State<AppRoot> {
 
   /// Switches the language; names still at their defaults follow it.
   void _setLang(String lang) {
-    final before = AppStrings(_lang).defaultNames(_players);
-    final after = AppStrings(lang).defaultNames(_players);
+    final before = AppStrings(_lang, widget.rules).defaultNames(_players);
+    final after = AppStrings(lang, widget.rules).defaultNames(_players);
     setState(() {
       _lang = lang;
       _teamNames = [for (var i = 0; i < _teamNames.length; i++) _teamNames[i] == before[i] ? after[i] : _teamNames[i]];
@@ -237,7 +237,7 @@ class _AppRootState extends State<AppRoot> {
       _       => MediaQuery.platformBrightnessOf(context) == Brightness.dark,
     };
     final theme   = AppTheme(isDark);
-    final strings = AppStrings(_lang);
+    final strings = AppStrings(_lang, widget.rules);
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
