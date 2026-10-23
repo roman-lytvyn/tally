@@ -198,9 +198,10 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 14),
                 _groupLabel(strings.language),
                 _group([
-                  _langRow('🇺🇦', 'Українська', 'uk'),
-                  _divider(),
-                  _langRow('🇬🇧', 'English', 'en'),
+                  for (final (i, code) in kLanguages.indexed) ...[
+                    if (i > 0) _divider(),
+                    _langRow(AppStrings.languageFlag(code), AppStrings.languageName(code), code),
+                  ],
                 ]),
               ],
             ),

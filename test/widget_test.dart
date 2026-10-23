@@ -129,7 +129,7 @@ void main() {
       await tester.tap(find.text('5'));
       await tester.tap(find.text('0').last);
       await tester.pump();
-      expect(find.text(uk.baitMsg('Ми', 162)), findsOneWidget);
+      expect(find.text(const AppStrings('uk', GameRules.belote).baitMsg('Ми', 162)), findsOneWidget);
     });
   });
 
@@ -216,6 +216,50 @@ void main() {
       expect(find.text(en.newGame), findsOneWidget);
       // Names left at their defaults follow the language.
       expect(find.text('Them'), findsWidgets);
+    });
+
+    testWidgets('follows a French device and can be chosen in the settings', (tester) async {
+      const fr = AppStrings('fr');
+      SharedPreferences.setMockInitialValues({});
+      tester.platformDispatcher.localeTestValue = const Locale('fr', 'FR');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      await openApp(tester);
+      expect(find.text(fr.newGame), findsOneWidget);
+      expect(find.text('Nous'), findsWidgets);
+
+      await tapText(tester, fr.settingsBtn);
+      await tapText(tester, 'Українська');
+      await tapText(tester, 'Français');
+      expect(find.text(fr.settingsTitle), findsOneWidget);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('deberc_lang'), 'fr');
+
+      await tapText(tester, fr.backBtn);
+      await tapText(tester, fr.newGame);
+      await tapText(tester, fr.newRound);
+      expect(find.text(fr.trumpTakenBy), findsOneWidget);
+    });
+
+    testWidgets('starts Belote in French on French devices and in English elsewhere', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      tester.platformDispatcher.localeTestValue = const Locale('uk', 'UA');
+      await openApp(tester, rules: GameRules.belote);
+      expect(find.text(en.newGame), findsOneWidget);
+
+      SharedPreferences.setMockInitialValues({});
+      tester.platformDispatcher.localeTestValue = const Locale('fr', 'BE');
+      await tester.pumpWidget(const SizedBox());
+      await openApp(tester, rules: GameRules.belote);
+      expect(find.text(const AppStrings('fr').newGame), findsOneWidget);
+    });
+
+    test('uses the terms of the game being played', () {
+      expect(const AppStrings('en').badgeBait, 'BAIT');
+      expect(const AppStrings('en', GameRules.belote).badgeBait, 'DEDANS');
+      expect(const AppStrings('fr').badgeEggs, 'LITIGE');
+      expect(const AppStrings('fr', GameRules.belote).appTitle, 'Belote');
+      expect(const AppStrings('uk').eggsMsg(TieRule.hanging, 91, ''), startsWith('Яйця!'));
     });
   });
 
