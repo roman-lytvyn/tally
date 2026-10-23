@@ -78,7 +78,7 @@ class GameRules {
     ],
     // A capot, both high carrés, two hundreds and the belote.
     maxDeclared: 90 + 200 + 150 + 2 * 100 + 20,
-    scoreLimits: [501, 1000],
+    scoreLimits: [500, 1000],
     defaultScoreLimit: 1000,
   );
 
