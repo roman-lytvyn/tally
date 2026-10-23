@@ -498,4 +498,55 @@ void main() {
       expect(GameRules.of('belot'), same(rules));
     });
   });
+
+  group('bela', () {
+    const rules = GameRules.bela;
+    Declarations decl(Map<String, int> counts) => Declarations(rules, counts);
+    GameState bela(List<Round> rounds, {TieRule tieRule = TieRule.opponentsTakeAll}) => GameState(
+      rules: rules, teamNames: const ['A', 'B'], scoreLimit: 1001, rounds: rounds, firstDealer: 0,
+      tieRule: tieRule, finishRule: FinishRule.mostPoints,
+    );
+
+    test('a deal is worth its cards and declarations, a štiglja 252', () {
+      expect(decl({'tierce': 1, 'bella': 1}).gv, 202);
+      expect(decl({'stiglja': 1}).gv, 252);
+      expect(decl({'jacks': 1, 'nines': 1}).gv, 512);
+      expect(rules.dealValues, containsAll([162, 182, 252, 362, 512]));
+    });
+
+    test('a fall gives the opponents the whole deal with the bela', () {
+      final t = tally(bela([
+        Round(gv: 202, dealer: 0, taker: 0, score: const [100, 102],
+            declarations: decl({'tierce': 1, 'bella': 1})),
+      ]));
+
+      expect(t.totals, [0, 202]);
+    });
+
+    test('on equal points the side that took the trump falls', () {
+      final t = tally(bela([Round(gv: 162, dealer: 0, taker: 0, score: const [81, 81])]));
+
+      expect(t.totals, [0, 162]);
+      expect(t.held, 0);
+    });
+
+    test('a belot wins the game at once', () {
+      final t = tally(bela([
+        Round(gv: 162, dealer: 0, taker: 0, score: const [150, 12]),
+        Round(gv: 162, dealer: 1, taker: 1, score: const [0, 0], deberc: 1),
+      ]));
+
+      expect(t.winner, 1);
+    });
+
+    test('plays to 1001 by default, in two or in two teams', () {
+      expect(rules.defaultScoreLimit, 1001);
+      expect(rules.scoreLimits, [501, 701, 1001]);
+      expect(rules.playerCounts, [2, 4]);
+      expect(rules.hasDebercWin, isTrue);
+      expect(rules.hasPenalties, isFalse);
+      expect(rules.tieFallsByDefault, isTrue);
+      expect(GameRules.of('bela'), same(rules));
+    });
+  });
 }

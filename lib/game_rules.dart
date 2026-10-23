@@ -78,7 +78,8 @@ class GameRules {
   /// The targets a game can be played to, lowest first.
   final List<int> scoreLimits;
   final int defaultScoreLimit;
-  /// Seven trumps in a row, declared, win the whole game at once.
+  /// A hand declared at the start of a deal wins the whole game at once:
+  /// seven trumps in a row in Deberc, all eight cards of a suit in Bela.
   final bool hasDebercWin;
   /// Repeated bait and deals without a trick can cost a penalty.
   final bool hasPenalties;
@@ -97,6 +98,9 @@ class GameRules {
   final bool hasFixedTableRules;
   /// A deal in which one side takes every trick does not end the game.
   final bool noWinByValat;
+  /// A tied deal counts as lost for the side that took the trump unless the
+  /// players choose otherwise.
+  final bool tieFallsByDefault;
 
   const GameRules({
     required this.id,
@@ -113,6 +117,7 @@ class GameRules {
     this.hasCirclesAndSticks = true,
     this.hasFixedTableRules = false,
     this.noWinByValat = false,
+    this.tieFallsByDefault = false,
   });
 
   static const deberc = GameRules(
@@ -177,8 +182,33 @@ class GameRules {
     noWinByValat: true,
   );
 
+  /// Bela, as played in Croatia and its neighbours.
+  static const bela = GameRules(
+    id: 'bela',
+    declarations: [
+      DeclarationKind('tierce', 20),
+      DeclarationKind('fifty', 50),
+      // A quinte or longer, or four aces, tens, kings or queens.
+      DeclarationKind('hundred', 100),
+      DeclarationKind('bella', 20, max: 1),
+      DeclarationKind('jacks', 200, max: 1),
+      DeclarationKind('nines', 150, max: 1),
+      // Taking every trick makes the cards worth 252 instead of 162.
+      DeclarationKind('stiglja', 90, max: 1),
+    ],
+    // A štiglja, both high carrés, two hundreds and the bela.
+    maxDeclared: 90 + 200 + 150 + 2 * 100 + 20,
+    scoreLimits: [501, 701, 1001],
+    defaultScoreLimit: 1001,
+    // A belot, all eight cards of one suit, wins the game.
+    hasDebercWin: true,
+    playerCounts: [2, 4],
+    hasCirclesAndSticks: false,
+    tieFallsByDefault: true,
+  );
+
   /// Every game an app can be built for.
-  static const all = [deberc, belote, belot];
+  static const all = [deberc, belote, belot, bela];
 
   /// The game with the [id], or Deberc when there is none.
   static GameRules of(String id) => all.firstWhere((g) => g.id == id, orElse: () => deberc);

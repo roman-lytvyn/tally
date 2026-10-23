@@ -313,6 +313,32 @@ void main() {
       expect(const AppStrings('bg', GameRules.belot).badgeEggs, 'ВИСЯЩИ');
     });
 
+    testWidgets('starts Bela in Croatian on Croatian devices, with a tie falling', (tester) async {
+      const hr = AppStrings('hr', GameRules.bela);
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      tester.platformDispatcher.localeTestValue = const Locale('hr', 'HR');
+      await openApp(tester, rules: GameRules.bela);
+      expect(find.text(hr.newGame), findsOneWidget);
+      expect(find.text('Mi'), findsWidgets);
+
+      await tapText(tester, hr.settingsBtn);
+      await tester.scrollUntilVisible(find.text(hr.tieRuleDesc(TieRule.opponentsTakeAll)), 300);
+      expect(find.text(hr.tieRuleDesc(TieRule.opponentsTakeAll)), findsOneWidget);
+    });
+
+    test('offers Croatian in every app, starting in it only in Bela', () {
+      expect(kLanguages, contains('hr'));
+      expect(AppStrings.languageName('hr'), 'Hrvatski');
+      expect(defaultLanguage(GameRules.bela, 'hr'), 'hr');
+      expect(defaultLanguage(GameRules.bela, 'sr'), 'hr');
+      expect(defaultLanguage(GameRules.bela, 'uk'), 'en');
+      expect(defaultLanguage(GameRules.deberc, 'hr'), 'en');
+      expect(const AppStrings('hr', GameRules.bela).badgeBait, 'PAD');
+      expect(const AppStrings('hr', GameRules.bela).badgeDeberc, 'BELOT');
+      expect(const AppStrings('hr', GameRules.bela).declaration('stiglja'), 'Štiglja');
+    });
+
     test('uses the terms of the game being played', () {
       expect(const AppStrings('en').badgeBait, 'BAIT');
       expect(const AppStrings('en', GameRules.belote).badgeBait, 'DEDANS');
@@ -366,6 +392,20 @@ void main() {
     final en = rulesContent('en', GameRules.belot);
     for (final lang in ['bg', 'uk']) {
       final other = rulesContent(lang, GameRules.belot);
+      expect(other.length, en.length);
+      for (var i = 0; i < en.length; i++) {
+        expect(other[i].paragraphs.length, en[i].paragraphs.length);
+        expect(other[i].table.length, en[i].table.length);
+      }
+    }
+  });
+
+  test('gives every Bela rules language the same sections and table rows', () {
+    final en = rulesContent('en', GameRules.bela);
+    expect(rulesContent('hr', GameRules.bela).first.title, 'Odakle dolazi igra');
+    expect(rulesContent('fr', GameRules.bela), en);
+    for (final lang in ['hr', 'uk']) {
+      final other = rulesContent(lang, GameRules.bela);
       expect(other.length, en.length);
       for (var i = 0; i < en.length; i++) {
         expect(other[i].paragraphs.length, en[i].paragraphs.length);
