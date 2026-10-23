@@ -1,4 +1,9 @@
-"""Builds every platform's app icon from the logo in this folder.
+"""Builds every platform's app icon of an app from its logo in this folder.
+
+Each app of the family has a logo here, devops/icons/<app>_logo.jpg. Deberc's
+icons are the ones in the platform folders; every other app's go under
+devops/apps/<app>/, which lays them over the checkout when it is switched to
+that app.
 
 The logo is two cards on a light backdrop. The cards are cut out of the
 backdrop, keeping their soft shadow, and laid out the way each platform wants:
@@ -11,18 +16,17 @@ backdrop, keeping their soft shadow, and laid out the way each platform wants:
   PNG the MSIX package builds its tiles from.
 - Linux: menu icons in the hicolor sizes the .deb installs.
 
-Run from the repository root: python devops/icons/generate_icons.py
+Run from the repository root: python devops/icons/generate_icons.py [app]
 """
 
 import json
-import re
+import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = Path(__file__).with_name("deberc_logo.jpg")
 
 # The light grey of the logo's backdrop, used wherever an icon must be opaque.
 BACKDROP = (225, 229, 230)
@@ -93,11 +97,12 @@ def fitted(cards: Image.Image, size: int, *, radius: float | None = None, box: f
     return canvas.convert("RGB") if background else canvas
 
 
-def android(cards: Image.Image) -> None:
-    res = ROOT / "android/app/src/main/res"
+def android(cards: Image.Image, out: Path) -> None:
+    res = out / "android/app/src/main/res"
     densities = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
     for name, k in densities.items():
         # Legacy icons are 48dp with the art inside a 44dp keyline circle.
+        (res / f"mipmap-{name}").mkdir(parents=True, exist_ok=True)
         fitted(cards, round(48 * k), radius=0.46).save(res / f"mipmap-{name}/ic_launcher.png", optimize=True)
         # Adaptive foregrounds are 108dp, of which only a 66dp circle is
         # guaranteed to stay visible under any mask.
@@ -105,6 +110,7 @@ def android(cards: Image.Image) -> None:
             res / f"mipmap-{name}/ic_launcher_foreground.png", optimize=True)
 
     (res / "mipmap-anydpi-v26").mkdir(exist_ok=True)
+    (res / "values").mkdir(exist_ok=True)
     (res / "mipmap-anydpi-v26/ic_launcher.xml").write_text(
         '<?xml version="1.0" encoding="utf-8"?>\n'
         '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
@@ -118,9 +124,11 @@ def android(cards: Image.Image) -> None:
         '</resources>\n'.format(*BACKDROP), encoding="utf-8")
 
 
-def ios(cards: Image.Image) -> None:
-    folder = ROOT / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
-    images = json.loads((folder / "Contents.json").read_text(encoding="utf-8"))["images"]
+def ios(cards: Image.Image, out: Path) -> None:
+    catalog = "ios/Runner/Assets.xcassets/AppIcon.appiconset"
+    images = json.loads((ROOT / catalog / "Contents.json").read_text(encoding="utf-8"))["images"]
+    folder = out / catalog
+    folder.mkdir(parents=True, exist_ok=True)
     for image in images:
         base = float(image["size"].split("x")[0])
         scale = int(image["scale"].rstrip("x"))
@@ -129,8 +137,9 @@ def ios(cards: Image.Image) -> None:
         fitted(cards, size, box=0.82, background=BACKDROP).save(folder / image["filename"], optimize=True)
 
 
-def windows(cards: Image.Image) -> None:
-    resources = ROOT / "windows/runner/resources"
+def windows(cards: Image.Image, out: Path) -> None:
+    resources = out / "windows/runner/resources"
+    resources.mkdir(parents=True, exist_ok=True)
     sizes = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256]
     # Each size is drawn on its own so small ones are resampled from the
     # full-size art rather than from a blurred larger icon.
@@ -140,19 +149,21 @@ def windows(cards: Image.Image) -> None:
     fitted(cards, 1024, box=0.92).save(resources / "app_logo.png", optimize=True)
 
 
-def linux(cards: Image.Image) -> None:
-    folder = ROOT / "devops/linux/icons"
-    folder.mkdir(exist_ok=True)
+def linux(cards: Image.Image, out: Path) -> None:
+    folder = out / "devops/linux/icons"
+    folder.mkdir(parents=True, exist_ok=True)
     for size in (16, 24, 32, 48, 64, 128, 256, 512):
         fitted(cards, size, box=0.94).save(folder / f"{size}.png", optimize=True)
 
 
 def main() -> None:
-    cards = cut_out_cards(Image.open(SOURCE))
-    android(cards)
-    ios(cards)
-    windows(cards)
-    linux(cards)
+    app = sys.argv[1] if len(sys.argv) > 1 else "deberc"
+    out = ROOT if app == "deberc" else ROOT / "devops/apps" / app
+    cards = cut_out_cards(Image.open(Path(__file__).with_name(f"{app}_logo.jpg")))
+    android(cards, out)
+    ios(cards, out)
+    windows(cards, out)
+    linux(cards, out)
 
 
 if __name__ == "__main__":

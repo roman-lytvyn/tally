@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:deberc/game_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../devops/apps/use_app.dart';
@@ -46,6 +47,7 @@ void main() {
     expect(read('android/app/build.gradle.kts'), contains('namespace = "com.deberc.deberc"'));
     expect(read('android/app/src/main/res/values/strings.xml'), contains('>Other<'));
     expect(read('android/app/src/main/res/values-uk/strings.xml'), contains('>Інша<'));
+    expect(read('android/app/src/main/res/values-fr/strings.xml'), contains('>Other<'));
     expect(read('linux/CMakeLists.txt'), allOf(contains('"other"'), contains('"org.example.other"')));
     expect(read('linux/runner/my_application.cc'), isNot(contains('Деберць')));
     expect(read('windows/CMakeLists.txt'), allOf(contains('project(other '), isNot(contains('"deberc"'))));
@@ -53,6 +55,22 @@ void main() {
     expect(read('windows/runner/Runner.rc'), allOf(contains('"other.exe"'), isNot(contains('"deberc'))));
     expect(read('pubspec.yaml'), allOf(contains('display_name: Інша'), contains('identity_name: org.example.other')));
     expect(read('devops/linux/icons/16.png'), 'icon');
+  });
+
+  test('every app of the family has a profile and its own identity', () {
+    final apps = {for (final game in GameRules.all) game.id: readProfile(Directory.current, game.id)};
+    for (final MapEntry(key: id, value: profile) in apps.entries) {
+      expect(profile['APP_GAME'], id);
+      expect(profile['APP_FILE_NAME'], id);
+      for (final (_, _, key) in places) {
+        expect(profile[key], isNotEmpty, reason: '$id.env has no $key');
+      }
+    }
+    for (final key in ['APP_PACKAGE_ID', 'APP_WINDOWS_ID']) {
+      expect({for (final p in apps.values) p[key]}, hasLength(apps.length), reason: '$key is shared');
+    }
+    expect(apps.values.where((p) => p['APP_MS_STORE'] == 'true'), hasLength(1));
+    expect(File('devops/apps/belote/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
   });
 
   test('switching back restores Deberc', () {
