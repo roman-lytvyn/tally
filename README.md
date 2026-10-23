@@ -241,7 +241,7 @@ Accessible via the ⚙ button:
 - **Language** — Ukrainian, English, French, Bulgarian, Croatian or Dutch.
   Until one is chosen the app follows the device where players of the game
   commonly speak its language — Ukrainian or French for Deberc, French for
-  Belote, Bulgarian for Bulgarian Belot, Croatian for Bela, also on Bosnian
+  Belote and Coinche, Bulgarian for Bulgarian Belot, Croatian for Bela, also on Bosnian
   and Serbian devices, Dutch for Klaverjas — and is in English everywhere
   else. Team names still at their defaults switch along with it
 

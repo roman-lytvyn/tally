@@ -74,7 +74,7 @@ void main() {
       expect({for (final p in apps.values) p[key]}, hasLength(apps.length), reason: '$key is shared');
     }
     expect(apps.values.where((p) => p['APP_MS_STORE'] == 'true'), hasLength(1));
-    for (final app in ['belote', 'belot', 'bela', 'klaverjas']) {
+    for (final app in ['belote', 'belot', 'bela', 'klaverjas', 'coinche']) {
       expect(File('devops/apps/$app/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
     }
   });
