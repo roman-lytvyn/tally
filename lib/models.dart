@@ -163,6 +163,10 @@ class Round {
   /// The side that declared what stays with its holder whatever happens to
   /// the deal, such as Belote's belote-rebelote.
   final int? keeper;
+  /// The contract the deal was played in, in a game that has contracts.
+  final String? contract;
+  /// 1 for a plain contract, 2 when it was doubled and 4 when redoubled.
+  final int doubling;
 
   const Round({
     required this.gv,
@@ -174,12 +178,17 @@ class Round {
     this.deberc,
     this.isRedeal = false,
     this.keeper,
+    this.contract,
+    this.doubling = 1,
   });
 
   /// A thrown-in deal by [dealer] where nobody took the trump.
   Round.redeal({required this.dealer, int sides = 2, this.gv = kBaseGV})
       : taker = dealer, score = List.filled(sides, 0), isBait = false,
-        declarations = null, deberc = null, isRedeal = true, keeper = null;
+        declarations = null, deberc = null, isRedeal = true, keeper = null, contract = null, doubling = 1;
+
+  /// One side took every trick.
+  bool get isValat => (declarations?['valat'] ?? 0) > 0;
 
   /// The sides playing against the trump-taker.
   Iterable<int> get opponents sync* {
@@ -228,6 +237,8 @@ class Round {
     if (deberc != null) 'deberc': deberc,
     if (isRedeal) 'isRedeal': true,
     if (keeper != null) 'keeper': keeper,
+    if (contract != null) 'contract': contract,
+    if (doubling != 1) 'doubling': doubling,
   };
 
   factory Round.fromJson(Map<String, dynamic> j, {GameRules rules = GameRules.deberc}) => Round(
@@ -242,6 +253,8 @@ class Round {
     deberc: j['deberc'],
     isRedeal: j['isRedeal'] ?? false,
     keeper: j['keeper'],
+    contract: j['contract'],
+    doubling: const [1, 2, 4].contains(j['doubling']) ? j['doubling'] : 1,
   );
 }
 

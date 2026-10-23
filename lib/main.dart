@@ -139,6 +139,8 @@ class _AppRootState extends State<AppRoot> {
       } catch (_) {}
     }
 
+    final rules = widget.rules;
+    final fixed = rules.hasFixedTableRules;
     final resolvedLang = kLanguages.contains(lang) ? lang : 'en';
     final defaultNames = AppStrings(resolvedLang, widget.rules).defaultNames(4);
 
@@ -146,15 +148,20 @@ class _AppRootState extends State<AppRoot> {
     setState(() {
       _prefs       = prefs;
       _themeMode   = ['dark', 'light', 'system'].contains(theme) ? theme : 'system';
-      _scoreStyle  = style == 'normal' ? 'normal' : 'traditional';
-      _valueInput  = valueIn == 'wheel' ? 'wheel' : 'counters';
-      _newDealerMustPlay = dealerMustPlay;
-      _newTieRule  = tieRule;
-      _newFinishRule = finishRule;
+      _scoreStyle  = style == 'normal' || !rules.hasCirclesAndSticks ? 'normal' : 'traditional';
+      _valueInput  = valueIn == 'wheel' && !rules.hasContracts ? 'wheel' : 'counters';
+      // Where the game sets the table rules, they are not taken from settings.
+      _newDealerMustPlay = fixed ? false : dealerMustPlay;
+      _newTieRule  = fixed ? TieRule.hanging : tieRule;
+      _newFinishRule = fixed ? FinishRule.mostPoints : finishRule;
+      _dealerMustPlay = _newDealerMustPlay;
+      _tieRule = _newTieRule;
+      _finishRule = _newFinishRule;
       _newPenalties = penalties;
       _lang      = resolvedLang;
       _teamNames   = saved?.teamNames ?? defaultNames;
-      _players     = saved?.players ?? 4;
+      _players     = saved?.players ??
+          (rules.playerCounts.contains(4) ? 4 : rules.playerCounts.last);
       _savedGame   = saved;
       _ready       = true;
     });

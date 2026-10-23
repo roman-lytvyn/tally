@@ -19,6 +19,7 @@ class AppStrings {
   bool get isUk => lang == 'uk';
   bool get isFr => lang == 'fr';
   bool get _belote => game.id == 'belote';
+  bool get _belot => game.id == 'belot';
 
   /// The text in the current language: Ukrainian, English or French.
   String _t(String uk, String en, String fr) => switch (lang) {
@@ -28,7 +29,9 @@ class AppStrings {
   };
 
   // Setup
-  String get appTitle        => _belote ? _t('Белот', 'Belote', 'Belote') : _t('Деберць', 'Deberc', 'Deberc');
+  String get appTitle        => _belot
+      ? _t('Белот', 'Belot', 'Belot')
+      : _belote ? _t('Белот', 'Belote', 'Belote') : _t('Деберць', 'Deberc', 'Deberc');
   String get teams           => _t('Команди', 'Teams', 'Équipes');
   String get whoDealsFirst   => _t('Хто роздає першим', 'Who deals first', 'Qui distribue en premier');
   String get playTo          => _t('Гра до', 'Play to', 'Partie en');
@@ -63,10 +66,14 @@ class AppStrings {
       'Si tout le monde passe, le donneur doit prendre l\'atout');
 
   /// What a lost contract is called in the game.
-  String get _lost           => _belote ? _t('дедан', 'dedans', 'dedans') : _t('байт', 'bait', 'dedans');
+  String get _lost           => _belot
+      ? _t('вътре', 'inside', 'dedans')
+      : _belote ? _t('дедан', 'dedans', 'dedans') : _t('байт', 'bait', 'dedans');
   String get _lostTitle           => _lost[0].toUpperCase() + _lost.substring(1);
   /// What a tied deal is called in the game.
-  String get _tie            => _belote ? _t('Літиж', 'Litige', 'Litige') : _t('Яйця', 'Eggs', 'Litige');
+  String get _tie            => _belot
+      ? _t('Висячі', 'Hanging', 'Litige')
+      : _belote ? _t('Літиж', 'Litige', 'Litige') : _t('Яйця', 'Eggs', 'Litige');
 
   String get tieRuleTitle    => _t('$_tie (нічия)', '$_tie (a tied deal)', '$_tie (égalité)');
   String tieRuleName(TieRule r) => switch (r) {
@@ -250,8 +257,32 @@ class AppStrings {
     'jacks'   => _t('Каре В', 'Carré J', 'Carré V'),
     'nines'   => _t('Каре 9', 'Carré 9', 'Carré 9'),
     'capot'   => _t('Капот', 'Capot', 'Capot'),
+    'belot'   => _t('Белот', 'Belot', 'Belote'),
+    'valat'   => _t('Валат', 'Valat', 'Capot'),
     _         => id,
   };
+  /// The name of the contract [id] in the entry panel.
+  String contractName(String id) => switch (id) {
+    'noTrumps'  => _t('Без козиря', 'No trumps', 'Sans atout'),
+    'allTrumps' => _t('Всі козирі', 'All trumps', 'Tout atout'),
+    _           => _t('Масть', 'Suit', 'Couleur'),
+  };
+  /// The contract [id] as it is marked in the list of deals.
+  String contractShort(String id) => switch (id) {
+    'noTrumps'  => _t('БК', 'NT', 'SA'),
+    'allTrumps' => _t('ВК', 'AT', 'TA'),
+    _           => _t('Масть', 'Suit', 'Coul.'),
+  };
+  /// A doubled contract when [doubling] is 2, a redoubled one when it is 4.
+  String doublingName(int doubling) => doubling == 4
+      ? _t('Реконтра', 'Re-contra', 'Surcontre')
+      : _t('Контра', 'Contra', 'Contre');
+  String takesAllMsg(String side, int points) => _t(
+      'Усі $points отримують $side',
+      '$side get all $points',
+      '$side prennent les $points');
+  /// The game points a deal adds to each side.
+  String recordedMsg(List<int> points) => _t('До рахунку: ', 'Scores: ', 'Au score : ') + points.join(' : ');
   /// The label before the side that holds the declaration [name].
   String heldBy(String name) => _t('$name у', '$name held by', '$name chez');
   String dealValue(int gv)   => _t('Гра: $gv', 'Deal: $gv', 'Donne : $gv');

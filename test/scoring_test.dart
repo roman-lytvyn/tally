@@ -415,4 +415,87 @@ void main() {
       expect(GameRules.of('belote'), same(rules));
     });
   });
+
+  group('belot', () {
+    const rules = GameRules.belot;
+    Declarations decl(Map<String, int> counts) => Declarations(rules, counts);
+    GameState belot(List<Round> rounds) => GameState(
+      rules: rules, teamNames: const ['A', 'B'], scoreLimit: 151, rounds: rounds, firstDealer: 0,
+      dealerMustPlay: false, tieRule: TieRule.hanging, finishRule: FinishRule.mostPoints,
+    );
+    Round deal(String contract, List<int> score, {int taker = 0, int doubling = 1, Declarations? declarations}) =>
+        Round(gv: score[0] + score[1], dealer: 0, taker: taker, score: score,
+            contract: contract, doubling: doubling, declarations: declarations);
+
+    test('a suit deal is worth 16, rounded by who scored more', () {
+      expect(scoreRound(deal('suit', const [86, 76])), [8, 8]);
+      expect(scoreRound(deal('suit', const [87, 75])), [9, 7]);
+    });
+
+    test('an all-trumps deal and a doubled no-trumps deal are worth 26', () {
+      expect(scoreRound(deal('allTrumps', const [134, 124])), [13, 13]);
+      expect(scoreRound(deal('noTrumps', const [66, 64])), [13, 13]);
+    });
+
+    test('inside, the opponents take the whole deal', () {
+      expect(scoreRound(deal('suit', const [70, 92])), [0, 16]);
+      final bait = Round(gv: 162, dealer: 0, taker: 0, score: const [0, 0], isBait: true, contract: 'suit');
+      expect(scoreRound(bait), [0, 16]);
+    });
+
+    test('on equal points the opponents keep theirs and the taker\'s hang', () {
+      final t = tally(belot([
+        deal('suit', const [106, 106], declarations: decl({'fifty': 1})),
+        deal('suit', const [62, 100], taker: 1),
+      ]));
+
+      expect(t.earned, [[0, 10], [6, 21]]);
+      expect(t.heldIn, [11, 0]);
+      expect(t.totals, [6, 31]);
+    });
+
+    test('a doubled deal goes whole, multiplied, to the side with more points', () {
+      expect(scoreRound(deal('suit', const [90, 72], doubling: 2)), [32, 0]);
+      expect(scoreRound(deal('suit', const [70, 92], doubling: 4)), [0, 64]);
+    });
+
+    test('a doubled deal with equal points hangs whole', () {
+      final t = tally(belot([deal('suit', const [81, 81], doubling: 2)]));
+
+      expect(t.earned.single, [0, 0]);
+      expect(t.held, 32);
+    });
+
+    test('a valat\'s 90 is added after a no-trumps deal is doubled', () {
+      expect(scoreRound(deal('noTrumps', const [220, 0], declarations: decl({'valat': 1}))), [35, 0]);
+    });
+
+    test('a valat does not end the game, the deal after it does', () {
+      final rounds = [
+        deal('suit', const [150, 12]),
+        deal('allTrumps', const [348, 0], doubling: 4, declarations: decl({'valat': 1})),
+      ];
+      final afterValat = tally(belot(rounds));
+      expect(afterValat.totals, [155, 1]);
+      expect(afterValat.winner, isNull);
+
+      expect(tally(belot([...rounds, deal('suit', const [100, 62])])).winner, 0);
+    });
+
+    test('remembers the contract and the doubling', () {
+      final back = Round.fromJson(deal('noTrumps', const [80, 50], doubling: 4).toJson(), rules: rules);
+
+      expect(back.contract, 'noTrumps');
+      expect(back.doubling, 4);
+    });
+
+    test('plays four in two teams to 151 with the table rules set', () {
+      expect(rules.playerCounts, [4]);
+      expect(rules.scoreLimits, [151]);
+      expect(rules.hasFixedTableRules, isTrue);
+      expect(Contract.noTrumps.allows(rules.declarations.firstWhere((k) => k.id == 'tierce')), 0);
+      expect(Contract.allTrumps.allows(rules.declarations.firstWhere((k) => k.id == 'belot')), 4);
+      expect(GameRules.of('belot'), same(rules));
+    });
+  });
 }
