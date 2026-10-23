@@ -160,6 +160,9 @@ class Round {
   /// Everybody passed, so the cards were thrown in and nobody scored; the
   /// deal still passes to the next dealer.
   final bool isRedeal;
+  /// The side that declared what stays with its holder whatever happens to
+  /// the deal, such as Belote's belote-rebelote.
+  final int? keeper;
 
   const Round({
     required this.gv,
@@ -170,12 +173,13 @@ class Round {
     this.declarations,
     this.deberc,
     this.isRedeal = false,
+    this.keeper,
   });
 
   /// A thrown-in deal by [dealer] where nobody took the trump.
   Round.redeal({required this.dealer, int sides = 2, this.gv = kBaseGV})
       : taker = dealer, score = List.filled(sides, 0), isBait = false,
-        declarations = null, deberc = null, isRedeal = true;
+        declarations = null, deberc = null, isRedeal = true, keeper = null;
 
   /// The sides playing against the trump-taker.
   Iterable<int> get opponents sync* {
@@ -193,6 +197,13 @@ class Round {
   /// What was declared in the deal under the [rules]; for a deal recorded
   /// with only its value it is worked back out of that value.
   Declarations declarationsIn(GameRules rules) => declarations ?? Declarations.fromGv(gv, rules);
+
+  /// The points the [keeper] holds on to whoever wins the deal.
+  int get keptPoints {
+    final d = declarations;
+    if (keeper == null || d == null) return 0;
+    return d.rules.declarations.fold(0, (sum, k) => k.staysWithHolder ? sum + d[k.id] * k.value : sum);
+  }
 
   bool get isDeberc => deberc != null;
 
@@ -216,6 +227,7 @@ class Round {
     if (declarations != null) 'declarations': declarations!.toJson(),
     if (deberc != null) 'deberc': deberc,
     if (isRedeal) 'isRedeal': true,
+    if (keeper != null) 'keeper': keeper,
   };
 
   factory Round.fromJson(Map<String, dynamic> j, {GameRules rules = GameRules.deberc}) => Round(
@@ -229,6 +241,7 @@ class Round {
         : Declarations.fromJson(j['declarations'] as Map<String, dynamic>, rules),
     deberc: j['deberc'],
     isRedeal: j['isRedeal'] ?? false,
+    keeper: j['keeper'],
   );
 }
 

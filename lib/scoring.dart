@@ -31,17 +31,19 @@ List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
   if (!r.isPlayed) return List.filled(r.score.length, 0);
   if (r.isBaited || (r.isTie && tieRule == TieRule.opponentsTakeAll)) {
     // The deal goes to the opponent who scored the most; opponents level on
-    // the most share it.
+    // the most share it. What stays with its holder is not part of it.
     final earned = List.filled(r.score.length, 0);
+    final kept = r.keptPoints;
+    if (kept > 0) earned[r.keeper!] = kept;
     final takers = r.baitTakers;
     for (final i in takers) {
-      earned[i] = r.gv ~/ takers.length;
+      earned[i] += (r.gv - kept) ~/ takers.length;
     }
     return earned;
   }
   if (r.isTie && tieRule == TieRule.hanging) {
     final earned = [...r.score];
-    earned[r.taker] = 0;
+    earned[r.taker] = r.keeper == r.taker ? r.keptPoints : 0;
     return earned;
   }
   return [...r.score];
@@ -107,7 +109,7 @@ Tally tally(GameState game) {
       }
     }
     if (r.isTie && game.tieRule == TieRule.hanging) {
-      held += r.score[r.taker];
+      held += r.score[r.taker] - e[r.taker];
     } else if (held > 0) {
       e[_best(e)] += held;
       held = 0;

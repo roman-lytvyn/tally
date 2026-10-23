@@ -7,8 +7,11 @@ class DeclarationKind {
   final int value;
   /// How many of it one deal can have; a single one is simply declared or not.
   final int max;
+  /// Its points stay with the side that declared it even when that side
+  /// loses the deal.
+  final bool staysWithHolder;
 
-  const DeclarationKind(this.id, this.value, {this.max = 9});
+  const DeclarationKind(this.id, this.value, {this.max = 9, this.staysWithHolder = false});
 
   bool get isSingle => max == 1;
 }
@@ -59,8 +62,28 @@ class GameRules {
     hasPenalties: true,
   );
 
+  /// Belote classique, as played in France.
+  static const belote = GameRules(
+    id: 'belote',
+    declarations: [
+      DeclarationKind('tierce', 20),
+      DeclarationKind('fifty', 50),
+      // A quinte, or four aces, tens, kings or queens.
+      DeclarationKind('hundred', 100),
+      DeclarationKind('belote', 20, max: 1, staysWithHolder: true),
+      DeclarationKind('jacks', 200, max: 1),
+      DeclarationKind('nines', 150, max: 1),
+      // Taking every trick makes the cards worth 252 instead of 162.
+      DeclarationKind('capot', 90, max: 1),
+    ],
+    // A capot, both high carrés, two hundreds and the belote.
+    maxDeclared: 90 + 200 + 150 + 2 * 100 + 20,
+    scoreLimits: [501, 1000],
+    defaultScoreLimit: 1000,
+  );
+
   /// Every game an app can be built for.
-  static const all = [deberc];
+  static const all = [deberc, belote];
 
   /// The game with the [id], or Deberc when there is none.
   static GameRules of(String id) => all.firstWhere((g) => g.id == id, orElse: () => deberc);
