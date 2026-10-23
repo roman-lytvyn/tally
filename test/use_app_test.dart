@@ -51,6 +51,7 @@ void main() {
     expect(read('android/app/src/main/res/values-fr/strings.xml'), contains('>Other<'));
     expect(read('android/app/src/main/res/values-bg/strings.xml'), contains('>Друга<'));
     expect(read('android/app/src/main/res/values-hr/strings.xml'), contains('>Other<'));
+    expect(read('android/app/src/main/res/values-nl/strings.xml'), contains('>Other<'));
     expect(read('linux/CMakeLists.txt'), allOf(contains('"other"'), contains('"org.example.other"')));
     expect(read('linux/runner/my_application.cc'), isNot(contains('Деберць')));
     expect(read('windows/CMakeLists.txt'), allOf(contains('project(other '), isNot(contains('"deberc"'))));
@@ -73,7 +74,7 @@ void main() {
       expect({for (final p in apps.values) p[key]}, hasLength(apps.length), reason: '$key is shared');
     }
     expect(apps.values.where((p) => p['APP_MS_STORE'] == 'true'), hasLength(1));
-    for (final app in ['belote', 'belot', 'bela']) {
+    for (final app in ['belote', 'belot', 'bela', 'klaverjas']) {
       expect(File('devops/apps/$app/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
     }
   });
