@@ -82,7 +82,7 @@ const _en = [
         'it differently if your table does.',
   ]),
   RulesSection('Winning', [
-    'The first side to reach the agreed target wins: 1000 points, or 501 for a short game. When both pass the '
+    'The first side to reach the agreed target wins: 1000 points, or 500 for a short game. When both pass the '
         'target in the same deal, the side with more points wins, or, if your table plays it that way, the side '
         'that took the trump.',
   ]),
@@ -169,7 +169,7 @@ const _fr = [
         'votre table le fait.',
   ]),
   RulesSection('La victoire', [
-    'Le premier camp qui atteint le total convenu gagne : 1000 points, ou 501 pour une partie courte. Si les '
+    'Le premier camp qui atteint le total convenu gagne : 1000 points, ou 500 pour une partie courte. Si les '
         'deux le dépassent dans la même donne, le camp qui a le plus de points gagne, ou, si votre table le joue '
         'ainsi, le preneur.',
   ]),
@@ -254,7 +254,7 @@ const _uk = [
         'змінити в застосунку.',
   ]),
   RulesSection('Перемога', [
-    'Перемагає сторона, що першою набере домовлену суму: 1000 очок або 501 для короткої гри. Якщо обидві '
+    'Перемагає сторона, що першою набере домовлену суму: 1000 очок або 500 для короткої гри. Якщо обидві '
         'перейшли її в одній роздачі, перемагає та, в якої більше очок, або, якщо так грають за вашим столом, та, '
         'що взяла козир.',
   ]),

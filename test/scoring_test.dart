@@ -411,7 +411,7 @@ void main() {
     test('has no Deberc win or penalties and plays to 501 or 1000', () {
       expect(rules.hasDebercWin, isFalse);
       expect(rules.hasPenalties, isFalse);
-      expect(rules.scoreLimits, [501, 1000]);
+      expect(rules.scoreLimits, [500, 1000]);
       expect(GameRules.of('belote'), same(rules));
     });
   });
