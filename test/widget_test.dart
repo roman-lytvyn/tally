@@ -287,6 +287,32 @@ void main() {
       expect(find.text(const AppStrings('fr').newGame), findsOneWidget);
     });
 
+    testWidgets('starts Bulgarian Belot in Bulgarian on Bulgarian devices', (tester) async {
+      const bg = AppStrings('bg', GameRules.belot);
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      tester.platformDispatcher.localeTestValue = const Locale('bg', 'BG');
+      await openApp(tester, rules: GameRules.belot);
+      expect(find.text(bg.newGame), findsOneWidget);
+      expect(find.text('Ние'), findsWidgets);
+
+      await tapText(tester, bg.newGame);
+      await tapText(tester, bg.newRound);
+      expect(find.text('Без коз'), findsOneWidget);
+      expect(find.text('Контра'), findsOneWidget);
+      expect(find.text('ВЪТРЕ'), findsNothing);
+      expect(find.text('Вътре'), findsOneWidget);
+    });
+
+    test('offers Bulgarian in every app, starting in it only in Bulgarian Belot', () {
+      expect(kLanguages, contains('bg'));
+      expect(AppStrings.languageName('bg'), 'Български');
+      expect(defaultLanguage(GameRules.belot, 'bg'), 'bg');
+      expect(defaultLanguage(GameRules.belot, 'uk'), 'en');
+      expect(defaultLanguage(GameRules.deberc, 'bg'), 'en');
+      expect(const AppStrings('bg', GameRules.belot).badgeEggs, 'ВИСЯЩИ');
+    });
+
     test('uses the terms of the game being played', () {
       expect(const AppStrings('en').badgeBait, 'BAIT');
       expect(const AppStrings('en', GameRules.belote).badgeBait, 'DEDANS');
