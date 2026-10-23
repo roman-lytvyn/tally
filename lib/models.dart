@@ -167,6 +167,8 @@ class Round {
   final String? contract;
   /// 1 for a plain contract, 2 when it was doubled and 4 when redoubled.
   final int doubling;
+  /// What the side that won the bidding undertook to make, in a game with bids.
+  final int? bid;
 
   const Round({
     required this.gv,
@@ -180,12 +182,14 @@ class Round {
     this.keeper,
     this.contract,
     this.doubling = 1,
+    this.bid,
   });
 
   /// A thrown-in deal by [dealer] where nobody took the trump.
   Round.redeal({required this.dealer, int sides = 2, this.gv = kBaseGV})
       : taker = dealer, score = List.filled(sides, 0), isBait = false,
-        declarations = null, deberc = null, isRedeal = true, keeper = null, contract = null, doubling = 1;
+        declarations = null, deberc = null, isRedeal = true, keeper = null, contract = null, doubling = 1,
+        bid = null;
 
   /// One side took every trick.
   bool get isValat => (declarations?['valat'] ?? 0) > 0;
@@ -219,13 +223,18 @@ class Round {
   /// Whether the deal was actually played out and scored.
   bool get isPlayed => !isDeberc && !isRedeal;
 
-  /// The side that took the trump scored exactly as much as the best of its
-  /// opponents.
-  bool get isTie => isPlayed && !isBait && score[taker] == _bestOpponentScore;
+  /// The side that won the bidding made its bid: its points reached it, or
+  /// for a capot it took every trick, leaving the opponents nothing.
+  bool get madeBid => bid == kCapot ? _bestOpponentScore == 0 : score[taker] >= bid!;
 
-  /// The side that took the trump scored less than an opponent, either by
-  /// the points entered or because the deal was recorded straight as bait.
-  bool get isBaited => isPlayed && (isBait || score[taker] < _bestOpponentScore);
+  /// The side that took the trump scored exactly as much as the best of its
+  /// opponents; a deal played for a bid is made or not, never tied.
+  bool get isTie => isPlayed && !isBait && bid == null && score[taker] == _bestOpponentScore;
+
+  /// The side that took the trump scored less than an opponent, or fell
+  /// short of its bid, either by the points entered or because the deal was
+  /// recorded straight as bait.
+  bool get isBaited => isPlayed && (isBait || (bid != null ? !madeBid : score[taker] < _bestOpponentScore));
 
   /// Whether side [i] took no tricks in the deal: its points were entered as
   /// none at all. Bait recorded without points tells nothing about the tricks.
@@ -239,6 +248,7 @@ class Round {
     if (keeper != null) 'keeper': keeper,
     if (contract != null) 'contract': contract,
     if (doubling != 1) 'doubling': doubling,
+    if (bid != null) 'bid': bid,
   };
 
   factory Round.fromJson(Map<String, dynamic> j, {GameRules rules = GameRules.deberc}) => Round(
@@ -255,6 +265,7 @@ class Round {
     keeper: j['keeper'],
     contract: j['contract'],
     doubling: const [1, 2, 4].contains(j['doubling']) ? j['doubling'] : 1,
+    bid: rules.bids.contains(j['bid']) ? j['bid'] : null,
   );
 }
 

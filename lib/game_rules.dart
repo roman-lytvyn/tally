@@ -1,6 +1,10 @@
 /// The points in every deal before declarations: the cards plus the last trick.
 const kBaseGV = 162;
 
+/// A bid to take every trick, the highest a deal can be played for; the
+/// tricks of a capot count this much instead of the card points.
+const kCapot = 250;
+
 /// A combination players can declare in a deal, which raises its value.
 class DeclarationKind {
   final String id;
@@ -87,8 +91,12 @@ class GameRules {
   /// when every deal is played the same way.
   final List<Contract> contracts;
   /// A contract can be doubled and redoubled, and the side with more points
-  /// then takes the whole deal.
+  /// then takes the whole deal; in a game with bids only the bid is
+  /// multiplied.
   final bool hasDoubling;
+  /// The bids a deal can be played for, lowest first, the last of them a
+  /// [kCapot]; none when a deal is not played for a bid.
+  final List<int> bids;
   /// How many can play.
   final List<int> playerCounts;
   /// The score can be shown as circles and sticks.
@@ -113,6 +121,7 @@ class GameRules {
     this.hasPenalties = false,
     this.contracts = const [],
     this.hasDoubling = false,
+    this.bids = const [],
     this.playerCounts = const [2, 3, 4],
     this.hasCirclesAndSticks = true,
     this.hasFixedTableRules = false,
@@ -233,14 +242,41 @@ class GameRules {
     tieFallsByDefault: true,
   );
 
+  /// Coinche, or Belote contrée, as played in France: every deal is played
+  /// for a bid, and points are counted as made, the bid added on top.
+  static const coinche = GameRules(
+    id: 'coinche',
+    declarations: [
+      DeclarationKind('tierce', 20),
+      DeclarationKind('fifty', 50),
+      // A quinte, or four aces, tens, kings or queens.
+      DeclarationKind('hundred', 100),
+      DeclarationKind('belote', 20, max: 1, staysWithHolder: true),
+      DeclarationKind('jacks', 200, max: 1),
+      DeclarationKind('nines', 150, max: 1),
+    ],
+    // Both high carrés, two hundreds and the belote.
+    maxDeclared: 200 + 150 + 2 * 100 + 20,
+    scoreLimits: [1000, 1500, 2000, 3000],
+    defaultScoreLimit: 2000,
+    hasDoubling: true,
+    bids: [80, 90, 100, 110, 120, 130, 140, 150, 160, kCapot],
+    playerCounts: [4],
+    hasCirclesAndSticks: false,
+    hasFixedTableRules: true,
+  );
+
   /// Every game an app can be built for.
-  static const all = [deberc, belote, belot, bela, klaverjas];
+  static const all = [deberc, belote, belot, bela, klaverjas, coinche];
 
   /// The game with the [id], or Deberc when there is none.
   static GameRules of(String id) => all.firstWhere((g) => g.id == id, orElse: () => deberc);
 
   /// Whether a deal is scored by its contract, in game points.
   bool get hasContracts => contracts.isNotEmpty;
+
+  /// Whether every deal is played for a bid.
+  bool get hasBids => bids.isNotEmpty;
 
 
   /// The most a deal can be worth.

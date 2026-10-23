@@ -164,6 +164,36 @@ void main() {
       expect(find.text(uk.tieRuleTitle), findsNothing);
       expect(find.text(uk.displayStyle), findsNothing);
     });
+
+    testWidgets('score a Coinche deal by its bid and coinche', (tester) async {
+      const co = AppStrings('uk', GameRules.coinche);
+      await openApp(tester, rules: GameRules.coinche);
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+      expect(find.text('${co.bid}: 80'), findsOneWidget);
+      expect(find.byKey(const ValueKey('bid.−')), findsOneWidget);
+
+      for (var i = 0; i < 2; i++) {
+        await tester.tap(find.byKey(const ValueKey('bid.+')));
+        await tester.pump();
+      }
+      expect(find.text('${co.bid}: 100'), findsOneWidget);
+
+      await tester.tap(find.text('1').last);
+      await tester.tap(find.text('1').last);
+      await tester.tap(find.text('2').last);
+      await tester.pump();
+      // The player left of the dealer wins the bidding and makes 112 of 162.
+      expect(find.text(co.recordedMsg([50, 210])), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('doubling.2')));
+      await tester.pump();
+      expect(find.text(co.recordedMsg([50, 310])), findsOneWidget);
+
+      await tapText(tester, uk.save);
+      expect(find.text('100 ×2'), findsOneWidget);
+      expect(find.text('310'), findsWidgets);
+    });
   });
 
   group('theme', () {
@@ -349,6 +379,18 @@ void main() {
       expect(const AppStrings('nl', GameRules.klaverjas).badgeBait, 'NAT');
       expect(const AppStrings('nl', GameRules.klaverjas).declaration('stuk'), 'Stuk');
       expect(const AppStrings('nl', GameRules.klaverjas).declaration('pit'), 'Pit');
+    });
+
+    test('starts Coinche in French on French devices and names its terms', () {
+      expect(defaultLanguage(GameRules.coinche, 'fr'), 'fr');
+      expect(defaultLanguage(GameRules.coinche, 'uk'), 'en');
+      const fr = AppStrings('fr', GameRules.coinche);
+      expect(fr.appTitle, 'Coinche');
+      expect(fr.badgeBait, 'CHUTE');
+      expect(fr.doublingName(2), 'Coinche');
+      expect(fr.doublingName(4), 'Surcoinche');
+      expect(fr.bidName(kCapot), 'Capot');
+      expect(fr.bidName(120), '120');
     });
 
     test('uses the terms of the game being played', () {

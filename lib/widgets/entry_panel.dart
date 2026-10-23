@@ -60,6 +60,8 @@ class _EntryPanelState extends State<EntryPanel> {
   String? _contract;
   /// 1, or 2 when the contract was doubled and 4 when redoubled.
   late int _doubling;
+  /// The bid the deal is played for, in a game with bids.
+  int? _bid;
 
   int get _sides => widget.teamNames.length;
   int get _dealer => widget.initial?.dealer ?? widget.dealer;
@@ -92,6 +94,7 @@ class _EntryPanelState extends State<EntryPanel> {
     _keeper = r?.keeper;
     _contract = r?.contract ?? (widget.rules.hasContracts ? widget.rules.contracts.first.id : null);
     _doubling = r?.doubling ?? 1;
+    _bid = r?.bid ?? (widget.rules.hasBids ? widget.rules.bids.first : null);
     _startInput(_taker);
     final scored = _scored;
     if (scored != null) {
@@ -143,14 +146,14 @@ class _EntryPanelState extends State<EntryPanel> {
 
   Round get _round => Round(gv: _gv, dealer: _dealer, taker: _taker,
       score: [for (final v in _score) v ?? 0], declarations: _decl, keeper: _keptBy,
-      contract: _contract, doubling: _doubling);
+      contract: _contract, doubling: _doubling, bid: _bid);
 
   bool get _yaytsia => _complete && _round.isTie;
 
   bool get _baited => _complete && _round.isBaited;
 
   /// A doubled deal the contract side won, which it takes whole.
-  bool get _doubledWin => _complete && _doubling > 1 && !_round.isTie && !_round.isBaited;
+  bool get _doubledWin => _complete && _bid == null && _doubling > 1 && !_round.isTie && !_round.isBaited;
 
   /// The points a tied deal leaves hanging.
   int get _hanging => _c != null ? contractScore(_round).held : _score[_taker] ?? 0;
@@ -167,7 +170,7 @@ class _EntryPanelState extends State<EntryPanel> {
 
   void _bait() {
     widget.onSave(Round(gv: _gv, dealer: _dealer, taker: _taker, score: List.filled(_sides, 0), isBait: true,
-        declarations: _decl, keeper: _keptBy, contract: _contract, doubling: _doubling));
+        declarations: _decl, keeper: _keptBy, contract: _contract, doubling: _doubling, bid: _bid));
   }
 
   /// What the opponents taking a lost deal get between them.
@@ -272,9 +275,9 @@ class _EntryPanelState extends State<EntryPanel> {
             _hint('×$_doubling', s.takesAllMsg(widget.teamNames[_taker], scoreRound(_round)[_taker]),
                 t.acc, t.accDim),
           ],
-          // Card points are entered, so a deal scored in game points shows
-          // what it adds to the score.
-          if (_c != null && _complete && !_yaytsia && !_baited && !_doubledWin) ...[
+          // Card points are entered, so a deal scored in game points, or
+          // with its bid added, shows what it adds to the score.
+          if ((_c != null || _bid != null) && _complete && !_yaytsia && !_baited && !_doubledWin) ...[
             const SizedBox(height: 6),
             _hint('=', s.recordedMsg(scoreRound(_round)), t.acc, t.accDim),
           ],
@@ -387,8 +390,43 @@ class _EntryPanelState extends State<EntryPanel> {
                 ]),
         ),
       ),
+      // The bid sits under the value, keeping the panel short enough for a phone.
+      if (_bid != null) ...[
+        const SizedBox(height: _gap),
+        _bidRow(),
+      ],
     ],
   );
+
+  /// The bid of the deal, stepped through the bids the game allows.
+  Widget _bidRow() {
+    final bids = widget.rules.bids;
+    final at = bids.indexOf(_bid!);
+    Widget step(String sign, int to) {
+      final enabled = to >= 0 && to < bids.length;
+      return GestureDetector(
+        key: ValueKey('bid.$sign'),
+        behavior: HitTestBehavior.opaque,
+        onTap: enabled ? () => setState(() => _bid = bids[to]) : null,
+        child: SizedBox(width: 44, child: Center(child: Text(sign,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
+      );
+    }
+    return Container(
+      height: _rowHeight,
+      decoration: BoxDecoration(
+        color: t.accDim,
+        border: Border.all(color: t.accBdr, width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        step('−', at - 1),
+        Expanded(child: Center(child: Text('${s.bid}: ${s.bidName(_bid!)}', key: const ValueKey('bid'),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc)))),
+        step('+', at + 1),
+      ]),
+    );
+  }
 
   /// Options side by side, the selected ones marked.
   Widget _choiceRow(List<(Key, String, bool, VoidCallback)> options) => SizedBox(

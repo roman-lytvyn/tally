@@ -352,7 +352,11 @@ class _GameScreenState extends State<GameScreen> {
       if (!r.isRedeal && r.contract != null)
         Text('${strings.contractShort(r.contract!)}${r.doubling > 1 ? ' ×${r.doubling}' : ''}',
             style: TextStyle(fontSize: 9, color: t.tx3)),
-      if (!r.isRedeal && r.contract == null) Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
+      if (!r.isRedeal && r.bid != null)
+        Text('${strings.bidName(r.bid!)}${r.doubling > 1 ? ' ×${r.doubling}' : ''}',
+            style: TextStyle(fontSize: 9, color: t.tx3)),
+      if (!r.isRedeal && r.contract == null && r.bid == null)
+        Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
     ],
   );
 

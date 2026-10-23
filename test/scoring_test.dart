@@ -598,4 +598,91 @@ void main() {
       expect(GameRules.of('klaverjas'), same(rules));
     });
   });
+
+  group('coinche', () {
+    const rules = GameRules.coinche;
+    Declarations decl(Map<String, int> counts) => Declarations(rules, counts);
+    Round deal(int bid, List<int> score, {int doubling = 1, Declarations? declarations, int? keeper}) => Round(
+      gv: declarations?.gv ?? 162, dealer: 1, taker: 0, score: score, bid: bid, doubling: doubling,
+      declarations: declarations, keeper: keeper,
+    );
+    GameState coinche(List<Round> rounds) => GameState(
+      rules: rules, teamNames: const ['A', 'B'], scoreLimit: 2000, rounds: rounds, firstDealer: 1,
+      tieRule: TieRule.hanging, finishRule: FinishRule.mostPoints,
+    );
+
+    test('a made bid scores the points made plus the bid, rounded to tens', () {
+      final r = deal(100, const [112, 50]);
+
+      expect(r.isBaited, isFalse);
+      expect(r.isTie, isFalse);
+      expect(scoreRound(r), [210, 50]);
+      expect(scoreRound(deal(80, const [85, 77])), [170, 80]);
+    });
+
+    test('a bid made exactly is made, and equal points are no tie', () {
+      expect(scoreRound(deal(80, const [81, 81])), [160, 80]);
+      expect(deal(80, const [81, 81]).isTie, isFalse);
+    });
+
+    test('a failed bid gives the opponents 160 plus the bid', () {
+      final r = deal(120, const [100, 62]);
+
+      expect(r.isBaited, isTrue);
+      expect(scoreRound(r), [0, 280]);
+    });
+
+    test('a coinche doubles only the bid, and the belote stays with its holder', () {
+      final r = deal(100, const [90, 92], doubling: 2, declarations: decl({'belote': 1}), keeper: 0);
+
+      expect(scoreRound(r), [20, 360]);
+      expect(scoreRound(deal(80, const [82, 80], doubling: 4)), [400, 80]);
+    });
+
+    test('a capot counts its tricks as 250 and is made only by taking them all', () {
+      expect(scoreRound(deal(kCapot, const [162, 0])), [500, 0]);
+      expect(scoreRound(deal(kCapot, const [182, 0], declarations: decl({'belote': 1}), keeper: 0)), [520, 0]);
+      expect(scoreRound(deal(kCapot, const [150, 12])), [0, 410]);
+    });
+
+    test('a bid recorded as lost without points goes to the opponents', () {
+      final r = Round(gv: 162, dealer: 1, taker: 0, score: const [0, 0], isBait: true, bid: 110);
+
+      expect(scoreRound(r), [0, 270]);
+    });
+
+    test('keeps the bid of a saved deal', () {
+      final back = Round.fromJson(deal(130, const [140, 22], doubling: 2).toJson(), rules: rules);
+
+      expect(back.bid, 130);
+      expect(back.doubling, 2);
+      expect(Round.fromJson(deal(130, const [140, 22]).toJson()).bid, isNull);
+    });
+
+    test('the first side past 2000 wins', () {
+      final t = tally(coinche([
+        for (var i = 0; i < 3; i++) deal(kCapot, const [162, 0]),
+        deal(160, const [162, 0]),
+        deal(80, const [82, 80]),
+        deal(80, const [82, 80]),
+      ]));
+
+      expect(t.totals, [1980 + 160, 160]);
+      expect(t.winner, 0);
+    });
+
+    test('plays to 2000 in two teams of two, every deal for a bid', () {
+      expect(rules.defaultScoreLimit, 2000);
+      expect(rules.scoreLimits, [1000, 1500, 2000, 3000]);
+      expect(rules.playerCounts, [4]);
+      expect(rules.hasBids, isTrue);
+      expect(rules.bids.first, 80);
+      expect(rules.bids.last, kCapot);
+      expect(rules.hasDoubling, isTrue);
+      expect(rules.hasContracts, isFalse);
+      expect(rules.hasDebercWin, isFalse);
+      expect(rules.hasPenalties, isFalse);
+      expect(GameRules.of('coinche'), same(rules));
+    });
+  });
 }
