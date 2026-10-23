@@ -90,6 +90,11 @@ void main() {
   group('Declarations', () {
     const deberc = GameRules.deberc;
 
+    test('are found by the id of their game', () {
+      expect(GameRules.of('deberc'), same(GameRules.deberc));
+      expect(GameRules.of('unknown'), same(GameRules.deberc));
+    });
+
     test('of Deberc give any mix of twenties and fifties up to 662', () {
       final expected = {
         for (var twenties = 0; twenties <= 10; twenties++)

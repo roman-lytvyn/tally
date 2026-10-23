@@ -278,8 +278,24 @@ offers this release for download and goes live on its own. The website reads
 the release files with its CI job token, so this project's job token allowlist
 includes the website project.
 
-### Platforms
+### One codebase, several apps
 
+The same code builds a separate app for each game of the family, each with its
+own name, icon, package id and rules. An app is described by
+`devops/apps/<app>.env`: the game whose rules it keeps score by, its package
+id, executable and file names, and its names and texts for the store listings,
+the Linux menu and the Windows installer. Files of its own, such as its icons,
+sit under `devops/apps/<app>/` in the same layout as the repository.
+
+Before an app is built, `dart run devops/apps/use_app.dart <app>` writes its
+identity into the Android, Windows and Linux project files and lays its own
+files over the checkout; the build then passes the game in with
+`--dart-define=GAME=<game>`. The repository itself holds Deberc, so switching
+to Deberc changes nothing. Every build and publish job runs once per app listed
+in `.each-app` in the pipeline, and its files are named after the app, so one
+tag and one release carry every app.
+
+### Platforms
 Android, the AAB and the Linux `.deb` build on the Kubernetes Linux runners.
 The `.deb` installs the app to `/opt/deberc` with a `deberc` command and an
 entry in the applications menu, and runs on Debian, Ubuntu and their

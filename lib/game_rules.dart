@@ -59,6 +59,12 @@ class GameRules {
     hasPenalties: true,
   );
 
+  /// Every game an app can be built for.
+  static const all = [deberc];
+
+  /// The game with the [id], or Deberc when there is none.
+  static GameRules of(String id) => all.firstWhere((g) => g.id == id, orElse: () => deberc);
+
   /// The most a deal can be worth.
   int get maxDealValue => cardPoints + maxDeclared;
 

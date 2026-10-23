@@ -78,10 +78,27 @@ test:
 # ── Build ────────────────────────────────────────────────────────────────────
 # Android and Linux build here: Windows needs a Windows runner and iOS may only
 # be built on Apple hardware, and this cluster has neither.
+#
+# Every app of the family is built from the same code: each build job runs once
+# per app, switches the checkout to it and builds it for its own game. An app
+# is described by devops/apps/<app>.env; adding one to the list below builds,
+# tags and releases it next to the others.
+
+.each-app:
+  parallel:
+    matrix:
+      - APP: [deberc]
+
+# Switches the checkout to the app the job builds and loads its identity.
+.use-app:
+  script:
+    - dart run devops/apps/use_app.dart "$APP"
+    - . "devops/apps/$APP.env"
 
 .android-build:
-  extends: .flutter
+  extends: [.flutter, .each-app]
   script:
+    - !reference [.use-app, script]
     # Play needs a version code that only ever grows; the pipeline number is
     # exactly that, and the version name matches the tag the release carries.
     # A release pipeline passes the published tag in as VERSION, so the built
@@ -103,10 +120,10 @@ test:
       else
         echo "No upload key configured, building with the debug key: not publishable to Play"
       fi
-    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
-    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
-    - mv build/app/outputs/flutter-apk/app-release.apk "deberc-$VERSION.apk"
-    - mv build/app/outputs/bundle/release/app-release.aab "deberc-$VERSION.aab"
+    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - mv build/app/outputs/flutter-apk/app-release.apk "$APP_FILE_NAME-$VERSION.apk"
+    - mv build/app/outputs/bundle/release/app-release.aab "$APP_FILE_NAME-$VERSION.aab"
     - rm -f android/key.properties android/upload-keystore.jks
 
 build:
@@ -118,8 +135,8 @@ build:
     - if: $CI_COMMIT_BRANCH == "main"
   artifacts:
     paths:
-      - deberc-*.apk
-      - deberc-*.aab
+      - "*.apk"
+      - "*.aab"
     reports:
       dotenv: build.env
 
@@ -127,13 +144,14 @@ build:
 # menu entry and icon. The Flutter image carries no desktop toolchain, so the
 # compiler and GTK headers are installed first.
 .linux-build:
-  extends: .flutter
+  extends: [.flutter, .each-app]
   script:
+    - !reference [.use-app, script]
     - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
     - apt-get update -qq
     - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev > /dev/null
-    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID"
-    - sh devops/linux/build-deb.sh "$VERSION" "deberc-$VERSION.deb"
+    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - sh devops/linux/build-deb.sh "$VERSION" "$APP_FILE_NAME-$VERSION.deb" "$APP"
 
 build-linux:
   extends: .linux-build
@@ -149,7 +167,7 @@ build-linux:
         - devops/**/*
   artifacts:
     paths:
-      - deberc-*.deb
+      - "*.deb"
 
 # The GitLab Runner service runs under its own account, so a Flutter that was
 # added to a user's PATH is invisible to it. This puts Flutter on PATH for the
@@ -185,6 +203,7 @@ build-linux:
 # building for Windows needs the Windows toolchain, which a Linux runner cannot
 # provide. The runner keeps its own Flutter and pub cache between jobs.
 .windows-build:
+  extends: .each-app
   tags:
     - windows
   variables:
@@ -192,6 +211,14 @@ build-linux:
   before_script:
     - !reference [.find-flutter, script]
     - flutter pub get
+
+# The same switch as .use-app, for the Windows runner's PowerShell; the app's
+# identity lands in $app.
+.use-app-windows:
+  script:
+    - dart run devops/apps/use_app.dart "$env:APP"
+    - . devops\apps\profile.ps1
+    - $app = Read-AppProfile $env:APP
 
 build-windows:
   extends: .windows-build
@@ -213,21 +240,22 @@ build-windows:
     # padded month in $VERSION is reparsed as plain integers and a fourth part
     # is appended.
     - $MSIX_VERSION = (($VERSION.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
-    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID"
+    - !reference [.use-app-windows, script]
+    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=GAME="$($app.APP_GAME)"
     # A self-signed .msix, installable for smoke-testing the Windows build. The
     # Store-signed package is produced only when a release is published.
     # --install-certificate false keeps the test certificate out of the machine
     # trust store, which also avoids the interactive prompt that would hang CI.
-    - dart run msix:create --output-path . --output-name "deberc-$VERSION" --version "$MSIX_VERSION" --install-certificate false
+    - dart run msix:create --output-path . --output-name "$($app.APP_FILE_NAME)-$VERSION" --version "$MSIX_VERSION" --install-certificate false
     # The per-user setup.exe that the website offers for download.
-    - devops\windows\build-installer.ps1 "$VERSION" .
+    - devops\windows\build-installer.ps1 "$VERSION" . "$env:APP"
     # The same app as a .zip that runs where it is unpacked.
-    - devops\windows\build-zip.ps1 "$VERSION" .
+    - devops\windows\build-zip.ps1 "$VERSION" . "$env:APP"
   artifacts:
     paths:
-      - deberc-*.msix
-      - deberc-*-setup.exe
-      - deberc-*-windows.zip
+      - "*.msix"
+      - "*-setup.exe"
+      - "*-windows.zip"
 
 # ── Tag ──────────────────────────────────────────────────────────────────────
 # Tags every build that passed, so a release is picked from a list of
@@ -311,7 +339,8 @@ publish:
   after_script:
     - |
       [ -z "$VERSION" ] && exit 0
-      apk="deberc-$VERSION.apk"
+      . "devops/apps/$APP.env"
+      apk="$APP_FILE_NAME-$VERSION.apk"
       [ -f "$apk" ] || exit 0
       # Attach the build to the release so it can be downloaded from there.
       url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$apk"
@@ -323,8 +352,8 @@ publish:
         || echo "Could not attach $apk to release $VERSION"
   artifacts:
     paths:
-      - deberc-*.apk
-      - deberc-*.aab
+      - "*.apk"
+      - "*.aab"
 
 # The released tag is packed for Linux and the .deb attached to the release,
 # next to the Android and Windows builds.
@@ -349,7 +378,8 @@ publish-linux:
   after_script:
     - |
       [ -z "$VERSION" ] && exit 0
-      deb="deberc-$VERSION.deb"
+      . "devops/apps/$APP.env"
+      deb="$APP_FILE_NAME-$VERSION.deb"
       [ -f "$deb" ] || exit 0
       url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$deb"
       curl -sf -X POST -H "PRIVATE-TOKEN: $TAG_PUSH_TOKEN" \
@@ -360,7 +390,7 @@ publish-linux:
         || echo "Could not attach $deb to release $VERSION"
   artifacts:
     paths:
-      - deberc-*.deb
+      - "*.deb"
 
 # The website offers the Android and Linux files of the latest release, so once
 # both are attached it is rebuilt with this release and goes live with it.
@@ -382,8 +412,9 @@ website:
     branch: main
 
 # Runs only once Play credentials exist, so the rest of the pipeline works
-# without them.
+# without them. One service account uploads every app to its own Play listing.
 google-play:
+  extends: .each-app
   stage: deploy
   image: ruby:3.3-alpine
   rules:
@@ -396,12 +427,13 @@ google-play:
     url: https://play.google.com/store/apps/details?id=com.deberc.deberc
   script:
     - apk add --no-cache build-base > /dev/null && gem install --silent fastlane
+    - . "devops/apps/$APP.env"
     - echo "$GOOGLE_PLAY_SERVICE_ACCOUNT" > play-account.json
     - |
       fastlane run upload_to_play_store \
         json_key:play-account.json \
-        package_name:com.deberc.deberc \
-        aab:"deberc-$VERSION.aab" \
+        package_name:"$APP_PACKAGE_ID" \
+        aab:"$APP_FILE_NAME-$VERSION.aab" \
         track:internal \
         release_status:draft \
         skip_upload_metadata:true \
@@ -411,7 +443,9 @@ google-play:
 
 # The tag is rebuilt on Windows the same way it is on Linux for Android: a tag
 # has no pipeline of its own, so the release pipeline checks the tag out and
-# builds it. The Store identity comes from Partner Center via CI/CD variables.
+# builds it. The Store identity comes from Partner Center via CI/CD variables
+# and belongs to the app whose profile has APP_MS_STORE set; the other apps get
+# a self-signed package until they have a Store listing of their own.
 publish-windows:
   extends: .windows-build
   stage: deploy
@@ -433,7 +467,8 @@ publish-windows:
     - flutter pub get
   script:
     - if (-not $env:VERSION) { exit 0 }
-    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID"
+    - !reference [.use-app-windows, script]
+    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=GAME="$($app.APP_GAME)"
     # Always produce a downloadable package to attach to the release. When a
     # Store publisher identity is configured, build the variant the Store signs
     # (--store plus the identity reserved in Partner Center); otherwise a
@@ -445,10 +480,10 @@ publish-windows:
       $args = @(
         "run", "msix:create",
         "--output-path", ".",
-        "--output-name", "deberc-$env:VERSION",
+        "--output-name", "$($app.APP_FILE_NAME)-$env:VERSION",
         "--version", $msixVersion
       )
-      if ($env:MSIX_PUBLISHER) {
+      if ($env:MSIX_PUBLISHER -and $app.APP_MS_STORE -eq "true") {
         $args += @("--store", "--publisher", $env:MSIX_PUBLISHER)
         if ($env:MSIX_IDENTITY_NAME)         { $args += @("--identity-name", $env:MSIX_IDENTITY_NAME) }
         if ($env:MSIX_PUBLISHER_DISPLAY_NAME){ $args += @("--publisher-display-name", $env:MSIX_PUBLISHER_DISPLAY_NAME) }
@@ -459,15 +494,17 @@ publish-windows:
       }
       dart @args
     # The per-user setup.exe that the website offers for download.
-    - devops\windows\build-installer.ps1 "$env:VERSION" .
+    - devops\windows\build-installer.ps1 "$env:VERSION" . "$env:APP"
     # The same app as a .zip that runs where it is unpacked.
-    - devops\windows\build-zip.ps1 "$env:VERSION" .
+    - devops\windows\build-zip.ps1 "$env:VERSION" . "$env:APP"
   after_script:
     # Attach the Windows installer, archive and package to the release next to
     # the Android build.
     - |
       if (-not $env:VERSION) { exit 0 }
-      foreach ($file in @("deberc-$env:VERSION-setup.exe", "deberc-$env:VERSION-windows.zip", "deberc-$env:VERSION.msix")) {
+      . devops\apps\profile.ps1
+      $name = (Read-AppProfile $env:APP).APP_FILE_NAME
+      foreach ($file in @("$name-$env:VERSION-setup.exe", "$name-$env:VERSION-windows.zip", "$name-$env:VERSION.msix")) {
         if (-not (Test-Path $file)) { continue }
         $url = "$env:CI_PROJECT_URL/-/jobs/$env:CI_JOB_ID/artifacts/raw/$file"
         try {
@@ -481,9 +518,9 @@ publish-windows:
       }
   artifacts:
     paths:
-      - deberc-*.msix
-      - deberc-*-setup.exe
-      - deberc-*-windows.zip
+      - "*.msix"
+      - "*-setup.exe"
+      - "*-windows.zip"
 
 # Submits the Store package to Partner Center. Runs only once the Store
 # credentials exist, so the rest of the pipeline works without them.
@@ -502,8 +539,11 @@ microsoft-store:
   script:
     - $ErrorActionPreference = "Stop"
     - if (-not $env:VERSION) { Write-Host "Nothing to submit"; exit 0 }
+    - . devops\apps\profile.ps1
+    - $app = Read-AppProfile $env:APP
+    - if ($app.APP_MS_STORE -ne "true") { Write-Host "$($app.APP_NAME) has no Store listing yet"; exit 0 }
     - dotnet tool install --global MSStore.CLI 2>$null; $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
     - msstore reconfigure --tenantId $env:MS_TENANT_ID --clientId $env:MS_CLIENT_ID --clientSecret $env:MS_CLIENT_SECRET --sellerId $env:MS_SELLER_ID
     # Uploads the package and creates a draft submission; a human still presses
     # "publish" in Partner Center, mirroring the Play draft on the Android side.
-    - msstore publish "deberc-$env:VERSION.msix" --appId $env:MS_STORE_APP_ID --noCommit
+    - msstore publish "$($app.APP_FILE_NAME)-$env:VERSION.msix" --appId $env:MS_STORE_APP_ID --noCommit

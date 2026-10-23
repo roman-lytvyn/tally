@@ -22,12 +22,15 @@ const _tieRuleKey = 'deberc_tie_rule';
 const _finishRuleKey = 'deberc_finish_rule';
 const _penaltiesKey = 'deberc_penalties';
 
+/// The game this app is built for, chosen at build time with `--dart-define=GAME=<id>`.
+const _game = String.fromEnvironment('GAME', defaultValue: 'deberc');
+
 enum AppScreen { setup, game, settings, win, rules }
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const DebertsApp());
+  runApp(DebertsApp(rules: GameRules.of(_game)));
 }
 
 class DebertsApp extends StatelessWidget {
