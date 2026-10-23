@@ -207,8 +207,34 @@ class GameRules {
     tieFallsByDefault: true,
   );
 
+  /// Klaverjas, as played in the Netherlands, by the Amsterdam rules. The
+  /// Rotterdam rules only add the duty to trump over a partner who is winning
+  /// the trick, so both are scored alike.
+  static const klaverjas = GameRules(
+    id: 'klaverjas',
+    // Roem is counted in the tricks, so a run is at most four cards long.
+    declarations: [
+      DeclarationKind('tierce', 20),
+      DeclarationKind('fifty', 50),
+      // Four aces, kings, queens or tens.
+      DeclarationKind('hundred', 100),
+      DeclarationKind('stuk', 20, max: 1),
+      DeclarationKind('jacks', 200, max: 1),
+      // Taking every trick adds 100 to the 162 of the cards.
+      DeclarationKind('pit', 100, max: 1),
+    ],
+    // A pit, four jacks, three more fours of a kind, two runs of four and the stuk.
+    maxDeclared: 100 + 200 + 3 * 100 + 2 * 50 + 20,
+    scoreLimits: [1500],
+    defaultScoreLimit: 1500,
+    playerCounts: [4],
+    hasCirclesAndSticks: false,
+    // The playing side has to score more than the opponents, so a tie is nat.
+    tieFallsByDefault: true,
+  );
+
   /// Every game an app can be built for.
-  static const all = [deberc, belote, belot, bela];
+  static const all = [deberc, belote, belot, bela, klaverjas];
 
   /// The game with the [id], or Deberc when there is none.
   static GameRules of(String id) => all.firstWhere((g) => g.id == id, orElse: () => deberc);
