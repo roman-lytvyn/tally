@@ -88,35 +88,53 @@ void main() {
   });
 
   group('Declarations', () {
+    const deberc = GameRules.deberc;
+
+    test('of Deberc give any mix of twenties and fifties up to 662', () {
+      final expected = {
+        for (var twenties = 0; twenties <= 10; twenties++)
+          for (var fifties = 0; fifties <= 9; fifties++) 162 + twenties * 20 + fifties * 50,
+      }.where((v) => v <= 662).toList()..sort();
+
+      expect(deberc.dealValues, expected);
+    });
+
+    test('saved by earlier versions are read back', () {
+      final d = Round.fromJson({'gv': 232, 'dealer': 0, 'score': [132, 100],
+          'declarations': {'tierces': 0, 'fifties': 1, 'bella': true}}).declarations!;
+
+      expect(d.counts, {'fifty': 1, 'bella': 1});
+    });
+
     test('a deal with nothing declared is worth the 162 points of the cards', () {
-      expect(const Declarations().gv, 162);
+      expect(const Declarations(deberc).gv, 162);
     });
 
     test('add 20 for each tierce, 50 for each fifty and 20 for bella', () {
-      expect(const Declarations(tierces: 2, fifties: 1, bella: true).gv, 162 + 40 + 50 + 20);
+      expect(const Declarations(deberc, {'tierce': 2, 'fifty': 1, 'bella': 1}).gv, 162 + 40 + 50 + 20);
     });
 
     test('can reach any value players declare, not only a fixed list', () {
-      expect(const Declarations(tierces: 1, fifties: 3).gv, 332);
-      expect(const Declarations(fifties: 2, bella: true).gv, 282);
+      expect(const Declarations(deberc, {'tierce': 1, 'fifty': 3}).gv, 332);
+      expect(const Declarations(deberc, {'fifty': 2, 'bella': 1}).gv, 282);
     });
 
     test('are worked back out of a deal saved with only its value', () {
-      final d = Round.fromJson({'gv': 252, 'dealer': 0, 'score': [152, 100]}).declarations;
+      final d = Round.fromJson({'gv': 252, 'dealer': 0, 'score': [152, 100]}).declarationsIn(deberc);
 
       expect(d.gv, 252);
-      expect(d.fifties, 1);
-      expect(d.tierces, 2);
+      expect(d['fifty'], 1);
+      expect(d['tierce'], 2);
     });
 
     test('are kept when a deal is saved and read back', () {
       const r = Round(gv: 232, dealer: 0, taker: 0, score: [132, 100],
-          declarations: Declarations(fifties: 1, bella: true));
-      final d = Round.fromJson(r.toJson()).declarations;
+          declarations: Declarations(deberc, {'fifty': 1, 'bella': 1}));
+      final d = Round.fromJson(r.toJson()).declarations!;
 
-      expect(d.fifties, 1);
-      expect(d.bella, isTrue);
-      expect(d.tierces, 0);
+      expect(d['fifty'], 1);
+      expect(d['bella'], 1);
+      expect(d['tierce'], 0);
     });
   });
 

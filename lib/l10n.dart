@@ -176,6 +176,13 @@ class AppStrings {
   String get tierce          => isUk ? 'Терц'                               : 'Tierce';
   String get fifty           => isUk ? 'П\'ятдесят'                         : 'Fifty';
   String get bella           => isUk ? 'Бела'                               : 'Bella';
+  /// The name of the declaration [id] of a game's rules.
+  String declaration(String id) => switch (id) {
+    'tierce' => tierce,
+    'fifty'  => fifty,
+    'bella'  => bella,
+    _        => id,
+  };
   String dealValue(int gv)   => isUk ? 'Гра: $gv'                           : 'Deal: $gv';
   String get deberc          => isUk ? 'Деберць'                            : 'Deberc';
   String get debercBy        => isUk ? 'Деберць у'                          : 'Deberc held by';
