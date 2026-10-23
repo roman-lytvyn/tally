@@ -105,6 +105,7 @@ class _AppRootState extends State<AppRoot> {
 
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
+    // Until a theme is chosen the app follows the device.
     final theme = prefs.getString(_themeKey) ?? 'system';
     final style = prefs.getString(_styleKey) ?? 'traditional';
     final valueIn = prefs.getString(_valueKey) ?? 'counters';

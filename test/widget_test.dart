@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deberc/main.dart';
 import 'package:deberc/l10n.dart';
 import 'package:deberc/models.dart';
+import 'package:deberc/screens/settings_screen.dart';
 
 void main() {
   const uk = AppStrings('uk');
@@ -79,6 +80,39 @@ void main() {
     await openApp(tester);
 
     expect(tester.widget<Title>(find.byType(Title).last).title, uk.appTitle);
+  });
+
+  group('theme', () {
+    bool isDark(WidgetTester tester) => tester.widget<SettingsScreen>(find.byType(SettingsScreen)).theme.isDark;
+
+    testWidgets('follows the device until one is chosen, then stays', (tester) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+
+      expect(isDark(tester), isTrue);
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      await tester.pumpAndSettle();
+      expect(isDark(tester), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('theme.dark')));
+      await tester.pumpAndSettle();
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      await tester.pumpAndSettle();
+      expect(isDark(tester), isTrue);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('deberc_theme'), 'dark');
+    });
+
+    testWidgets('offers only light and dark', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+
+      expect(find.byKey(const ValueKey('theme.light')), findsOneWidget);
+      expect(find.byKey(const ValueKey('theme.dark')), findsOneWidget);
+      expect(find.byKey(const ValueKey('theme.system')), findsNothing);
+    });
   });
 
   group('language', () {

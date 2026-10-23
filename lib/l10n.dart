@@ -138,7 +138,6 @@ class AppStrings {
   String get themeLabel      => isUk ? 'Тема'                               : 'Theme';
   String get themeLight      => isUk ? 'Світла'                             : 'Light';
   String get themeDark       => isUk ? 'Темна'                              : 'Dark';
-  String get themeSystem     => isUk ? 'Системна'                           : 'System';
   String get scoreDisplay    => isUk ? 'Вигляд рахунку'                     : 'Score display';
   String get displayStyle    => isUk ? 'Стиль відображення'                 : 'Display style';
   String get displayStyleDesc => isUk ? 'Як рахунок показується на екрані гри' : 'How score looks on game screen';
