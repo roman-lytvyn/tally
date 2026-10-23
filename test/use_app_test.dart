@@ -22,7 +22,8 @@ void main() {
           .replaceAll('"com.deberc.deberc"', '"org.example.other"')
           .replaceAll('"deberc"', '"other"')
           .replaceAll('"Deberc"', '"Other"')
-          .replaceAll('"Деберць"', '"Інша"'),
+          .replaceAll('"Деберць"', '"Інша"')
+          .replaceAll('"Деберц"', '"Друга"'),
     );
     File('${root.path}/devops/apps/other/devops/linux/icons/16.png')
       ..parent.createSync(recursive: true)
@@ -48,6 +49,7 @@ void main() {
     expect(read('android/app/src/main/res/values/strings.xml'), contains('>Other<'));
     expect(read('android/app/src/main/res/values-uk/strings.xml'), contains('>Інша<'));
     expect(read('android/app/src/main/res/values-fr/strings.xml'), contains('>Other<'));
+    expect(read('android/app/src/main/res/values-bg/strings.xml'), contains('>Друга<'));
     expect(read('linux/CMakeLists.txt'), allOf(contains('"other"'), contains('"org.example.other"')));
     expect(read('linux/runner/my_application.cc'), isNot(contains('Деберць')));
     expect(read('windows/CMakeLists.txt'), allOf(contains('project(other '), isNot(contains('"deberc"'))));
@@ -70,7 +72,9 @@ void main() {
       expect({for (final p in apps.values) p[key]}, hasLength(apps.length), reason: '$key is shared');
     }
     expect(apps.values.where((p) => p['APP_MS_STORE'] == 'true'), hasLength(1));
-    expect(File('devops/apps/belote/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
+    for (final app in ['belote', 'belot']) {
+      expect(File('devops/apps/$app/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
+    }
   });
 
   test('switching back restores Deberc', () {
