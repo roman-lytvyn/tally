@@ -86,8 +86,6 @@ class SettingsScreen extends StatelessWidget {
                       Row(children: [
                         Expanded(child: _themeOpt('☀️', strings.themeLight, 'light')),
                         const SizedBox(width: 6),
-                        Expanded(child: _themeOpt('🌗', strings.themeSystem, 'system')),
-                        const SizedBox(width: 6),
                         Expanded(child: _themeOpt('🌙', strings.themeDark, 'dark')),
                       ]),
                     ]),
@@ -226,8 +224,10 @@ class SettingsScreen extends StatelessWidget {
   Widget _divider() => Divider(height: 1, color: t.bdr, indent: 15);
 
   Widget _themeOpt(String icon, String label, String value) {
-    final on = themeMode == value;
+    // Until a theme is chosen the one the device is using is shown as picked.
+    final on = (themeMode == 'system' ? (t.isDark ? 'dark' : 'light') : themeMode) == value;
     return GestureDetector(
+      key: ValueKey('theme.$value'),
       onTap: () => onThemeModeChanged(value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
