@@ -1,3 +1,6 @@
+import 'belote_rules_content.dart';
+import 'game_rules.dart';
+
 /// A section of the rules page: a heading, its paragraphs and, optionally,
 /// a table of rows.
 class RulesSection {
@@ -9,7 +12,9 @@ class RulesSection {
   const RulesSection(this.title, this.paragraphs, {this.tableHeader, this.table = const []});
 }
 
-List<RulesSection> rulesContent(String lang) => lang == 'uk' ? _uk : _en;
+/// The rules and history of [game] in [lang], English when there is none.
+List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]) =>
+    game.id == GameRules.belote.id ? beloteRulesContent(lang) : lang == 'uk' ? _uk : _en;
 
 const _en = [
   RulesSection('Where the game comes from', [
