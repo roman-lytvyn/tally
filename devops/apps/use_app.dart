@@ -4,7 +4,8 @@
 //
 // Each app is described by devops/apps/<app>.env. The platform files keep the
 // values of whichever app the checkout was last switched to, Deberc in the
-// repository, so switching to Deberc changes nothing.
+// repository, so switching to Deberc changes nothing. Files laid over the
+// checkout from another app's folder stay until they are checked out again.
 //
 // Run from the repository root: dart run devops/apps/use_app.dart <app>
 import 'dart:io';
@@ -29,6 +30,7 @@ const places = <(String, String, String)>[
   ('android/app/build.gradle.kts', r'(applicationId = ")([^"]*)(")', 'APP_PACKAGE_ID'),
   ('android/app/src/main/res/values/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME'),
   ('android/app/src/main/res/values-uk/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME_UK'),
+  ('android/app/src/main/res/values-fr/strings.xml', r'(<string name="app_name">)([^<]*)(<)', 'APP_NAME_FR'),
   ('linux/CMakeLists.txt', r'(set\(BINARY_NAME ")([^"]*)(")', 'APP_FILE_NAME'),
   ('linux/CMakeLists.txt', r'(set\(APPLICATION_ID ")([^"]*)(")', 'APP_PACKAGE_ID'),
   ('linux/runner/my_application.cc', r'(_set_title\(\w+, ")([^"]*)(")', 'APP_TITLE'),

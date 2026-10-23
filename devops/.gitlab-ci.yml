@@ -87,7 +87,7 @@ test:
 .each-app:
   parallel:
     matrix:
-      - APP: [deberc]
+      - APP: [deberc, belote]
 
 # Switches the checkout to the app the job builds and loads its identity.
 .use-app:
@@ -412,7 +412,8 @@ website:
     branch: main
 
 # Runs only once Play credentials exist, so the rest of the pipeline works
-# without them. One service account uploads every app to its own Play listing.
+# without them. One service account uploads every app that has a Play listing,
+# APP_GOOGLE_PLAY in its profile, to that listing.
 google-play:
   extends: .each-app
   stage: deploy
@@ -428,6 +429,11 @@ google-play:
   script:
     - apk add --no-cache build-base > /dev/null && gem install --silent fastlane
     - . "devops/apps/$APP.env"
+    - |
+      if [ "$APP_GOOGLE_PLAY" != "true" ]; then
+        echo "$APP_NAME has no Play listing yet"
+        exit 0
+      fi
     - echo "$GOOGLE_PLAY_SERVICE_ACCOUNT" > play-account.json
     - |
       fastlane run upload_to_play_store \
