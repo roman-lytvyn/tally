@@ -357,6 +357,21 @@ void main() {
     expect(rulesContent('uk', GameRules.belote).first.title, 'Звідки походить гра');
     expect(rulesContent('uk', GameRules.belote), isNot(rulesContent('uk')));
     expect(rulesContent('fr'), rulesContent('en'));
+    expect(rulesContent('bg', GameRules.belot).first.title, 'Откъде идва играта');
+    expect(rulesContent('uk', GameRules.belot), isNot(rulesContent('uk', GameRules.belote)));
+    expect(rulesContent('fr', GameRules.belot), rulesContent('en', GameRules.belot));
+  });
+
+  test('gives every Bulgarian Belot rules language the same sections and table rows', () {
+    final en = rulesContent('en', GameRules.belot);
+    for (final lang in ['bg', 'uk']) {
+      final other = rulesContent(lang, GameRules.belot);
+      expect(other.length, en.length);
+      for (var i = 0; i < en.length; i++) {
+        expect(other[i].paragraphs.length, en[i].paragraphs.length);
+        expect(other[i].table.length, en[i].table.length);
+      }
+    }
   });
 
   testWidgets('offers no way to continue when nothing was played', (tester) async {
