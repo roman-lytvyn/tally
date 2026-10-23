@@ -87,7 +87,7 @@ test:
 .each-app:
   parallel:
     matrix:
-      - APP: [deberc, belote, belot, bela]
+      - APP: [deberc, belote, belot, bela, klaverjas]
 
 # Switches the checkout to the app the job builds and loads its identity.
 .use-app:

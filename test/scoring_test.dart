@@ -549,4 +549,53 @@ void main() {
       expect(GameRules.of('bela'), same(rules));
     });
   });
+
+  group('klaverjas', () {
+    const rules = GameRules.klaverjas;
+    Declarations decl(Map<String, int> counts) => Declarations(rules, counts);
+    GameState klaverjas(List<Round> rounds) => GameState(
+      rules: rules, teamNames: const ['A', 'B'], scoreLimit: 1500, rounds: rounds, firstDealer: 0,
+      tieRule: TieRule.opponentsTakeAll, finishRule: FinishRule.mostPoints,
+    );
+
+    test('a deal is worth its cards and roem, a pit 100 more', () {
+      expect(decl({'tierce': 1, 'stuk': 1}).gv, 202);
+      expect(decl({'pit': 1}).gv, 262);
+      expect(decl({'jacks': 1, 'fifty': 1}).gv, 412);
+      expect(rules.dealValues, containsAll([162, 182, 212, 262, 362]));
+      expect(rules.dealValues.last, 162 + rules.maxDeclared);
+    });
+
+    test('nat gives the opponents the cards and all the roem', () {
+      final t = tally(klaverjas([
+        Round(gv: 212, dealer: 0, taker: 1, score: const [110, 102],
+            declarations: decl({'fifty': 1})),
+      ]));
+
+      expect(t.totals, [212, 0]);
+    });
+
+    test('equal points are nat for the playing side', () {
+      final t = tally(klaverjas([Round(gv: 162, dealer: 0, taker: 1, score: const [81, 81])]));
+
+      expect(t.totals, [162, 0]);
+      expect(t.held, 0);
+    });
+
+    test('each side keeps its points when the playing side scores more', () {
+      final t = tally(klaverjas([Round(gv: 182, dealer: 0, taker: 1, score: const [60, 122])]));
+
+      expect(t.totals, [60, 122]);
+    });
+
+    test('plays to 1500 in two teams of two', () {
+      expect(rules.defaultScoreLimit, 1500);
+      expect(rules.scoreLimits, [1500]);
+      expect(rules.playerCounts, [4]);
+      expect(rules.hasDebercWin, isFalse);
+      expect(rules.hasPenalties, isFalse);
+      expect(rules.tieFallsByDefault, isTrue);
+      expect(GameRules.of('klaverjas'), same(rules));
+    });
+  });
 }

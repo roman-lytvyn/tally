@@ -339,6 +339,18 @@ void main() {
       expect(const AppStrings('hr', GameRules.bela).declaration('stiglja'), 'Štiglja');
     });
 
+    test('offers Dutch in every app, starting in it only in Klaverjas', () {
+      expect(kLanguages, contains('nl'));
+      expect(AppStrings.languageName('nl'), 'Nederlands');
+      expect(defaultLanguage(GameRules.klaverjas, 'nl'), 'nl');
+      expect(defaultLanguage(GameRules.klaverjas, 'uk'), 'en');
+      expect(defaultLanguage(GameRules.deberc, 'nl'), 'en');
+      expect(const AppStrings('nl', GameRules.klaverjas).appTitle, 'Klaverjas');
+      expect(const AppStrings('nl', GameRules.klaverjas).badgeBait, 'NAT');
+      expect(const AppStrings('nl', GameRules.klaverjas).declaration('stuk'), 'Stuk');
+      expect(const AppStrings('nl', GameRules.klaverjas).declaration('pit'), 'Pit');
+    });
+
     test('uses the terms of the game being played', () {
       expect(const AppStrings('en').badgeBait, 'BAIT');
       expect(const AppStrings('en', GameRules.belote).badgeBait, 'DEDANS');
@@ -392,6 +404,20 @@ void main() {
     final en = rulesContent('en', GameRules.belot);
     for (final lang in ['bg', 'uk']) {
       final other = rulesContent(lang, GameRules.belot);
+      expect(other.length, en.length);
+      for (var i = 0; i < en.length; i++) {
+        expect(other[i].paragraphs.length, en[i].paragraphs.length);
+        expect(other[i].table.length, en[i].table.length);
+      }
+    }
+  });
+
+  test('gives every Klaverjas rules language the same sections and table rows', () {
+    final en = rulesContent('en', GameRules.klaverjas);
+    expect(rulesContent('nl', GameRules.klaverjas).first.title, 'Waar het spel vandaan komt');
+    expect(rulesContent('fr', GameRules.klaverjas), en);
+    for (final lang in ['nl', 'uk']) {
+      final other = rulesContent(lang, GameRules.klaverjas);
       expect(other.length, en.length);
       for (var i = 0; i < en.length; i++) {
         expect(other[i].paragraphs.length, en[i].paragraphs.length);
