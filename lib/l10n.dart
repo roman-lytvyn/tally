@@ -1,7 +1,7 @@
 import 'models.dart';
 
 /// The languages the app speaks, in the order the settings offer them.
-const kLanguages = ['uk', 'en', 'fr', 'bg', 'hr'];
+const kLanguages = ['uk', 'en', 'fr', 'bg', 'hr', 'nl'];
 
 /// The language an app starts in before one is chosen: the device's own when
 /// players of the game commonly use it, English otherwise.
@@ -11,6 +11,7 @@ String defaultLanguage(GameRules rules, String deviceLanguage) {
     'belot'  => ['bg'],
     // Bosnian and Serbian readers follow Croatian without effort.
     'bela'   => ['hr', 'bs', 'sr'],
+    'klaverjas' => ['nl'],
     _        => ['fr'],
   };
   if (!native.contains(deviceLanguage)) return 'en';
@@ -28,44 +29,48 @@ class AppStrings {
   bool get _belote => game.id == 'belote';
   bool get _belot => game.id == 'belot';
   bool get _bela => game.id == 'bela';
+  bool get _klaverjas => game.id == 'klaverjas';
 
-  /// The text in the current language: Ukrainian, English, French, Bulgarian
-  /// or Croatian.
-  String _t(String uk, String en, String fr, String bg, String hr) => switch (lang) {
+  /// The text in the current language: Ukrainian, English, French, Bulgarian,
+  /// Croatian or Dutch.
+  String _t(String uk, String en, String fr, String bg, String hr, String nl) => switch (lang) {
     'uk' => uk,
     'fr' => fr,
     'bg' => bg,
     'hr' => hr,
+    'nl' => nl,
     _    => en,
   };
 
   // Setup
-  String get appTitle        => _bela
-      ? _t('Бела', 'Bela', 'Bela', 'Бела', 'Bela')
+  String get appTitle        => _klaverjas
+      ? _t('Клаверяс', 'Klaverjas', 'Klaverjas', 'Клаверяс', 'Klaverjas', 'Klaverjas')
+      : _bela
+      ? _t('Бела', 'Bela', 'Bela', 'Бела', 'Bela', 'Bela')
       : _belot
-      ? _t('Белот', 'Belot', 'Belot', 'Белот', 'Belot')
+      ? _t('Белот', 'Belot', 'Belot', 'Белот', 'Belot', 'Belot')
       : _belote
-          ? _t('Белот', 'Belote', 'Belote', 'Белот', 'Belote')
-          : _t('Деберць', 'Deberc', 'Deberc', 'Деберц', 'Deberc');
-  String get teams           => _t('Команди', 'Teams', 'Équipes', 'Отбори', 'Ekipe');
-  String get whoDealsFirst   => _t('Хто роздає першим', 'Who deals first', 'Qui distribue en premier', 'Кой раздава пръв', 'Tko prvi dijeli');
-  String get playTo          => _t('Гра до', 'Play to', 'Partie en', 'Игра до', 'Igra do');
-  String get newGame         => _t('Нова гра ♠', 'New game ♠', 'Nouvelle partie ♠', 'Нова игра ♠', 'Nova igra ♠');
+          ? _t('Белот', 'Belote', 'Belote', 'Белот', 'Belote', 'Belote')
+          : _t('Деберць', 'Deberc', 'Deberc', 'Деберц', 'Deberc', 'Deberc');
+  String get teams           => _t('Команди', 'Teams', 'Équipes', 'Отбори', 'Ekipe', 'Teams');
+  String get whoDealsFirst   => _t('Хто роздає першим', 'Who deals first', 'Qui distribue en premier', 'Кой раздава пръв', 'Tko prvi dijeli', 'Wie geeft eerst');
+  String get playTo          => _t('Гра до', 'Play to', 'Partie en', 'Игра до', 'Igra do', 'Spelen tot');
+  String get newGame         => _t('Нова гра ♠', 'New game ♠', 'Nouvelle partie ♠', 'Нова игра ♠', 'Nova igra ♠', 'Nieuw spel ♠');
   String get continuePrev    => _t('Продовжити попередню →', 'Continue previous →', 'Reprendre la partie →',
-      'Продължи предишната →', 'Nastavi prethodnu →');
-  String get settingsBtn     => _t('⚙ Налаштування', '⚙ Settings', '⚙ Réglages', '⚙ Настройки', '⚙ Postavke');
+      'Продължи предишната →', 'Nastavi prethodnu →', 'Vorig spel hervatten →');
+  String get settingsBtn     => _t('⚙ Налаштування', '⚙ Settings', '⚙ Réglages', '⚙ Настройки', '⚙ Postavke', '⚙ Instellingen');
   String get rulesBtn        => _t('📖 Правила та історія', '📖 Rules and history', '📖 Règles et histoire',
-      '📖 Правила и история', '📖 Pravila i povijest');
-  String get rulesTitle      => _t('Правила та історія', 'Rules and history', 'Règles et histoire', 'Правила и история', 'Pravila i povijest');
-  String get ourTeamHint     => _t('Наша команда', 'Our team', 'Notre équipe', 'Нашият отбор', 'Naša ekipa');
-  String get otherTeamHint   => _t('Інша команда', 'Other team', 'L\'autre équipe', 'Другият отбор', 'Druga ekipa');
-  String get players         => _t('Гравці', 'Players', 'Joueurs', 'Играчи', 'Igrači');
-  String get howManyPlay     => _t('Скільки грає', 'How many play', 'Nombre de joueurs', 'Колко играят', 'Koliko igra');
+      '📖 Правила и история', '📖 Pravila i povijest', '📖 Regels en geschiedenis');
+  String get rulesTitle      => _t('Правила та історія', 'Rules and history', 'Règles et histoire', 'Правила и история', 'Pravila i povijest', 'Regels en geschiedenis');
+  String get ourTeamHint     => _t('Наша команда', 'Our team', 'Notre équipe', 'Нашият отбор', 'Naša ekipa', 'Ons team');
+  String get otherTeamHint   => _t('Інша команда', 'Other team', 'L\'autre équipe', 'Другият отбор', 'Druga ekipa', 'Het andere team');
+  String get players         => _t('Гравці', 'Players', 'Joueurs', 'Играчи', 'Igrači', 'Spelers');
+  String get howManyPlay     => _t('Скільки грає', 'How many play', 'Nombre de joueurs', 'Колко играят', 'Koliko igra', 'Aantal spelers');
   String playersOption(int n) => n == 4 ? '2 × 2' : '$n';
-  String player(int n)       => _t('Гравець $n', 'Player $n', 'Joueur $n', 'Играч $n', 'Igrač $n');
+  String player(int n)       => _t('Гравець $n', 'Player $n', 'Joueur $n', 'Играч $n', 'Igrač $n', 'Speler $n');
   /// The names a game starts with: two teams, or one per player.
   List<String> defaultNames(int players) => players == 4
-      ? [_t('Ми', 'Us', 'Nous', 'Ние', 'Mi'), _t('Вони', 'Them', 'Eux', 'Те', 'Vi')]
+      ? [_t('Ми', 'Us', 'Nous', 'Ние', 'Mi', 'Wij'), _t('Вони', 'Them', 'Eux', 'Те', 'Vi', 'Zij')]
       : [for (var i = 1; i <= players; i++) player(i)];
   /// The [names] as typed, with the default in place of any left blank.
   List<String> namesOrDefaults(List<String> names, int players) {
@@ -75,192 +80,199 @@ class AppStrings {
   String nameHint(int players, int side) => players == 4
       ? (side == 0 ? ourTeamHint : otherTeamHint)
       : player(side + 1);
-  String get rules           => _t('Правила', 'Rules', 'Règles', 'Правила', 'Pravila');
+  String get rules           => _t('Правила', 'Rules', 'Règles', 'Правила', 'Pravila', 'Regels');
   String get dealerMustPlay  => _t('Роздавач зобов\'язаний грати', 'Dealer must play', 'Le donneur doit jouer',
-      'Раздаващият е длъжен да играе', 'Djelitelj mora igrati');
+      'Раздаващият е длъжен да играе', 'Djelitelj mora igrati', 'Gever moet spelen');
   String get dealerMustPlayDesc => _t(
       'Якщо всі спасували, козир бере той, хто роздавав',
       'If everyone passes, the dealer has to take the trump',
       'Si tout le monde passe, le donneur doit prendre l\'atout',
-      'Ако всички пасуват, раздаващият трябва да вземе коза', 'Ako svi kažu dalje, djelitelj mora zvati aduta');
+      'Ако всички пасуват, раздаващият трябва да вземе коза', 'Ako svi kažu dalje, djelitelj mora zvati aduta', 'Als iedereen past, moet de gever troef maken');
 
   /// What a lost contract is called in the game.
-  String get _lost           => _bela
-      ? _t('пад', 'fall', 'chute', 'пад', 'pad')
+  String get _lost           => _klaverjas
+      ? _t('нат', 'nat', 'nat', 'нат', 'nat', 'nat')
+      : _bela
+      ? _t('пад', 'fall', 'chute', 'пад', 'pad', 'val')
       : _belot
-      ? _t('вътре', 'inside', 'dedans', 'вътре', 'unutra')
+      ? _t('вътре', 'inside', 'dedans', 'вътре', 'unutra', 'binnen')
       : _belote
-          ? _t('дедан', 'dedans', 'dedans', 'дедан', 'dedans')
-          : _t('байт', 'bait', 'dedans', 'байт', 'bait');
+          ? _t('дедан', 'dedans', 'dedans', 'дедан', 'dedans', 'dedans')
+          : _t('байт', 'bait', 'dedans', 'байт', 'bait', 'bait');
   String get _lostTitle           => _lost[0].toUpperCase() + _lost.substring(1);
   /// What a tied deal is called in the game.
-  String get _tie            => _bela
-      ? _t('Нарівно', 'Equal points', 'Égalité', 'Равни', 'Jednako')
+  String get _tie            => _bela || _klaverjas
+      ? _t('Нарівно', 'Equal points', 'Égalité', 'Равни', 'Jednako', 'Gelijk')
       : _belot
-      ? _t('Висячі', 'Hanging', 'Litige', 'Висящи', 'Viseći')
+      ? _t('Висячі', 'Hanging', 'Litige', 'Висящи', 'Viseći', 'Hangend')
       : _belote
-          ? _t('Літиж', 'Litige', 'Litige', 'Литиж', 'Litige')
-          : _t('Яйця', 'Eggs', 'Litige', 'Яйца', 'Jaja');
+          ? _t('Літиж', 'Litige', 'Litige', 'Литиж', 'Litige', 'Litige')
+          : _t('Яйця', 'Eggs', 'Litige', 'Яйца', 'Jaja', 'Eieren');
 
-  String get tieRuleTitle    => _t('$_tie (нічия)', '$_tie (a tied deal)', '$_tie (égalité)', '$_tie (равенство)', '$_tie (izjednačeno dijeljenje)');
+  String get tieRuleTitle    => _t('$_tie (нічия)', '$_tie (a tied deal)', '$_tie (égalité)', '$_tie (равенство)', '$_tie (izjednačeno dijeljenje)', '$_tie (gelijkspel)');
   String tieRuleName(TieRule r) => switch (r) {
-    TieRule.hanging          => _t('Висять', 'Held over', 'En suspens', 'Висят', 'Visi'),
-    TieRule.opponentsTakeAll => _t('Суперникам', 'To opponents', 'Aux adversaires', 'За противниците', 'Protivnicima'),
-    TieRule.eachKeepsOwn     => _t('Кожному своє', 'Each keeps own', 'Chacun ses points', 'Всеки своите', 'Svakom svoje'),
+    TieRule.hanging          => _t('Висять', 'Held over', 'En suspens', 'Висят', 'Visi', 'Blijft hangen'),
+    TieRule.opponentsTakeAll => _t('Суперникам', 'To opponents', 'Aux adversaires', 'За противниците', 'Protivnicima', 'Naar de tegenpartij'),
+    TieRule.eachKeepsOwn     => _t('Кожному своє', 'Each keeps own', 'Chacun ses points', 'Всеки своите', 'Svakom svoje', 'Ieder het zijne'),
   };
   String tieRuleDesc(TieRule r) => switch (r) {
     TieRule.hanging => _t(
         'Суперники записують свої очки, а очки тих, хто грав, переходять до переможця наступної роздачі',
         'The opponents score their points; the trump-taker\'s points go to whoever wins the next deal',
         'Les adversaires marquent leurs points ; ceux du preneur vont au gagnant de la donne suivante',
-        'Противниците записват своите точки, а точките на играещите отиват при победителя в следващата раздача', 'Protivnici upisuju svoje bodove, a bodovi onih koji su zvali idu pobjedniku sljedećeg dijeljenja'),
+        'Противниците записват своите точки, а точките на играещите отиват при победителя в следващата раздача', 'Protivnici upisuju svoje bodove, a bodovi onih koji su zvali idu pobjedniku sljedećeg dijeljenja', 'De tegenpartij schrijft haar punten; de punten van de spelende partij gaan naar wie het volgende spel wint'),
     TieRule.opponentsTakeAll => _t(
         'Нічия — як $_lost: суперники отримують усю гру',
         'A tie counts as $_lost: the opponents get the whole deal',
         'L\'égalité compte comme dedans : les adversaires prennent toute la donne',
-        'Равенството се брои за $_lost: противниците получават цялата раздача', 'Izjednačeno se broji kao $_lost: protivnici dobivaju cijelo dijeljenje'),
+        'Равенството се брои за $_lost: противниците получават цялата раздача', 'Izjednačeno se broji kao $_lost: protivnici dobivaju cijelo dijeljenje', 'Gelijk telt als $_lost: de tegenpartij krijgt het hele spel'),
     TieRule.eachKeepsOwn => _t(
         'Кожна сторона записує те, що набрала',
         'Each side scores what it took',
         'Chaque camp marque ce qu\'il a pris',
-        'Всяка страна записва каквото е взела', 'Svaka strana upisuje ono što je uzela'),
+        'Всяка страна записва каквото е взела', 'Svaka strana upisuje ono što je uzela', 'Elke partij schrijft wat ze heeft gehaald'),
   };
   String get finishRuleTitle => _t('Обидві сторони набрали суму гри', 'Both sides pass the target',
-      'Les deux camps atteignent le total', 'И двете страни стигат целта', 'Obje strane prijeđu cilj');
+      'Les deux camps atteignent le total', 'И двете страни стигат целта', 'Obje strane prijeđu cilj', 'Beide partijen halen het doel');
   String finishRuleName(FinishRule r) => switch (r) {
-    FinishRule.taker      => _t('Хто грав', 'Trump-taker', 'Le preneur', 'Играещият', 'Tko je zvao'),
-    FinishRule.mostPoints => _t('Більше очок', 'Most points', 'Le plus de points', 'Повече точки', 'Više bodova'),
+    FinishRule.taker      => _t('Хто грав', 'Trump-taker', 'Le preneur', 'Играещият', 'Tko je zvao', 'Spelende partij'),
+    FinishRule.mostPoints => _t('Більше очок', 'Most points', 'Le plus de points', 'Повече точки', 'Više bodova', 'Meeste punten'),
   };
   String finishRuleDesc(FinishRule r) => switch (r) {
     FinishRule.taker => _t(
         'Перемагає сторона, що взяла козир в останній роздачі, навіть якщо в неї менше очок',
         'The side that took the trump in the last deal wins, even with fewer points',
         'Le camp qui a pris l\'atout à la dernière donne gagne, même avec moins de points',
-        'Печели страната, взела коза в последната раздача, дори с по-малко точки', 'Pobjeđuje strana koja je zvala aduta u zadnjem dijeljenju, čak i s manje bodova'),
+        'Печели страната, взела коза в последната раздача, дори с по-малко точки', 'Pobjeđuje strana koja je zvala aduta u zadnjem dijeljenju, čak i s manje bodova', 'De partij die in het laatste spel troef maakte wint, ook met minder punten'),
     FinishRule.mostPoints => _t(
         'Перемагає сторона, в якої більше очок; за рівного рахунку гра триває',
         'The side with more points wins; on an equal score play goes on',
         'Le camp qui a le plus de points gagne ; à égalité la partie continue',
-        'Печели страната с повече точки; при равен резултат играта продължава', 'Pobjeđuje strana s više bodova; kod jednakog rezultata igra se dalje'),
+        'Печели страната с повече точки; при равен резултат играта продължава', 'Pobjeđuje strana s više bodova; kod jednakog rezultata igra se dalje', 'De partij met de meeste punten wint; bij gelijke stand wordt doorgespeeld'),
   };
-  String get baitPenaltyTitle => _t('Штраф за байти', 'Penalty for bait', 'Pénalité pour dedans', 'Наказание за байт', 'Kazna za pad');
+  String get baitPenaltyTitle => _t('Штраф за байти', 'Penalty for bait', 'Pénalité pour dedans', 'Наказание за байт', 'Kazna za pad', 'Straf voor nat');
   String baitPenaltyName(BaitPenalty p) => switch (p) {
-    BaitPenalty.none          => _t('Немає', 'None', 'Aucune', 'Няма', 'Nema'),
-    BaitPenalty.third         => _t('Третій', 'The third', 'Le troisième', 'Третият', 'Treći'),
-    BaitPenalty.thirdAndAfter => _t('Третій і далі', 'Third and after', 'Le 3e et suivants', 'Третият и след него', 'Treći i dalje'),
-    BaitPenalty.everyThird    => _t('Кожен третій', 'Every third', 'Chaque 3e', 'Всеки трети', 'Svaki treći'),
+    BaitPenalty.none          => _t('Немає', 'None', 'Aucune', 'Няма', 'Nema', 'Geen'),
+    BaitPenalty.third         => _t('Третій', 'The third', 'Le troisième', 'Третият', 'Treći', 'De derde'),
+    BaitPenalty.thirdAndAfter => _t('Третій і далі', 'Third and after', 'Le 3e et suivants', 'Третият и след него', 'Treći i dalje', 'De derde en verder'),
+    BaitPenalty.everyThird    => _t('Кожен третій', 'Every third', 'Chaque 3e', 'Всеки трети', 'Svaki treći', 'Elke derde'),
   };
   String baitPenaltyDesc(BaitPenalty p, int points) => switch (p) {
     BaitPenalty.none => _t(
         'Байт коштує лише програної роздачі',
         'Bait costs nothing more than the lost deal',
         'Un dedans ne coûte que la donne perdue',
-        'Байтът струва само загубената раздача', 'Pad ne košta ništa osim izgubljenog dijeljenja'),
+        'Байтът струва само загубената раздача', 'Pad ne košta ništa osim izgubljenog dijeljenja', 'Nat kost niets meer dan het verloren spel'),
     BaitPenalty.third => _t(
         'За третій байт сторона втрачає ще $points очок',
         'A side loses $points more points for its third bait',
         'Un camp perd $points points de plus à son troisième dedans',
-        'За третия байт страната губи още $points точки', 'Za treći pad strana gubi još $points bodova'),
+        'За третия байт страната губи още $points точки', 'Za treći pad strana gubi još $points bodova', 'Een partij verliest $points punten extra bij haar derde keer nat'),
     BaitPenalty.thirdAndAfter => _t(
         'За третій і кожен наступний байт сторона втрачає ще по $points очок',
         'A side loses $points more points for its third bait and each one after it',
         'Un camp perd $points points de plus à son troisième dedans et à chacun des suivants',
-        'За третия и всеки следващ байт страната губи още по $points точки', 'Za treći i svaki sljedeći pad strana gubi još po $points bodova'),
+        'За третия и всеки следващ байт страната губи още по $points точки', 'Za treći i svaki sljedeći pad strana gubi još po $points bodova', 'Een partij verliest $points punten extra bij haar derde keer nat en elke keer daarna'),
     BaitPenalty.everyThird => _t(
         'За кожен третій байт — третій, шостий, дев\'ятий — сторона втрачає ще $points очок',
         'A side loses $points more points for every third bait: the third, sixth, ninth',
         'Un camp perd $points points de plus à chaque troisième dedans : le 3e, le 6e, le 9e',
-        'За всеки трети байт — третия, шестия, деветия — страната губи още $points точки', 'Za svaki treći pad — treći, šesti, deveti — strana gubi još $points bodova'),
+        'За всеки трети байт — третия, шестия, деветия — страната губи още $points точки', 'Za svaki treći pad — treći, šesti, deveti — strana gubi još $points bodova', 'Een partij verliest $points punten extra bij elke derde keer nat: de derde, zesde, negende'),
   };
-  String get penaltySize     => _t('Розмір штрафу', 'Penalty size', 'Montant de la pénalité', 'Размер на наказанието', 'Iznos kazne');
-  String get points          => _t('очок', 'points', 'points', 'точки', 'bodova');
-  String get baitsCountTitle => _t('Байти рахуються', 'Baits are counted', 'Les dedans se comptent', 'Байтовете се броят', 'Padovi se broje');
-  String get baitsPerGame    => _t('За всю гру', 'Over the game', 'Sur la partie', 'За цялата игра', 'Kroz cijelu igru');
-  String get baitsInARow     => _t('Лише підряд', 'Only in a row', 'Seulement d\'affilée', 'Само поред', 'Samo zaredom');
+  String get penaltySize     => _t('Розмір штрафу', 'Penalty size', 'Montant de la pénalité', 'Размер на наказанието', 'Iznos kazne', 'Hoogte van de straf');
+  String get points          => _t('очок', 'points', 'points', 'точки', 'bodova', 'punten');
+  String get baitsCountTitle => _t('Байти рахуються', 'Baits are counted', 'Les dedans se comptent', 'Байтовете се броят', 'Padovi se broje', 'Nat wordt geteld');
+  String get baitsPerGame    => _t('За всю гру', 'Over the game', 'Sur la partie', 'За цялата игра', 'Kroz cijelu igru', 'Over het hele spel');
+  String get baitsInARow     => _t('Лише підряд', 'Only in a row', 'Seulement d\'affilée', 'Само поред', 'Samo zaredom', 'Alleen achter elkaar');
   String baitsCountDesc(bool inARow) => inARow
       ? _t('Рахунок байтів починається знову, щойно сторона зіграє роздачу без байта',
           'The count starts again once the side plays a deal without bait',
           'Le compte repart dès que le camp joue une donne sans dedans',
-          'Броят започва отначало, щом страната изиграе раздача без байт', 'Brojanje kreće iznova čim strana odigra dijeljenje bez pada')
+          'Броят започва отначало, щом страната изиграе раздача без байт', 'Brojanje kreće iznova čim strana odigra dijeljenje bez pada', 'De telling begint opnieuw zodra de partij een spel speelt zonder nat')
       : _t('Рахуються всі байти сторони за гру, не обов\'язково підряд',
           'All of a side\'s baits in the game count, not only those in a row',
           'Tous les dedans du camp dans la partie comptent, pas seulement ceux d\'affilée',
-          'Броят се всички байтове на страната в играта, не само поредните', 'Broje se svi padovi strane u igri, ne samo oni zaredom');
+          'Броят се всички байтове на страната в играта, не само поредните', 'Broje se svi padovi strane u igri, ne samo oni zaredom', 'Alle keren nat van een partij in het spel tellen, niet alleen die achter elkaar');
   String get noTricksTitle   => _t('Лижі — жодної взятки', 'Skis — no tricks taken', 'Aucun pli',
-      'Ски — нито една взятка', 'Bez ijednog štiha');
-  String get noPenalty       => _t('Немає', 'None', 'Aucune', 'Няма', 'Nema');
+      'Ски — нито една взятка', 'Bez ijednog štiha', 'Geen enkele slag');
+  String get noPenalty       => _t('Немає', 'None', 'Aucune', 'Няма', 'Nema', 'Geen');
   String noTricksDesc(int points) => points == 0
       ? _t('Роздача без жодної взятки нічого не коштує', 'A deal without a trick costs nothing more',
-          'Une donne sans pli ne coûte rien de plus', 'Раздача без взятка не струва нищо повече', 'Dijeljenje bez štiha ne košta ništa više')
+          'Une donne sans pli ne coûte rien de plus', 'Раздача без взятка не струва нищо повече', 'Dijeljenje bez štiha ne košta ništa više', 'Een spel zonder slag kost niets extra')
       : _t('Сторона, що за роздачу не взяла жодної взятки (записано 0 очок), втрачає $points очок',
           'A side that took no tricks in a deal (0 points entered) loses $points points',
           'Un camp qui n\'a fait aucun pli dans une donne (0 point saisi) perd $points points',
-          'Страна без нито една взятка в раздачата (записани 0 точки) губи $points точки', 'Strana koja u dijeljenju nije uzela nijedan štih (upisano 0 bodova) gubi $points bodova');
+          'Страна без нито една взятка в раздачата (записани 0 точки) губи $points точки', 'Strana koja u dijeljenju nije uzela nijedan štih (upisano 0 bodova) gubi $points bodova', 'Een partij die in een spel geen slag haalde (0 punten ingevuld) verliest $points punten');
 
   // Game
-  String get exitBtn         => _t('← Вихід', '← Exit', '← Quitter', '← Изход', '← Izlaz');
+  String get exitBtn         => _t('← Вихід', '← Exit', '← Quitter', '← Изход', '← Izlaz', '← Stoppen');
   String get undoBtn         => '↶';
-  String get deals           => _t('роздає', 'deals', 'donne', 'раздава', 'dijeli');
-  String get badgeRedeal     => _t('ПЕРЕЗДАЧА', 'REDEAL', 'REDONNE', 'ПРЕРАЗДАВАНЕ', 'NOVO DIJELJENJE');
+  String get deals           => _t('роздає', 'deals', 'donne', 'раздава', 'dijeli', 'geeft');
+  String get badgeRedeal     => _t('ПЕРЕЗДАЧА', 'REDEAL', 'REDONNE', 'ПРЕРАЗДАВАНЕ', 'NOVO DIJELJENJE', 'OPNIEUW GEVEN');
   String get allPassed       => _t('Усі пасували — перездача', 'Everyone passed — redeal', 'Tout le monde passe — redonne',
-      'Всички пас — нова раздача', 'Svi su rekli dalje — dijeli se ponovo');
+      'Всички пас — нова раздача', 'Svi su rekli dalje — dijeli se ponovo', 'Iedereen past — opnieuw geven');
   String get noRoundsYet     => _t('Ще немає роздач', 'No rounds yet', 'Aucune donne pour l\'instant',
-      'Още няма раздавания', 'Još nema dijeljenja');
+      'Още няма раздавания', 'Još nema dijeljenja', 'Nog geen spellen');
   String get tapNewRound     => _t('Натисни «Нова роздача» нижче', 'Tap "New round" below',
-      'Appuyez sur « Nouvelle donne » ci-dessous', 'Натисни „Нова раздача“ отдолу', 'Dodirni „Novo dijeljenje” ispod');
+      'Appuyez sur « Nouvelle donne » ci-dessous', 'Натисни „Нова раздача“ отдолу', 'Dodirni „Novo dijeljenje” ispod', 'Tik hieronder op „Nieuw spel”');
   String get badgeBait       => _lost.toUpperCase();
   String get badgeEggs       => _tie.toUpperCase();
-  String get pts             => _t('оч', 'pts', 'pts', 'т.', 'b.');
-  String badgeNoTricks(int points) => _t('ЛИЖІ −$points', 'SKIS −$points', 'SANS PLI −$points', 'СКИ −$points', 'BEZ ŠTIHA −$points');
-  String baitsSoFar(int n)   => _bela
-      ? _t('пади: $n', 'falls: $n', 'chutes : $n', 'падове: $n', 'padovi: $n')
+  String get pts             => _t('оч', 'pts', 'pts', 'т.', 'b.', 'pt');
+  String badgeNoTricks(int points) => _t('ЛИЖІ −$points', 'SKIS −$points', 'SANS PLI −$points', 'СКИ −$points', 'BEZ ŠTIHA −$points', 'GEEN SLAG −$points');
+  String baitsSoFar(int n)   => _klaverjas
+      ? _t('нат: $n', 'nat: $n', 'nat : $n', 'нат: $n', 'nat: $n', 'nat: $n')
+      : _bela
+      ? _t('пади: $n', 'falls: $n', 'chutes : $n', 'падове: $n', 'padovi: $n', 'vallen: $n')
       : _belote
-      ? _t('дедани: $n', 'dedans: $n', 'dedans : $n', 'дедани: $n', 'dedans: $n')
-      : _t('байти: $n', 'baits: $n', 'dedans : $n', 'байтове: $n', 'baitovi: $n');
-  String toGo(int points)    => _t('ще $points', '$points to go', 'encore $points', 'още $points', 'još $points');
+      ? _t('дедани: $n', 'dedans: $n', 'dedans : $n', 'дедани: $n', 'dedans: $n', 'dedans: $n')
+      : _t('байти: $n', 'baits: $n', 'dedans : $n', 'байтове: $n', 'baitovi: $n', 'keer nat: $n');
+  String toGo(int points)    => _t('ще $points', '$points to go', 'encore $points', 'още $points', 'još $points', 'nog $points');
 
   // Win
-  String get winLabel        => _t('перемагають!', 'win!', 'gagnent !', 'печелят!', 'pobjeđuju!');
-  String get winLabelOne     => _t('перемагає!', 'wins!', 'gagne !', 'печели!', 'pobjeđuje!');
-  String get finalScore      => _t('Фінальний рахунок', 'Final score', 'Score final', 'Краен резултат', 'Konačni rezultat');
+  String get winLabel        => _t('перемагають!', 'win!', 'gagnent !', 'печелят!', 'pobjeđuju!', 'winnen!');
+  String get winLabelOne     => _t('перемагає!', 'wins!', 'gagne !', 'печели!', 'pobjeđuje!', 'wint!');
+  String get finalScore      => _t('Фінальний рахунок', 'Final score', 'Score final', 'Краен резултат', 'Konačni rezultat', 'Eindstand');
   String get undoLastRound   => _t('↶ Скасувати останню роздачу', '↶ Undo the last round', '↶ Annuler la dernière donne',
-      '↶ Отмени последната раздача', '↶ Poništi zadnje dijeljenje');
+      '↶ Отмени последната раздача', '↶ Poništi zadnje dijeljenje', '↶ Laatste spel ongedaan maken');
 
   // Settings
-  String get settingsTitle   => _t('Налаштування', 'Settings', 'Réglages', 'Настройки', 'Postavke');
-  String get backBtn         => _t('← Назад', '← Back', '← Retour', '← Назад', '← Natrag');
-  String get appearance      => _t('Зовнішній вигляд', 'Appearance', 'Apparence', 'Външен вид', 'Izgled');
-  String get themeLabel      => _t('Тема', 'Theme', 'Thème', 'Тема', 'Tema');
-  String get themeLight      => _t('Світла', 'Light', 'Clair', 'Светла', 'Svijetla');
-  String get themeDark       => _t('Темна', 'Dark', 'Sombre', 'Тъмна', 'Tamna');
-  String get scoreDisplay    => _t('Вигляд рахунку', 'Score display', 'Affichage du score', 'Изглед на резултата', 'Prikaz rezultata');
-  String get displayStyle    => _t('Стиль відображення', 'Display style', 'Style d\'affichage', 'Стил на показване', 'Stil prikaza');
+  String get settingsTitle   => _t('Налаштування', 'Settings', 'Réglages', 'Настройки', 'Postavke', 'Instellingen');
+  String get backBtn         => _t('← Назад', '← Back', '← Retour', '← Назад', '← Natrag', '← Terug');
+  String get appearance      => _t('Зовнішній вигляд', 'Appearance', 'Apparence', 'Външен вид', 'Izgled', 'Weergave');
+  String get themeLabel      => _t('Тема', 'Theme', 'Thème', 'Тема', 'Tema', 'Thema');
+  String get themeLight      => _t('Світла', 'Light', 'Clair', 'Светла', 'Svijetla', 'Licht');
+  String get themeDark       => _t('Темна', 'Dark', 'Sombre', 'Тъмна', 'Tamna', 'Donker');
+  String get scoreDisplay    => _t('Вигляд рахунку', 'Score display', 'Affichage du score', 'Изглед на резултата', 'Prikaz rezultata', 'Weergave van de stand');
+  String get displayStyle    => _t('Стиль відображення', 'Display style', 'Style d\'affichage', 'Стил на показване', 'Stil prikaza', 'Weergavestijl');
   String get displayStyleDesc => _t('Як рахунок показується на екрані гри', 'How score looks on game screen',
-      'Comment le score apparaît à l\'écran de jeu', 'Как изглежда резултатът на екрана на играта', 'Kako rezultat izgleda na zaslonu igre');
-  String get circlesSticks   => _t('Кружечки і палички', 'Circles and sticks', 'Ronds et bâtons', 'Кръгчета и чертички', 'Kružići i crtice');
-  String get regularNums     => _t('Звичайні цифри', 'Regular numbers', 'Chiffres', 'Обикновени цифри', 'Obični brojevi');
-  String get gameValue       => _t('Скільки йде гра', 'Deal value', 'Valeur de la donne', 'Стойност на раздачата', 'Vrijednost dijeljenja');
+      'Comment le score apparaît à l\'écran de jeu', 'Как изглежда резултатът на екрана на играта', 'Kako rezultat izgleda na zaslonu igre', 'Hoe de stand eruitziet op het spelscherm');
+  String get circlesSticks   => _t('Кружечки і палички', 'Circles and sticks', 'Ronds et bâtons', 'Кръгчета и чертички', 'Kružići i crtice', 'Rondjes en streepjes');
+  String get regularNums     => _t('Звичайні цифри', 'Regular numbers', 'Chiffres', 'Обикновени цифри', 'Obični brojevi', 'Gewone cijfers');
+  String get gameValue       => _t('Скільки йде гра', 'Deal value', 'Valeur de la donne', 'Стойност на раздачата', 'Vrijednost dijeljenja', 'Waarde van het spel');
   String get gameValueDesc   => _t('Як задається, скільки йде роздача з комбінаціями',
       'How the value of a deal with its declarations is set',
       'Comment se fixe la valeur d\'une donne avec ses annonces',
-      'Как се задава стойността на раздача с обявите ѝ', 'Kako se zadaje vrijednost dijeljenja sa zvanjima');
-  String get valueCounters   => _belote
-      ? _t('Терц, 50, 100, белот', 'Tierce, 50, 100, belote', 'Tierce, 50, 100, belote', 'Терца, 50, 100, белот', 'Terca, 50, 100, belote')
-      : _t('Терц, 50, бела', 'Tierce, 50, bella', 'Tierce, 50, bella', 'Терца, 50, бела', 'Terca, 50, bela');
+      'Как се задава стойността на раздача с обявите ѝ', 'Kako se zadaje vrijednost dijeljenja sa zvanjima', 'Hoe de waarde van een spel met zijn roem wordt bepaald');
+  String get valueCounters   => _klaverjas
+      ? _t('Терц, 50, 100, стук', 'Tierce, 50, 100, stuk', 'Tierce, 50, 100, stuk', 'Терца, 50, 100, стук', 'Terca, 50, 100, stuk', 'Roem: 20, 50, 100, stuk')
+      : _belote
+      ? _t('Терц, 50, 100, белот', 'Tierce, 50, 100, belote', 'Tierce, 50, 100, belote', 'Терца, 50, 100, белот', 'Terca, 50, 100, belote', 'Terts, 50, 100, belote')
+      : _t('Терц, 50, бела', 'Tierce, 50, bella', 'Tierce, 50, bella', 'Терца, 50, бела', 'Terca, 50, bela', 'Terts, 50, bella');
   String get valueWheel      => _t('Колесо: 162, 182, 202…', 'Wheel: 162, 182, 202…', 'Roue : 162, 182, 202…',
-      'Колело: 162, 182, 202…', 'Kotačić: 162, 182, 202…');
+      'Колело: 162, 182, 202…', 'Kotačić: 162, 182, 202…', 'Wiel: 162, 182, 202…');
   String get rulesForNewGames => _t('Правила діють для нових ігор; почата гра лишається на своїх',
       'The rules apply to new games; a game in progress keeps its own',
       'Les règles valent pour les nouvelles parties ; une partie en cours garde les siennes',
-      'Правилата важат за новите игри; започнатата игра запазва своите', 'Pravila vrijede za nove igre; započeta igra zadržava svoja');
-  String get language        => _t('Мова', 'Language', 'Langue', 'Език', 'Jezik');
-  String get activeLang      => _t('Активна мова', 'Active language', 'Langue active', 'Активен език', 'Aktivni jezik');
+      'Правилата важат за новите игри; започнатата игра запазва своите', 'Pravila vrijede za nove igre; započeta igra zadržava svoja', 'De regels gelden voor nieuwe spellen; een lopend spel houdt zijn eigen regels');
+  String get language        => _t('Мова', 'Language', 'Langue', 'Език', 'Jezik', 'Taal');
+  String get activeLang      => _t('Активна мова', 'Active language', 'Langue active', 'Активен език', 'Aktivni jezik', 'Actieve taal');
   /// The name of the language [code] in that language itself.
   static String languageName(String code) => switch (code) {
     'uk' => 'Українська',
     'fr' => 'Français',
     'bg' => 'Български',
     'hr' => 'Hrvatski',
+    'nl' => 'Nederlands',
     _    => 'English',
   };
   static String languageFlag(String code) => switch (code) {
@@ -268,110 +280,113 @@ class AppStrings {
     'fr' => '🇫🇷',
     'bg' => '🇧🇬',
     'hr' => '🇭🇷',
+    'nl' => '🇳🇱',
     _    => '🇬🇧',
   };
 
   // Entry panel
-  String get newRound        => _t('+ Нова роздача', '+ New round', '+ Nouvelle donne', '+ Нова раздача', '+ Novo dijeljenje');
-  String get trumpTakenBy    => _t('Козир узяли:', 'Trump taken by:', 'Atout pris par :', 'Коз взеха:', 'Aduta su zvali:');
+  String get newRound        => _t('+ Нова роздача', '+ New round', '+ Nouvelle donne', '+ Нова раздача', '+ Novo dijeljenje', '+ Nieuw spel');
+  String get trumpTakenBy    => _t('Козир узяли:', 'Trump taken by:', 'Atout pris par :', 'Коз взеха:', 'Aduta su zvali:', 'Troef gemaakt door:');
   String eggsMsg(TieRule rule, int points, String opponents) => switch (rule) {
     TieRule.hanging => _t(
         '$_tie! $points очок висять до наступної роздачі',
         '$_tie! $points points are held until the next deal',
         '$_tie ! $points points restent en suspens jusqu\'à la donne suivante',
-        '$_tie! $points точки висят до следващата раздача', '$_tie! $points bodova visi do sljedećeg dijeljenja'),
+        '$_tie! $points точки висят до следващата раздача', '$_tie! $points bodova visi do sljedećeg dijeljenja', '$_tie! $points punten blijven hangen tot het volgende spel'),
     TieRule.opponentsTakeAll => _t(
         '$_tie! Усю гру отримують $opponents',
         '$_tie! $opponents get the whole deal',
         '$_tie ! $opponents prennent toute la donne',
-        '$_tie! Цялата раздача получават $opponents', '$_tie! Cijelo dijeljenje dobivaju $opponents'),
+        '$_tie! Цялата раздача получават $opponents', '$_tie! Cijelo dijeljenje dobivaju $opponents', '$_tie! $opponents krijgen het hele spel'),
     TieRule.eachKeepsOwn => _t(
         '$_tie! Кожному по $points',
         '$_tie! $points each',
         '$_tie ! $points chacun',
-        '$_tie! По $points за всеки', '$_tie! Svakome po $points'),
+        '$_tie! По $points за всеки', '$_tie! Svakome po $points', '$_tie! Ieder $points'),
   };
   String heldMsg(int points) => _t(
       '🥚 $points очок чекають на переможця наступної роздачі',
       '🥚 $points points go to the winner of the next deal',
       '🥚 $points points iront au gagnant de la donne suivante',
-      '🥚 $points точки отиват при победителя в следващата раздача', '🥚 $points bodova ide pobjedniku sljedećeg dijeljenja');
+      '🥚 $points точки отиват при победителя в следващата раздача', '🥚 $points bodova ide pobjedniku sljedećeg dijeljenja', '🥚 $points punten gaan naar de winnaar van het volgende spel');
   String baitMsg(String opponents, int gv) => _t(
       '$_lostTitle! Усі $gv отримують $opponents',
       '$_lostTitle! $opponents get all $gv',
       '$_lostTitle ! $opponents prennent les $gv',
-      '$_lostTitle! Всичките $gv получават $opponents', '$_lostTitle! Svih $gv dobivaju $opponents');
-  String get tierce          => _t('Терц', 'Tierce', 'Tierce', 'Терца', 'Terca');
-  String get fifty           => _t('П\'ятдесят', 'Fifty', 'Cinquante', 'Кварта', 'Pedeset');
-  String get bella           => _t('Бела', 'Bella', 'Bella', 'Бела', 'Bela');
+      '$_lostTitle! Всичките $gv получават $opponents', '$_lostTitle! Svih $gv dobivaju $opponents', '$_lostTitle! $opponents krijgen alle $gv');
+  String get tierce          => _t('Терц', 'Tierce', 'Tierce', 'Терца', 'Terca', 'Drie op een rij');
+  String get fifty           => _t('П\'ятдесят', 'Fifty', 'Cinquante', 'Кварта', 'Pedeset', 'Vier op een rij');
+  String get bella           => _t('Бела', 'Bella', 'Bella', 'Бела', 'Bela', 'Bella');
   /// The name of the declaration [id] of a game's rules.
   String declaration(String id) => switch (id) {
     'tierce'  => tierce,
     'fifty'   => fifty,
     'bella'   => bella,
-    'hundred' => _t('Сотня', 'Hundred', 'Cent', 'Сто', 'Sto'),
-    'belote'  => _t('Белот', 'Belote', 'Belote', 'Белот', 'Belote'),
-    'jacks'   => _t('Каре В', 'Carré J', 'Carré V', 'Каре вале', 'Četiri dečka'),
-    'nines'   => _t('Каре 9', 'Carré 9', 'Carré 9', 'Каре деветки', 'Četiri devetke'),
-    'capot'   => _t('Капот', 'Capot', 'Capot', 'Капот', 'Capot'),
-    'belot'   => _t('Белот', 'Belot', 'Belote', 'Белот', 'Belot'),
-    'valat'   => _t('Валат', 'Valat', 'Capot', 'Валат', 'Valat'),
-    'stiglja' => _t('Штиґля', 'Štiglja', 'Štiglja', 'Щигля', 'Štiglja'),
+    'hundred' => _t('Сотня', 'Hundred', 'Cent', 'Сто', 'Sto', 'Honderd'),
+    'belote'  => _t('Белот', 'Belote', 'Belote', 'Белот', 'Belote', 'Belote'),
+    'jacks'   => _t('Каре В', 'Carré J', 'Carré V', 'Каре вале', 'Četiri dečka', 'Vier boeren'),
+    'nines'   => _t('Каре 9', 'Carré 9', 'Carré 9', 'Каре деветки', 'Četiri devetke', 'Vier negens'),
+    'capot'   => _t('Капот', 'Capot', 'Capot', 'Капот', 'Capot', 'Capot'),
+    'belot'   => _t('Белот', 'Belot', 'Belote', 'Белот', 'Belot', 'Belot'),
+    'valat'   => _t('Валат', 'Valat', 'Capot', 'Валат', 'Valat', 'Valat'),
+    'stiglja' => _t('Штиґля', 'Štiglja', 'Štiglja', 'Щигля', 'Štiglja', 'Štiglja'),
+    'stuk'    => _t('Стук', 'Stuk', 'Stuk', 'Стук', 'Stuk', 'Stuk'),
+    'pit'     => _t('Піт', 'Pit', 'Pit', 'Пит', 'Pit', 'Pit'),
     _         => id,
   };
   /// The name of the contract [id] in the entry panel.
   String contractName(String id) => switch (id) {
-    'noTrumps'  => _t('Без козиря', 'No trumps', 'Sans atout', 'Без коз', 'Bez aduta'),
-    'allTrumps' => _t('Всі козирі', 'All trumps', 'Tout atout', 'Всичко коз', 'Sve aduti'),
-    _           => _t('Масть', 'Suit', 'Couleur', 'Боя', 'Boja'),
+    'noTrumps'  => _t('Без козиря', 'No trumps', 'Sans atout', 'Без коз', 'Bez aduta', 'Zonder troef'),
+    'allTrumps' => _t('Всі козирі', 'All trumps', 'Tout atout', 'Всичко коз', 'Sve aduti', 'Alles troef'),
+    _           => _t('Масть', 'Suit', 'Couleur', 'Боя', 'Boja', 'Kleur'),
   };
   /// The contract [id] as it is marked in the list of deals.
   String contractShort(String id) => switch (id) {
-    'noTrumps'  => _t('БК', 'NT', 'SA', 'БК', 'BA'),
-    'allTrumps' => _t('ВК', 'AT', 'TA', 'ВК', 'SA'),
-    _           => _t('Масть', 'Suit', 'Coul.', 'Боя', 'Boja'),
+    'noTrumps'  => _t('БК', 'NT', 'SA', 'БК', 'BA', 'ZT'),
+    'allTrumps' => _t('ВК', 'AT', 'TA', 'ВК', 'SA', 'AT'),
+    _           => _t('Масть', 'Suit', 'Coul.', 'Боя', 'Boja', 'Kleur'),
   };
   /// A doubled contract when [doubling] is 2, a redoubled one when it is 4.
   String doublingName(int doubling) => doubling == 4
-      ? _t('Реконтра', 'Re-contra', 'Surcontre', 'Реконтра', 'Rekontra')
-      : _t('Контра', 'Contra', 'Contre', 'Контра', 'Kontra');
+      ? _t('Реконтра', 'Re-contra', 'Surcontre', 'Реконтра', 'Rekontra', 'Rekontra')
+      : _t('Контра', 'Contra', 'Contre', 'Контра', 'Kontra', 'Kontra');
   String takesAllMsg(String side, int points) => _t(
       'Усі $points отримують $side',
       '$side get all $points',
       '$side prennent les $points',
-      'Всичките $points получават $side', 'Svih $points dobivaju $side');
+      'Всичките $points получават $side', 'Svih $points dobivaju $side', '$side krijgen alle $points');
   /// The game points a deal adds to each side.
   String recordedMsg(List<int> points) =>
-      _t('До рахунку: ', 'Scores: ', 'Au score : ', 'Записва се: ', 'U rezultat: ') + points.join(' : ');
+      _t('До рахунку: ', 'Scores: ', 'Au score : ', 'Записва се: ', 'U rezultat: ', 'In de stand: ') + points.join(' : ');
   /// The label before the side that holds the declaration [name].
-  String heldBy(String name) => _t('$name у', '$name held by', '$name chez', '$name у', '$name kod');
-  String dealValue(int gv)   => _t('Гра: $gv', 'Deal: $gv', 'Donne : $gv', 'Раздача: $gv', 'Dijeljenje: $gv');
+  String heldBy(String name) => _t('$name у', '$name held by', '$name chez', '$name у', '$name kod', '$name bij');
+  String dealValue(int gv)   => _t('Гра: $gv', 'Deal: $gv', 'Donne : $gv', 'Раздача: $gv', 'Dijeljenje: $gv', 'Spel: $gv');
   /// The hand that wins the game on its own: a deberc, or a belot in Bela.
   String get deberc          => _bela
-      ? _t('Белот', 'Belot', 'Belote', 'Белот', 'Belot')
-      : _t('Деберць', 'Deberc', 'Deberc', 'Деберц', 'Deberc');
+      ? _t('Белот', 'Belot', 'Belote', 'Белот', 'Belot', 'Belot')
+      : _t('Деберць', 'Deberc', 'Deberc', 'Деберц', 'Deberc', 'Deberc');
   String get debercBy        => _bela
-      ? _t('Белот у', 'Belot held by', 'Belote chez', 'Белот у', 'Belot kod')
-      : _t('Деберць у', 'Deberc held by', 'Deberc chez', 'Деберц у', 'Deberc kod');
+      ? _t('Белот у', 'Belot held by', 'Belote chez', 'Белот у', 'Belot kod', 'Belot bij')
+      : _t('Деберць у', 'Deberc held by', 'Deberc chez', 'Деберц у', 'Deberc kod', 'Deberc bij');
   String debercWins(String side) => _bela
       ? _t(
           'Усі вісім карт однієї масті — $side виграють гру',
           'All eight cards of one suit — $side win the game',
           'Les huit cartes d\'une couleur — $side gagnent la partie',
-          'Осемте карти от една боя — $side печелят играта', 'Svih osam karata jedne boje — $side pobjeđuju')
+          'Осемте карти от една боя — $side печелят играта', 'Svih osam karata jedne boje — $side pobjeđuju', 'Alle acht kaarten van één kleur — $side winnen het spel')
       : _t(
       'Сім козирів підряд — $side виграють гру',
       'Seven trumps in a row — $side win the game',
       'Sept atouts de suite — $side gagnent la partie',
-      'Седем поредни коза — $side печелят играта', 'Sedam aduta zaredom — $side pobjeđuju u igri');
+      'Седем поредни коза — $side печелят играта', 'Sedam aduta zaredom — $side pobjeđuju u igri', 'Zeven troeven op een rij — $side winnen het spel');
   String get badgeDeberc     => deberc.toUpperCase();
-  String get cancel          => _t('Скасувати', 'Cancel', 'Annuler', 'Отказ', 'Odustani');
-  String get delete          => _t('Видалити', 'Delete', 'Supprimer', 'Изтрий', 'Izbriši');
+  String get cancel          => _t('Скасувати', 'Cancel', 'Annuler', 'Отказ', 'Odustani', 'Annuleren');
+  String get delete          => _t('Видалити', 'Delete', 'Supprimer', 'Изтрий', 'Izbriši', 'Verwijderen');
   String deleteRoundTitle(int n) => _t('Видалити роздачу #$n?', 'Delete round #$n?', 'Supprimer la donne n° $n ?',
-      'Да се изтрие ли раздача №$n?', 'Izbrisati dijeljenje #$n?');
+      'Да се изтрие ли раздача №$n?', 'Izbrisati dijeljenje #$n?', 'Spel #$n verwijderen?');
   String get deleteRoundDesc => _t('Її очки зникнуть з рахунку.', 'Its points will be removed from the score.',
-      'Ses points seront retirés du score.', 'Точките ѝ ще бъдат махнати от резултата.', 'Njegovi bodovi bit će uklonjeni iz rezultata.');
-  String editingRound(int n) => _t('✎ Роздача #$n', '✎ Round #$n', '✎ Donne n° $n', '✎ Раздача №$n', '✎ Dijeljenje #$n');
+      'Ses points seront retirés du score.', 'Точките ѝ ще бъдат махнати от резултата.', 'Njegovi bodovi bit će uklonjeni iz rezultata.', 'De punten ervan verdwijnen uit de stand.');
+  String editingRound(int n) => _t('✎ Роздача #$n', '✎ Round #$n', '✎ Donne n° $n', '✎ Раздача №$n', '✎ Dijeljenje #$n', '✎ Spel #$n');
   String get bait            => _lostTitle;
-  String get save            => _t('Зберегти', 'Save', 'Enregistrer', 'Запази', 'Spremi');
+  String get save            => _t('Зберегти', 'Save', 'Enregistrer', 'Запази', 'Spremi', 'Opslaan');
 }
