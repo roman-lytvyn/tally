@@ -6,6 +6,7 @@ import '../models.dart';
 class SettingsScreen extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
+  final GameRules rules;
   final String scoreStyle;
   final String valueInput;
   final String lang;
@@ -26,7 +27,7 @@ class SettingsScreen extends StatelessWidget {
   final VoidCallback onBack;
 
   const SettingsScreen({
-    super.key, required this.theme, required this.strings, required this.scoreStyle,
+    super.key, required this.theme, required this.strings, this.rules = GameRules.deberc, required this.scoreStyle,
     required this.valueInput, required this.lang, required this.themeMode,
     required this.dealerMustPlay, required this.tieRule, required this.finishRule,
     this.penalties = const Penalties(),
@@ -183,10 +184,12 @@ class SettingsScreen extends StatelessWidget {
                       Text(strings.finishRuleDesc(finishRule), style: TextStyle(fontSize: 12, color: t.tx2)),
                     ]),
                   ),
-                  _divider(),
-                  _baitPenalty(),
-                  _divider(),
-                  _noTricksPenalty(),
+                  if (rules.hasPenalties) ...[
+                    _divider(),
+                    _baitPenalty(),
+                    _divider(),
+                    _noTricksPenalty(),
+                  ],
                 ]),
                 Padding(
                   padding: const EdgeInsets.only(top: 6, left: 2),

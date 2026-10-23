@@ -21,12 +21,12 @@ void main() {
 
   /// The app is locked to portrait on a phone, while the default test surface is
   /// a landscape desktop one the screens were never laid out for.
-  Future<void> openApp(WidgetTester tester) async {
+  Future<void> openApp(WidgetTester tester, {GameRules rules = GameRules.deberc}) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const DebertsApp());
+    await tester.pumpWidget(DebertsApp(rules: rules));
     await tester.pumpAndSettle();
   }
 
@@ -80,6 +80,40 @@ void main() {
     await openApp(tester);
 
     expect(tester.widget<Title>(find.byType(Title).last).title, uk.appTitle);
+  });
+
+  group('game rules', () {
+    const plain = GameRules(
+      id: 'plain',
+      declarations: [DeclarationKind('tierce', 20), DeclarationKind('bella', 20, max: 1)],
+      maxDeclared: 100,
+      scoreLimits: [501, 1001],
+      defaultScoreLimit: 501,
+    );
+
+    testWidgets('offer the targets and declarations of the game', (tester) async {
+      await openApp(tester, rules: plain);
+
+      expect(find.text('301'), findsNothing);
+      expect(find.text('501'), findsOneWidget);
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+      expect(find.byKey(const ValueKey('tierce.+')), findsOneWidget);
+      expect(find.byKey(const ValueKey('fifty.+')), findsNothing);
+      expect(find.byKey(const ValueKey('bella')), findsOneWidget);
+    });
+
+    testWidgets('leave out the Deberc win and penalties of a game without them', (tester) async {
+      await openApp(tester, rules: plain);
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+      expect(find.byKey(const ValueKey('deberc')), findsNothing);
+
+      await tapText(tester, uk.exitBtn);
+      await tapText(tester, uk.settingsBtn);
+      expect(find.text(uk.baitPenaltyTitle), findsNothing);
+      expect(find.text(uk.noTricksTitle), findsNothing);
+    });
   });
 
   group('theme', () {
@@ -437,11 +471,11 @@ void main() {
         find.descendant(of: find.byKey(ValueKey('score.$i')), matching: find.text(text));
 
     test('offers every value a deal can have, lowest first', () {
-      expect(kDealValues.take(8), [162, 182, 202, 212, 222, 232, 242, 252]);
+      expect(GameRules.deberc.dealValues.take(8), [162, 182, 202, 212, 222, 232, 242, 252]);
     });
 
     test('goes no higher than a deal can reach', () {
-      expect(kDealValues.last, 662);
+      expect(GameRules.deberc.dealValues.last, 662);
     });
 
     testWidgets('can be chosen in the settings and is remembered', (tester) async {
@@ -472,7 +506,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(wheel.selectedItem, greaterThan(0));
 
-      wheel.jumpToItem(kDealValues.indexOf(252));
+      wheel.jumpToItem(GameRules.deberc.dealValues.indexOf(252));
       await tester.pumpAndSettle();
       // The trump-taker is entered first and the rest of the 252 goes to the others.
       await tester.tap(find.text('1'));

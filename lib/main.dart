@@ -31,17 +31,20 @@ void main() {
 }
 
 class DebertsApp extends StatelessWidget {
-  const DebertsApp({super.key});
+  /// The game the app keeps score for.
+  final GameRules rules;
+  const DebertsApp({super.key, this.rules = GameRules.deberc});
   @override
-  Widget build(BuildContext context) => const MaterialApp(
+  Widget build(BuildContext context) => MaterialApp(
     title: 'Deberc',
     debugShowCheckedModeBanner: false,
-    home: AppRoot(),
+    home: AppRoot(rules: rules),
   );
 }
 
 class AppRoot extends StatefulWidget {
-  const AppRoot({super.key});
+  final GameRules rules;
+  const AppRoot({super.key, this.rules = GameRules.deberc});
   @override
   State<AppRoot> createState() => _AppRootState();
 }
@@ -55,7 +58,7 @@ class _AppRootState extends State<AppRoot> {
   AppScreen _prevScreen = AppScreen.setup;
 
   List<String> _teamNames = ['', ''];
-  int _scoreLimit = 1001;
+  late int _scoreLimit = widget.rules.defaultScoreLimit;
   int _firstDealer = 0;
   // The rules of the game being played, and those set in the settings for
   // new games; a game keeps the rules it started with.
@@ -75,10 +78,12 @@ class _AppRootState extends State<AppRoot> {
   bool _ready = false;
 
   GameState get _game => GameState(
+    rules: widget.rules,
     teamNames: AppStrings(_lang).namesOrDefaults(_teamNames, _players), scoreLimit: _scoreLimit,
     rounds: _rounds, firstDealer: _firstDealer,
     dealerMustPlay: _dealerMustPlay, tieRule: _tieRule, finishRule: _finishRule, players: _players,
-    penalties: _penalties,
+    // Penalties apply only where the game has them.
+    penalties: widget.rules.hasPenalties ? _penalties : const Penalties(),
   );
 
   /// Switches between team and individual play, starting from the default
@@ -127,7 +132,7 @@ class _AppRootState extends State<AppRoot> {
     if (raw != null) {
       try {
         final data = jsonDecode(raw) as Map<String, dynamic>;
-        if (data['screen'] == 'game') saved = GameState.fromJson(data);
+        if (data['screen'] == 'game') saved = GameState.fromJson(data, rules: widget.rules);
       } catch (_) {}
     }
 
@@ -254,7 +259,7 @@ class _AppRootState extends State<AppRoot> {
       case AppScreen.setup:
         return SetupScreen(
           key: const ValueKey('setup'),
-          theme: theme, strings: strings,
+          theme: theme, strings: strings, rules: widget.rules,
           teamNames: _teamNames,
           players: _players, onPlayersChanged: _setPlayers,
           scoreLimit: _scoreLimit, firstDealer: _firstDealer, hasSavedGame: _savedGame != null,
@@ -274,10 +279,10 @@ class _AppRootState extends State<AppRoot> {
       case AppScreen.game:
         return GameScreen(
           key: const ValueKey('game'),
-          theme: theme, strings: strings,
+          theme: theme, strings: strings, rules: widget.rules,
           teamNames: _game.teamNames, scoreLimit: _scoreLimit, players: _players,
           dealerMustPlay: _dealerMustPlay, tieRule: _tieRule,
-          showBaits: _penalties.bait != BaitPenalty.none,
+          showBaits: _game.penalties.bait != BaitPenalty.none,
           rounds: _rounds, tally: tally(_game),
           scoreStyle: _scoreStyle, valueInput: _valueInput,
           onAddRound: _addRound, onReplaceRound: _replaceRound, onRemoveRound: _removeRound,
@@ -291,7 +296,7 @@ class _AppRootState extends State<AppRoot> {
       case AppScreen.settings:
         return SettingsScreen(
           key: const ValueKey('settings'),
-          theme: theme, strings: strings,
+          theme: theme, strings: strings, rules: widget.rules,
           scoreStyle: _scoreStyle, valueInput: _valueInput, lang: _lang,
           themeMode: _themeMode,
           dealerMustPlay: _newDealerMustPlay, tieRule: _newTieRule, finishRule: _newFinishRule,

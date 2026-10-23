@@ -10,6 +10,7 @@ import '../models.dart';
 class EntryPanel extends StatefulWidget {
   final AppTheme theme;
   final AppStrings strings;
+  final GameRules rules;
   final List<String> teamNames;
   final int dealer;
   final int firstToBid;
@@ -27,7 +28,7 @@ class EntryPanel extends StatefulWidget {
   final VoidCallback? onDelete;
 
   const EntryPanel({
-    super.key, required this.theme, required this.strings,
+    super.key, required this.theme, required this.strings, required this.rules,
     required this.teamNames, required this.dealer, required this.firstToBid,
     required this.dealerMustPlay, required this.tieRule, required this.open,
     this.valueWheel = false, this.initial, this.number,
@@ -42,7 +43,7 @@ class EntryPanel extends StatefulWidget {
 const _scoreGap = 14.0;
 
 class _EntryPanelState extends State<EntryPanel> {
-  Declarations _decl = const Declarations();
+  late Declarations _decl;
   /// What has been typed for each side; null for a side worked out from the rest.
   late List<String?> _raws;
   /// The sides typed in, oldest first. All sides but one are typed and the
@@ -66,7 +67,7 @@ class _EntryPanelState extends State<EntryPanel> {
     super.initState();
     final r = widget.initial;
     _taker = r?.taker ?? widget.firstToBid;
-    _decl = r?.declarations ?? const Declarations();
+    _decl = r?.declarationsIn(widget.rules) ?? Declarations(widget.rules);
     _debercBy = r?.deberc;
     _startInput(_taker);
     final scored = _scored;
@@ -263,7 +264,7 @@ class _EntryPanelState extends State<EntryPanel> {
       if (!widget.dealerMustPlay) ...[
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides)),
+          onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides, gv: widget.rules.cardPoints)),
           child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
               color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
         ),
@@ -288,23 +289,36 @@ class _EntryPanelState extends State<EntryPanel> {
                   decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
                   clipBehavior: Clip.antiAlias,
                   child: _ValueWheel(
-                    theme: t, value: _gv,
-                    onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv)),
+                    theme: t, values: widget.rules.dealValues, value: _gv,
+                    onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv, widget.rules)),
                   ),
                 )
               : Column(key: const ValueKey('counters'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Expanded(child: _counter('tierce', s.tierce, _decl.tierces, (n) => _decl.copyWith(tierces: n))),
-                    const SizedBox(width: _gap),
-                    Expanded(child: _counter('fifty', s.fifty, _decl.fifties, (n) => _decl.copyWith(fifties: n))),
-                  ])),
-                  const SizedBox(height: _gap),
-                  Expanded(child: _bellaChip()),
+                  for (final (i, row) in _declarationRows.indexed) ...[
+                    if (i > 0) const SizedBox(height: _gap),
+                    Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      for (final (j, k) in row.indexed) ...[
+                        if (j > 0) const SizedBox(width: _gap),
+                        Expanded(child: k.isSingle ? _toggle(k) : _counter(k)),
+                      ],
+                    ])),
+                  ],
                 ]),
         ),
       ),
     ],
   );
+
+  /// The declarations laid out in rows: the counted ones two to a row, then
+  /// the ones simply declared or not together on the last.
+  List<List<DeclarationKind>> get _declarationRows {
+    final counted = [for (final k in widget.rules.declarations) if (!k.isSingle) k];
+    final single = [for (final k in widget.rules.declarations) if (k.isSingle) k];
+    return [
+      for (var i = 0; i < counted.length; i += 2) counted.sublist(i, i + 2 > counted.length ? counted.length : i + 2),
+      if (single.isNotEmpty) single,
+    ];
+  }
 
   static const double _rowHeight = 31;
   static const double _gap = 4;
@@ -367,12 +381,14 @@ class _EntryPanelState extends State<EntryPanel> {
     );
   }
 
-  Widget _counter(String id, String label, int count, Declarations Function(int) change) {
+  Widget _counter(DeclarationKind k) {
+    final count = _decl[k.id];
+    final label = s.declaration(k.id);
     final on = count > 0;
     Widget step(String sign, int to, bool enabled) => GestureDetector(
-      key: ValueKey('$id.$sign'),
+      key: ValueKey('${k.id}.$sign'),
       behavior: HitTestBehavior.opaque,
-      onTap: enabled ? () => setState(() => _decl = change(to)) : null,
+      onTap: enabled ? () => setState(() => _decl = _decl.withCount(k.id, to)) : null,
       child: SizedBox(width: 22, child: Center(child: Text(sign,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
     );
@@ -391,16 +407,16 @@ class _EntryPanelState extends State<EntryPanel> {
           Text('$count', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w800,
               color: on ? t.acc : t.tx2)),
         ])),
-        step('+', count + 1, count < 9),
+        step('+', count + 1, count < k.max),
       ]),
     );
   }
 
-  Widget _bellaChip() {
-    final on = _decl.bella;
+  Widget _toggle(DeclarationKind k) {
+    final on = _decl[k.id] > 0;
     return GestureDetector(
-      key: const ValueKey('bella'),
-      onTap: () => setState(() => _decl = _decl.copyWith(bella: !on)),
+      key: ValueKey(k.id),
+      onTap: () => setState(() => _decl = _decl.withCount(k.id, on ? 0 : 1)),
       child: Container(
         decoration: BoxDecoration(
           color: on ? t.accDim : Colors.transparent,
@@ -408,7 +424,7 @@ class _EntryPanelState extends State<EntryPanel> {
           borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,
-        child: Text('${on ? '✓ ' : ''}${s.bella}', maxLines: 1, overflow: TextOverflow.ellipsis,
+        child: Text('${on ? '✓ ' : ''}${s.declaration(k.id)}', maxLines: 1, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
       ),
     );
@@ -458,7 +474,7 @@ class _EntryPanelState extends State<EntryPanel> {
       crossAxisSpacing: 5,
       childAspectRatio: 3.2,
       children: keys.map((k) {
-        if (k.isEmpty) return _debercKey();
+        if (k.isEmpty) return widget.rules.hasDebercWin ? _debercKey() : const SizedBox();
         final isDel = k == '⌫';
         return GestureDetector(
           onTap: typing ? () => _tap(k) : null,
@@ -574,10 +590,12 @@ class _EntryPanelState extends State<EntryPanel> {
 /// value.
 class _ValueWheel extends StatefulWidget {
   final AppTheme theme;
+  /// The values to pick from, lowest first.
+  final List<int> values;
   final int value;
   final void Function(int) onChanged;
 
-  const _ValueWheel({required this.theme, required this.value, required this.onChanged});
+  const _ValueWheel({required this.theme, required this.values, required this.value, required this.onChanged});
 
   @override
   State<_ValueWheel> createState() => _ValueWheelState();
@@ -590,7 +608,7 @@ class _ValueWheelState extends State<_ValueWheel> {
   void initState() {
     super.initState();
     _controller = FixedExtentScrollController(
-        initialItem: kDealValues.indexOf(widget.value).clamp(0, kDealValues.length - 1));
+        initialItem: widget.values.indexOf(widget.value).clamp(0, widget.values.length - 1));
   }
 
   @override
@@ -608,7 +626,7 @@ class _ValueWheelState extends State<_ValueWheel> {
       child: CupertinoPicker.builder(
         scrollController: _controller,
         itemExtent: 28,
-        childCount: kDealValues.length,
+        childCount: widget.values.length,
         selectionOverlay: Container(
           margin: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
@@ -617,9 +635,9 @@ class _ValueWheelState extends State<_ValueWheel> {
             borderRadius: BorderRadius.circular(9),
           ),
         ),
-        onSelectedItemChanged: (i) => widget.onChanged(kDealValues[i]),
+        onSelectedItemChanged: (i) => widget.onChanged(widget.values[i]),
         itemBuilder: (context, i) => Center(
-          child: Text('${kDealValues[i]}',
+          child: Text('${widget.values[i]}',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: t.tx)),
         ),
       ),

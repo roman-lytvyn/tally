@@ -6,6 +6,7 @@ import '../models.dart';
 class SetupScreen extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
+  final GameRules rules;
   final List<String> teamNames;
   final int players;
   final void Function(int) onPlayersChanged;
@@ -21,7 +22,7 @@ class SetupScreen extends StatelessWidget {
   final VoidCallback onRules;
 
   const SetupScreen({
-    super.key, required this.theme, required this.strings, required this.teamNames,
+    super.key, required this.theme, required this.strings, this.rules = GameRules.deberc, required this.teamNames,
     this.players = 4, required this.onPlayersChanged,
     required this.scoreLimit, required this.firstDealer, required this.hasSavedGame,
     required this.onTeamNamesChanged, required this.onScoreLimitChanged,
@@ -101,8 +102,8 @@ class SetupScreen extends StatelessWidget {
                 // score limit
                 _label(strings.playTo),
                 Row(children: [
-                  for (final limit in kScoreLimits) ...[
-                    if (limit != kScoreLimits.first) const SizedBox(width: 8),
+                  for (final limit in rules.scoreLimits) ...[
+                    if (limit != rules.scoreLimits.first) const SizedBox(width: 8),
                     Expanded(child: _segBtn('$limit', scoreLimit == limit, -1, () => onScoreLimitChanged(limit))),
                   ],
                 ]),

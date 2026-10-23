@@ -1,8 +1,6 @@
-/// The points in every deal before declarations: the cards plus the last trick.
-const kBaseGV = 162;
+import 'game_rules.dart';
 
-/// The targets a game can be played to: the short game, the usual and the long one.
-const kScoreLimits = [301, 501, 1001];
+export 'game_rules.dart';
 
 /// How many can play: two or three each for themselves, or four in two teams.
 const kPlayerCounts = [2, 3, 4];
@@ -10,53 +8,59 @@ const kPlayerCounts = [2, 3, 4];
 /// How many sides keep a score when [players] play.
 int sidesFor(int players) => players == 4 ? 2 : players;
 
-/// The most a deal can be worth: the cards, every suit split into a hundred
-/// and a tierce held by two players (4 × 120) and the bella.
-const kMaxDealValue = kBaseGV + 4 * 120 + 20;
-
-/// Every value a deal can have, lowest first: the cards plus any mix of
-/// tierces and bella (20 each) and fifties (50 each), up to [kMaxDealValue].
-final List<int> kDealValues = {
-  for (var twenties = 0; twenties <= 10; twenties++)
-    for (var fifties = 0; fifties <= 9; fifties++) kBaseGV + twenties * 20 + fifties * 50,
-}.where((v) => v <= kMaxDealValue).toList()..sort();
-
-/// The combinations declared in a deal, which raise its game value.
+/// The combinations declared in a deal, which raise its game value: how many
+/// of each of the game's [DeclarationKind]s, by its id.
 class Declarations {
-  /// Three cards in a row of one suit, worth 20 each.
-  final int tierces;
-  /// Four cards in a row of one suit, worth 50 each.
-  final int fifties;
-  /// King and queen of trumps, worth 20; there is only one per deal.
-  final bool bella;
+  final GameRules rules;
+  final Map<String, int> counts;
 
-  const Declarations({this.tierces = 0, this.fifties = 0, this.bella = false});
+  const Declarations(this.rules, [this.counts = const {}]);
 
-  int get value => tierces * 20 + fifties * 50 + (bella ? 20 : 0);
-  int get gv => kBaseGV + value;
+  /// How many of the declaration [id] there are.
+  int operator [](String id) => counts[id] ?? 0;
 
-  Declarations copyWith({int? tierces, int? fifties, bool? bella}) => Declarations(
-    tierces: tierces ?? this.tierces,
-    fifties: fifties ?? this.fifties,
-    bella: bella ?? this.bella,
-  );
+  int get value => rules.declarations.fold(0, (sum, k) => sum + this[k.id] * k.value);
+  int get gv => rules.cardPoints + value;
 
-  /// Splits a game value saved without its declarations back into them.
-  /// Bella and a tierce are worth the same, so both count as tierces.
-  factory Declarations.fromGv(int gv) {
-    final extra = gv - kBaseGV;
-    for (var fifties = extra ~/ 50; fifties >= 0; fifties--) {
-      final rest = extra - fifties * 50;
-      if (rest % 20 == 0) return Declarations(tierces: rest ~/ 20, fifties: fifties);
+  Declarations withCount(String id, int n) =>
+      Declarations(rules, {...counts, id: n}..removeWhere((_, v) => v == 0));
+
+  /// Splits a game value saved without its declarations back into them, as
+  /// many of the more valuable ones as fit. Single declarations are left
+  /// out: one worth as much as a repeatable one counts as that one.
+  factory Declarations.fromGv(int gv, GameRules rules) {
+    final kinds = [for (final k in rules.declarations) if (!k.isSingle) k]
+      ..sort((a, b) => b.value - a.value);
+    Map<String, int>? split(int rest, int from) {
+      if (rest == 0) return {};
+      if (from == kinds.length) return null;
+      final k = kinds[from];
+      for (var n = rest ~/ k.value; n >= 0; n--) {
+        final more = split(rest - n * k.value, from + 1);
+        if (more != null) return {if (n > 0) k.id: n, ...more};
+      }
+      return null;
     }
-    return const Declarations();
+    return Declarations(rules, split(gv - rules.cardPoints, 0) ?? const {});
   }
 
-  Map<String, dynamic> toJson() => {'tierces': tierces, 'fifties': fifties, 'bella': bella};
+  Map<String, dynamic> toJson() => counts;
 
-  factory Declarations.fromJson(Map<String, dynamic> j) => Declarations(
-    tierces: j['tierces'] ?? 0, fifties: j['fifties'] ?? 0, bella: j['bella'] ?? false,
-  );
+  factory Declarations.fromJson(Map<String, dynamic> j, GameRules rules) {
+    // Earlier versions saved Deberc's tierces and fifties as counts and the
+    // bella as a flag.
+    if (j.containsKey('tierces') || j.containsKey('fifties') || j['bella'] is bool) {
+      return Declarations(rules, {
+        if ((j['tierces'] ?? 0) > 0) 'tierce': j['tierces'],
+        if ((j['fifties'] ?? 0) > 0) 'fifty': j['fifties'],
+        if (j['bella'] == true) 'bella': 1,
+      });
+    }
+    return Declarations(rules, {
+      for (final k in rules.declarations)
+        if (j[k.id] is int && j[k.id] > 0) k.id: j[k.id] as int,
+    });
+  }
 }
 
 /// What happens to the points of a tied deal ("eggs"), where the side that
@@ -148,7 +152,8 @@ class Round {
   final int taker;
   final List<int> score;
   final bool isBait;
-  final Declarations? _declarations;
+  /// What was declared in the deal, when it was recorded.
+  final Declarations? declarations;
   /// The side that declared a deberc — seven trumps in a row — and so won
   /// the whole game with this deal.
   final int? deberc;
@@ -162,15 +167,15 @@ class Round {
     required this.taker,
     required this.score,
     this.isBait = false,
-    Declarations? declarations,
+    this.declarations,
     this.deberc,
     this.isRedeal = false,
-  }) : _declarations = declarations;
+  });
 
   /// A thrown-in deal by [dealer] where nobody took the trump.
-  Round.redeal({required this.dealer, int sides = 2})
-      : gv = kBaseGV, taker = dealer, score = List.filled(sides, 0), isBait = false,
-        _declarations = null, deberc = null, isRedeal = true;
+  Round.redeal({required this.dealer, int sides = 2, this.gv = kBaseGV})
+      : taker = dealer, score = List.filled(sides, 0), isBait = false,
+        declarations = null, deberc = null, isRedeal = true;
 
   /// The sides playing against the trump-taker.
   Iterable<int> get opponents sync* {
@@ -185,9 +190,9 @@ class Round {
   /// who scored the most, or all who share the most.
   List<int> get baitTakers => [for (final i in opponents) if (score[i] == _bestOpponentScore) i];
 
-  /// What was declared in the deal; for deals saved with only a game value
-  /// it is worked back out of that value.
-  Declarations get declarations => _declarations ?? Declarations.fromGv(gv);
+  /// What was declared in the deal under the [rules]; for a deal recorded
+  /// with only its value it is worked back out of that value.
+  Declarations declarationsIn(GameRules rules) => declarations ?? Declarations.fromGv(gv, rules);
 
   bool get isDeberc => deberc != null;
 
@@ -208,12 +213,12 @@ class Round {
 
   Map<String, dynamic> toJson() => {
     'gv': gv, 'dealer': dealer, 'taker': taker, 'score': score, 'isBait': isBait,
-    if (_declarations != null) 'declarations': _declarations.toJson(),
+    if (declarations != null) 'declarations': declarations!.toJson(),
     if (deberc != null) 'deberc': deberc,
     if (isRedeal) 'isRedeal': true,
   };
 
-  factory Round.fromJson(Map<String, dynamic> j) => Round(
+  factory Round.fromJson(Map<String, dynamic> j, {GameRules rules = GameRules.deberc}) => Round(
     gv: j['gv'], dealer: j['dealer'],
     // Earlier versions always treated the dealing side as the one playing.
     taker: j['taker'] ?? j['dealer'],
@@ -221,13 +226,14 @@ class Round {
     isBait: j['isBait'] ?? false,
     declarations: j['declarations'] == null
         ? null
-        : Declarations.fromJson(j['declarations'] as Map<String, dynamic>),
+        : Declarations.fromJson(j['declarations'] as Map<String, dynamic>, rules),
     deberc: j['deberc'],
     isRedeal: j['isRedeal'] ?? false,
   );
 }
 
 class GameState {
+  final GameRules rules;
   /// One name per side: a team when four play, a player otherwise.
   final List<String> teamNames;
   final int scoreLimit;
@@ -242,6 +248,7 @@ class GameState {
   final Penalties penalties;
 
   const GameState({
+    this.rules = GameRules.deberc,
     required this.teamNames, required this.scoreLimit,
     required this.rounds, required this.firstDealer,
     this.dealerMustPlay = false,
@@ -255,6 +262,7 @@ class GameState {
 
   Map<String, dynamic> toJson() => {
     'screen': 'game',
+    'game': rules.id,
     'teamNames': teamNames,
     'scoreLimit': scoreLimit,
     'rounds': rounds.map((r) => r.toJson()).toList(),
@@ -266,9 +274,11 @@ class GameState {
     'penalties': penalties.toJson(),
   };
 
-  factory GameState.fromJson(Map<String, dynamic> j) {
-    final rounds = (j['rounds'] as List).map((r) => Round.fromJson(r as Map<String, dynamic>)).toList();
+  factory GameState.fromJson(Map<String, dynamic> j, {GameRules rules = GameRules.deberc}) {
+    final rounds = (j['rounds'] as List)
+        .map((r) => Round.fromJson(r as Map<String, dynamic>, rules: rules)).toList();
     return GameState(
+      rules: rules,
       teamNames: List<String>.from(j['teamNames']),
       scoreLimit: j['scoreLimit'],
       rounds: rounds,

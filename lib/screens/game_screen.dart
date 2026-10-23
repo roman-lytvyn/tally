@@ -9,6 +9,7 @@ import '../widgets/traditional_score.dart';
 class GameScreen extends StatefulWidget {
   final AppTheme theme;
   final AppStrings strings;
+  final GameRules rules;
   final List<String> teamNames;
   final int scoreLimit;
   final int players;
@@ -28,7 +29,7 @@ class GameScreen extends StatefulWidget {
   final VoidCallback onSettings;
 
   const GameScreen({
-    super.key, required this.theme, required this.strings, required this.teamNames,
+    super.key, required this.theme, required this.strings, required this.rules, required this.teamNames,
     required this.scoreLimit, this.players = 4, required this.dealerMustPlay, required this.tieRule, this.showBaits = false, required this.rounds, required this.tally,
     required this.scoreStyle, this.valueInput = 'counters', required this.onAddRound, required this.onReplaceRound,
     required this.onRemoveRound, required this.onUndo,
@@ -89,7 +90,7 @@ class _GameScreenState extends State<GameScreen> {
             Expanded(child: _buildRoundsList()),
             EntryPanel(
               key: ValueKey(_session),
-              theme: t, strings: strings, teamNames: teamNames, dealer: dealer,
+              theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
               firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
               open: _entryOpen, valueWheel: widget.valueInput == 'wheel',
               initial: editing != null ? rounds[editing] : null,
