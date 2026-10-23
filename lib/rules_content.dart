@@ -1,3 +1,4 @@
+import 'belot_rules_content.dart';
 import 'belote_rules_content.dart';
 import 'game_rules.dart';
 
@@ -14,7 +15,9 @@ class RulesSection {
 
 /// The rules and history of [game] in [lang], English when there is none.
 List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]) =>
-    game.id == GameRules.belote.id ? beloteRulesContent(lang) : lang == 'uk' ? _uk : _en;
+    game.id == GameRules.belote.id ? beloteRulesContent(lang)
+    : game.id == GameRules.belot.id ? belotRulesContent(lang)
+    : lang == 'uk' ? _uk : _en;
 
 const _en = [
   RulesSection('Where the game comes from', [
