@@ -400,6 +400,20 @@ void main() {
     }
   });
 
+  test('gives every Bela rules language the same sections and table rows', () {
+    final en = rulesContent('en', GameRules.bela);
+    expect(rulesContent('hr', GameRules.bela).first.title, 'Odakle dolazi igra');
+    expect(rulesContent('fr', GameRules.bela), en);
+    for (final lang in ['hr', 'uk']) {
+      final other = rulesContent(lang, GameRules.bela);
+      expect(other.length, en.length);
+      for (var i = 0; i < en.length; i++) {
+        expect(other[i].paragraphs.length, en[i].paragraphs.length);
+        expect(other[i].table.length, en[i].table.length);
+      }
+    }
+  });
+
   testWidgets('offers no way to continue when nothing was played', (tester) async {
     await openApp(tester);
 
