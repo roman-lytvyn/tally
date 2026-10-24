@@ -58,7 +58,8 @@ class _EntryPanelState extends State<EntryPanel> {
   int? _keeper;
   /// The contract of the deal, in a game that has contracts.
   String? _contract;
-  /// 1, or 2 when the contract was doubled and 4 when redoubled.
+  /// 1, or 2 when the contract was doubled and 4 when redoubled; in Baloot
+  /// also 3, or a [kGahwa].
   late int _doubling;
   /// The bid the deal is played for, in a game with bids.
   int? _bid;
@@ -71,9 +72,20 @@ class _EntryPanelState extends State<EntryPanel> {
   /// How many of the declaration [k] the deal can have.
   int _max(DeclarationKind k) => _c?.allows(k) ?? k.max;
 
+  /// The doublings the deal's contract can be played with.
+  List<int> get _doublings => _c?.doublings ?? const [2, 4];
+
+  /// Whether the doublings sit in the contract row, where they are too many
+  /// for the column under the sides, as in Baloot.
+  bool get _doublingsWithContracts => widget.rules.contracts.any((c) => c.doublings.length > 2);
+
+  (Key, String, bool, VoidCallback) _doublingChoice(int d) => (ValueKey('doubling.$d'), s.doublingName(d),
+      _doubling == d, () => setState(() => _doubling = _doubling == d ? 1 : d));
+
   /// Switches the deal to contract [id], dropping what it does not allow.
   void _setContract(String id) {
     _contract = id;
+    if (!_doublings.contains(_doubling)) _doubling = 1;
     _decl = Declarations(widget.rules, {
       for (final k in widget.rules.declarations)
         if (_decl[k.id] > 0 && _max(k) > 0) k.id: _decl[k.id] < _max(k) ? _decl[k.id] : _max(k),
@@ -153,7 +165,11 @@ class _EntryPanelState extends State<EntryPanel> {
   bool get _baited => _complete && _round.isBaited;
 
   /// A doubled deal the contract side won, which it takes whole.
-  bool get _doubledWin => _complete && _bid == null && _doubling > 1 && !_round.isTie && !_round.isBaited;
+  bool get _doubledWin => _complete && _bid == null && _doubling > 1 && _doubling != kGahwa
+      && !_round.isTie && !_round.isBaited;
+
+  /// A gahwa, whose winner wins the match.
+  bool get _gahwa => _complete && _doubling == kGahwa;
 
   /// The points a tied deal leaves hanging.
   int get _hanging => _c != null ? contractScore(_round).held : _score[_taker] ?? 0;
@@ -232,6 +248,8 @@ class _EntryPanelState extends State<EntryPanel> {
               for (final c in widget.rules.contracts)
                 (ValueKey('contract.${c.id}'), s.contractName(c.id), _contract == c.id,
                     () => setState(() => _setContract(c.id))),
+              if (widget.rules.hasDoubling && _doublingsWithContracts)
+                for (final d in _doublings) _doublingChoice(d),
             ]),
           ],
           if (_keptBy != null && _debercBy == null) ...[
@@ -272,12 +290,16 @@ class _EntryPanelState extends State<EntryPanel> {
           ],
           if (_doubledWin) ...[
             const SizedBox(height: 6),
-            _hint('×$_doubling', s.takesAllMsg(widget.teamNames[_taker], scoreRound(_round)[_taker]),
+            _hint(s.doublingMark(_doubling), s.takesAllMsg(widget.teamNames[_taker], scoreRound(_round)[_taker]),
                 t.acc, t.accDim),
+          ],
+          if (_gahwa) ...[
+            const SizedBox(height: 6),
+            _hint(s.doublingMark(_doubling), s.gahwaWins(widget.teamNames[_round.countedWinner]), t.acc, t.accDim),
           ],
           // Card points are entered, so a deal scored in game points, or
           // with its bid added, shows what it adds to the score.
-          if ((_c != null || _bid != null) && _complete && !_yaytsia && !_baited && !_doubledWin) ...[
+          if ((_c != null || _bid != null) && _complete && !_yaytsia && !_baited && !_doubledWin && !_gahwa) ...[
             const SizedBox(height: 6),
             _hint('=', s.recordedMsg(scoreRound(_round)), t.acc, t.accDim),
           ],
@@ -333,13 +355,9 @@ class _EntryPanelState extends State<EntryPanel> {
             () => setState(() { _taker = i; _startInput(i); }))),
       ],
       // A contra and a re-contra are said about the contract the taker set.
-      if (widget.rules.hasDoubling) ...[
+      if (widget.rules.hasDoubling && !_doublingsWithContracts) ...[
         const SizedBox(height: _gap),
-        _choiceRow([
-          for (final d in const [2, 4])
-            (ValueKey('doubling.$d'), s.doublingName(d), _doubling == d,
-                () => setState(() => _doubling = _doubling == d ? 1 : d)),
-        ]),
+        _choiceRow([for (final d in _doublings) _doublingChoice(d)]),
       ],
       if (!widget.dealerMustPlay) ...[
         const SizedBox(height: 8),
@@ -474,7 +492,7 @@ class _EntryPanelState extends State<EntryPanel> {
 
   Widget _columnHeader(Widget child) => Padding(
     padding: const EdgeInsets.only(bottom: 4),
-    child: SizedBox(height: 16, child: Align(alignment: Alignment.centerLeft, child: child)),
+    child: SizedBox(height: 16, child: Align(alignment: AlignmentDirectional.centerStart, child: child)),
   );
 
   /// A label followed by one chip per side, the [selected] one marked.

@@ -315,7 +315,7 @@ class _GameScreenState extends State<GameScreen> {
                   // The round number and the deal value get slots of the same
                   // width, so the sides' columns stay centred in the row.
                   SizedBox(width: _metaWidth,
-                      child: Align(alignment: Alignment.centerLeft, child: Text('#${index + 1}',
+                      child: Align(alignment: AlignmentDirectional.centerStart, child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 11, color: t.tx3, fontWeight: FontWeight.w700)))),
                   for (var i = 0; i < sides; i++) ...[
                     if (i > 0) Container(
@@ -327,7 +327,7 @@ class _GameScreenState extends State<GameScreen> {
                   SizedBox(
                     width: _metaWidth,
                     child: Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: FittedBox(fit: BoxFit.scaleDown, child: _roundMeta(r)),
                     ),
                   ),
@@ -350,10 +350,10 @@ class _GameScreenState extends State<GameScreen> {
       if (r.isDeberc) _badge(strings.badgeDeberc, t.acc, t.accDim),
       if (r.isDeberc) const SizedBox(width: 3),
       if (!r.isRedeal && r.contract != null)
-        Text('${strings.contractShort(r.contract!)}${r.doubling > 1 ? ' ×${r.doubling}' : ''}',
+        Text('${strings.contractShort(r.contract!)}${r.doubling > 1 ? ' ${strings.doublingMark(r.doubling)}' : ''}',
             style: TextStyle(fontSize: 9, color: t.tx3)),
       if (!r.isRedeal && r.bid != null)
-        Text('${strings.bidName(r.bid!)}${r.doubling > 1 ? ' ×${r.doubling}' : ''}',
+        Text('${strings.bidName(r.bid!)}${r.doubling > 1 ? ' ${strings.doublingMark(r.doubling)}' : ''}',
             style: TextStyle(fontSize: 9, color: t.tx3)),
       if (!r.isRedeal && r.contract == null && r.bid == null)
         Text('${r.gv}${strings.pts}', style: TextStyle(fontSize: 9, color: t.tx3)),
@@ -399,7 +399,7 @@ class _GameScreenState extends State<GameScreen> {
           key: ValueKey('noTricks.$index.$i'))],
     ];
     return Align(
-      alignment: sides > 2 ? Alignment.center : first ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: sides > 2 ? Alignment.center : first ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Row(

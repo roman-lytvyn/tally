@@ -165,7 +165,8 @@ class Round {
   final int? keeper;
   /// The contract the deal was played in, in a game that has contracts.
   final String? contract;
-  /// 1 for a plain contract, 2 when it was doubled and 4 when redoubled.
+  /// 1 for a plain contract, 2 when it was doubled and 4 when redoubled; in
+  /// Baloot also 3, or a [kGahwa].
   final int doubling;
   /// What the side that won the bidding undertook to make, in a game with bids.
   final int? bid;
@@ -218,6 +219,62 @@ class Round {
     return d.rules.declarations.fold(0, (sum, k) => k.staysWithHolder ? sum + d[k.id] * k.value : sum);
   }
 
+  /// The contract of a deal one side counts for both, as in Baloot.
+  Contract? get _countedContract {
+    final c = Contract.of(contract);
+    return c != null && c.countedByOneSide ? c : null;
+  }
+
+  /// In a deal one side counts for both: the side that counts. The
+  /// opponents of the buyer count, unless a double or a four puts the buyer
+  /// to it.
+  int get countingSide => doubling == 2 || doubling == 4 ? taker : opponents.first;
+
+  /// The points of side [i] without what stays with its holder.
+  int _ownPoints(int i) => score[i] - (keeper == i ? keptPoints : 0);
+
+  /// The game points of everything declared in a deal one side counts for
+  /// both, without a kaboot and what stays with its holder.
+  int get countedProjects {
+    final c = _countedContract!;
+    return c.gamePoints(gv - c.cardPoints - keptPoints - (isValat ? 90 : 0));
+  }
+
+  /// What each side scored in game points in a deal one side counts for
+  /// both, what stays with its holder left out: the counting side turns its
+  /// points into game points and the other side gets the rest.
+  List<int> get countedPoints {
+    final c = _countedContract!;
+    final counting = countingSide;
+    final points = c.gamePoints(_ownPoints(counting));
+    final total = c.dealPoints! + countedProjects;
+    return [for (var i = 0; i < score.length; i++) i == counting ? points : total - points];
+  }
+
+  /// The side that wins a deal one side counts for both: the one with more
+  /// game points, what stays with its holder included. On equal points the
+  /// last digit of the counting side's points decides: in Hokm it wins on 2
+  /// to 5 and the buyer on 1, in Sun it wins on 1 to 4 and the buyer on 0
+  /// or 5; on any other digit the other side wins.
+  int get countedWinner {
+    final opponent = opponents.first;
+    if (isBait) return opponent;
+    if (isValat) return score[taker] >= score[opponent] ? taker : opponent;
+    final c = _countedContract!;
+    final points = countedPoints;
+    int all(int i) => points[i] + (keeper == i ? keptPoints ~/ 10 : 0);
+    if (all(taker) != all(opponent)) return all(taker) > all(opponent) ? taker : opponent;
+    final counting = countingSide;
+    final other = counting == taker ? opponent : taker;
+    final digit = _ownPoints(counting) % 10;
+    if (c.doubled) {
+      if (digit == 0 || digit == 5) return taker;
+      return digit <= 4 ? counting : other;
+    }
+    if (digit == 1) return taker;
+    return digit >= 2 && digit <= 5 ? counting : other;
+  }
+
   bool get isDeberc => deberc != null;
 
   /// Whether the deal was actually played out and scored.
@@ -229,12 +286,17 @@ class Round {
 
   /// The side that took the trump scored exactly as much as the best of its
   /// opponents; a deal played for a bid is made or not, never tied.
-  bool get isTie => isPlayed && !isBait && bid == null && score[taker] == _bestOpponentScore;
+  bool get isTie => isPlayed && !isBait && bid == null && _countedContract == null
+      && score[taker] == _bestOpponentScore;
 
   /// The side that took the trump scored less than an opponent, or fell
   /// short of its bid, either by the points entered or because the deal was
   /// recorded straight as bait.
-  bool get isBaited => isPlayed && (isBait || (bid != null ? !madeBid : score[taker] < _bestOpponentScore));
+  bool get isBaited => isPlayed && (isBait || (bid != null
+      ? !madeBid
+      : _countedContract != null
+          ? countedWinner != taker
+          : score[taker] < _bestOpponentScore));
 
   /// Whether side [i] took no tricks in the deal: its points were entered as
   /// none at all. Bait recorded without points tells nothing about the tricks.
@@ -264,7 +326,7 @@ class Round {
     isRedeal: j['isRedeal'] ?? false,
     keeper: j['keeper'],
     contract: j['contract'],
-    doubling: const [1, 2, 4].contains(j['doubling']) ? j['doubling'] : 1,
+    doubling: const [1, 2, 3, 4, kGahwa].contains(j['doubling']) ? j['doubling'] : 1,
     bid: rules.bids.contains(j['bid']) ? j['bid'] : null,
   );
 }
