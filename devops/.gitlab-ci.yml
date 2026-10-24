@@ -97,7 +97,24 @@ test:
 
 .android-build:
   extends: [.flutter, .each-app]
+  variables:
+    # Every app of the matrix builds in its own job at the same time. Asking the
+    # cluster for the memory a build really uses lets the scheduler spread these
+    # jobs over the nodes, and the limit stops a runaway build on its own.
+    KUBERNETES_MEMORY_REQUEST: 4Gi
+    KUBERNETES_MEMORY_LIMIT: 6Gi
   script:
+    # Gradle in CI keeps within the job's memory limit: a 3 GB heap, and the
+    # Kotlin compiler inside the Gradle process instead of a second JVM. The
+    # user-level gradle.properties takes precedence over android/gradle.properties,
+    # which stays sized for development machines.
+    - mkdir -p "${GRADLE_USER_HOME:-$HOME/.gradle}"
+    - |
+      cat > "${GRADLE_USER_HOME:-$HOME/.gradle}/gradle.properties" <<PROPS
+      org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:ReservedCodeCacheSize=256m
+      kotlin.compiler.execution.strategy=in-process
+      org.gradle.workers.max=2
+      PROPS
     - !reference [.use-app, script]
     # Play needs a version code that only ever grows; the pipeline number is
     # exactly that, and the version name matches the tag the release carries.
