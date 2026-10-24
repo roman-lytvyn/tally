@@ -5,6 +5,10 @@ const kBaseGV = 162;
 /// tricks of a capot count this much instead of the card points.
 const kCapot = 250;
 
+/// A doubling beyond four, as in Baloot's gahwa: the deal stakes the whole
+/// match, and the side that wins it wins the match.
+const kGahwa = 5;
+
 /// A combination players can declare in a deal, which raises its value.
 class DeclarationKind {
   final String id;
@@ -14,8 +18,10 @@ class DeclarationKind {
   /// Its points stay with the side that declared it even when that side
   /// loses the deal.
   final bool staysWithHolder;
+  /// The one contract it can be declared in, when the others do not allow it.
+  final String? only;
 
-  const DeclarationKind(this.id, this.value, {this.max = 9, this.staysWithHolder = false});
+  const DeclarationKind(this.id, this.value, {this.max = 9, this.staysWithHolder = false, this.only});
 
   bool get isSingle => max == 1;
 }
@@ -37,14 +43,29 @@ class Contract {
   /// with more, round their tens up.
   final int lowerRoundsUpFrom;
   final int higherRoundsUpFrom;
+  /// The game points the cards are worth together where one side counts
+  /// them for both, as in Baloot; null where each side counts its own.
+  final int? dealPoints;
+  /// What taking every trick is worth in game points where one side counts
+  /// for both, instead of the cards.
+  final int valatPoints;
+  /// The doublings the contract can be played with: 2 for a double, 4 for a
+  /// redouble, and in Baloot 3 and a [kGahwa] as well.
+  final List<int> doublings;
 
   const Contract(this.id, {
     required this.cardPoints, this.doubled = false, this.hasDeclarations = true, this.belots = 1,
     required this.lowerRoundsUpFrom, required this.higherRoundsUpFrom,
+    this.dealPoints, this.valatPoints = 0, this.doublings = const [2, 4],
   });
 
+  /// Whether one side counts the cards for both, as in Baloot.
+  bool get countedByOneSide => dealPoints != null;
+
   /// How many of the declaration [k] the contract allows in one deal.
-  int allows(DeclarationKind k) => k.id == 'valat'
+  int allows(DeclarationKind k) => k.only != null && k.only != id
+      ? 0
+      : k.id == 'valat'
       ? k.max
       : !hasDeclarations
           ? 0
@@ -52,13 +73,29 @@ class Contract {
               ? belots
               : k.max;
 
+  /// The game points of [points] counted by one side: rounded to tens, a
+  /// five rounding down; a doubled contract counts twice as many, and there
+  /// a five counts as it is.
+  int gamePoints(int points) {
+    final tens = points ~/ 10 + (points % 10 >= higherRoundsUpFrom ? 1 : 0);
+    if (!doubled) return tens;
+    return points % 10 == 5 ? points ~/ 5 : tens * 2;
+  }
+
   static const suit = Contract('suit', cardPoints: 162, lowerRoundsUpFrom: 6, higherRoundsUpFrom: 7);
   static const noTrumps = Contract('noTrumps', cardPoints: 130, doubled: true, hasDeclarations: false,
       lowerRoundsUpFrom: 5, higherRoundsUpFrom: 5);
   static const allTrumps = Contract('allTrumps', cardPoints: 258, belots: 4,
       lowerRoundsUpFrom: 4, higherRoundsUpFrom: 5);
 
-  static const all = [suit, noTrumps, allTrumps];
+  /// Baloot's trump deal, 16 game points, which can be doubled up to a gahwa.
+  static const hokm = Contract('hokm', cardPoints: 162, dealPoints: 16, valatPoints: 25,
+      lowerRoundsUpFrom: 6, higherRoundsUpFrom: 6, doublings: [2, 3, 4, kGahwa]);
+  /// Baloot's deal without trumps, 26 game points, which can only be doubled.
+  static const sun = Contract('sun', cardPoints: 130, doubled: true, dealPoints: 26, valatPoints: 44,
+      lowerRoundsUpFrom: 5, higherRoundsUpFrom: 5, doublings: [2]);
+
+  static const all = [suit, noTrumps, allTrumps, hokm, sun];
 
   /// The contract with the [id]; none for a deal of a game without contracts.
   static Contract? of(String? id) {
@@ -266,8 +303,35 @@ class GameRules {
     hasFixedTableRules: true,
   );
 
+  /// Baloot, as played in Saudi Arabia and the Gulf, counted in game points:
+  /// a Hokm deal is worth 16 and a Sun deal 26, one side counting for both.
+  static const baloot = GameRules(
+    id: 'baloot',
+    declarations: [
+      DeclarationKind('sira', 20),
+      DeclarationKind('fifty', 50),
+      // A run of five, or four of a kind: aces in Hokm, kings, queens, jacks
+      // or tens in either.
+      DeclarationKind('hundred', 100),
+      // Four aces in Sun.
+      DeclarationKind('fourHundred', 200, max: 1, only: 'sun'),
+      DeclarationKind('baloot', 20, max: 1, staysWithHolder: true, only: 'hokm'),
+      // Kaboot: one side takes every trick.
+      DeclarationKind('valat', 90, max: 1),
+    ],
+    // A kaboot, the four hundred, two hundreds and two fifties.
+    maxDeclared: 90 + 200 + 2 * 100 + 2 * 50,
+    scoreLimits: [152],
+    defaultScoreLimit: 152,
+    contracts: [Contract.hokm, Contract.sun],
+    hasDoubling: true,
+    playerCounts: [4],
+    hasCirclesAndSticks: false,
+    hasFixedTableRules: true,
+  );
+
   /// Every game an app can be built for.
-  static const all = [deberc, belote, belot, bela, klaverjas, coinche];
+  static const all = [deberc, belote, belot, bela, klaverjas, coinche, baloot];
 
   /// The game with the [id], or Deberc when there is none.
   static GameRules of(String id) => all.firstWhere((g) => g.id == id, orElse: () => deberc);

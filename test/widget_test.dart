@@ -165,6 +165,50 @@ void main() {
       expect(find.text(uk.displayStyle), findsNothing);
     });
 
+    testWidgets('score a Baloot deal in game points, Hokm or Sun', (tester) async {
+      const ba = AppStrings('uk', GameRules.baloot);
+      await openApp(tester, rules: GameRules.baloot);
+      await tapText(tester, uk.newGame);
+      await tapText(tester, uk.newRound);
+      expect(find.text(ba.trumpTakenBy), findsOneWidget);
+      expect(find.text(uk.dealValue(162)), findsOneWidget);
+      expect(find.byKey(const ValueKey('fourHundred.+')), findsNothing);
+
+      await tester.tap(find.text('1').last);
+      await tester.tap(find.text('0').last);
+      await tester.tap(find.text('0').last);
+      await tester.pump();
+      // The player left of the dealer buys and takes 100 of 162; the
+      // opponents count their 62 as 6 and the buyer gets the other 10.
+      expect(find.text(ba.recordedMsg([6, 10])), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('doubling.$kGahwa')));
+      await tester.pump();
+      expect(find.text(ba.gahwaWins('Вони')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('contract.sun')));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('doubling.3')), findsNothing);
+      expect(find.text(uk.dealValue(130)), findsOneWidget);
+      // Now 100 of 130: the opponents' 30 count as 6 in Sun.
+      expect(find.text(ba.recordedMsg([6, 20])), findsOneWidget);
+
+      await tapText(tester, uk.save);
+      expect(find.text('Сан'), findsOneWidget);
+      expect(find.text('20'), findsWidgets);
+    });
+
+    testWidgets('lays the app out right to left in Arabic', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.platformDispatcher.localeTestValue = const Locale('ar', 'SA');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      await openApp(tester, rules: GameRules.baloot);
+
+      const ar = AppStrings('ar', GameRules.baloot);
+      expect(find.text(ar.newGame), findsOneWidget);
+      expect(Directionality.of(tester.element(find.text(ar.newGame))), TextDirection.rtl);
+    });
+
     testWidgets('score a Coinche deal by its bid and coinche', (tester) async {
       const co = AppStrings('uk', GameRules.coinche);
       await openApp(tester, rules: GameRules.coinche);
@@ -393,6 +437,23 @@ void main() {
       expect(fr.bidName(120), '120');
     });
 
+    test('starts Baloot in Arabic on Arabic devices and names its terms', () {
+      expect(defaultLanguage(GameRules.baloot, 'ar'), 'ar');
+      expect(defaultLanguage(GameRules.baloot, 'fr'), 'en');
+      const ar = AppStrings('ar', GameRules.baloot);
+      expect(ar.isRtl, isTrue);
+      expect(const AppStrings('en', GameRules.baloot).isRtl, isFalse);
+      expect(ar.appTitle, 'بلوت');
+      expect(ar.contractName('hokm'), 'حكم');
+      expect(ar.contractName('sun'), 'صن');
+      expect(ar.doublingName(kGahwa), 'قهوة');
+      expect(ar.doublingMark(kGahwa), '☕');
+      expect(ar.doublingMark(3), '×3');
+      expect(const AppStrings('en', GameRules.baloot).declaration('valat'), 'Kaboot');
+      expect(const AppStrings('en').declaration('valat'), 'Valat');
+      expect(AppStrings.languageName('ar'), 'العربية');
+    });
+
     test('uses the terms of the game being played', () {
       expect(const AppStrings('en').badgeBait, 'BAIT');
       expect(const AppStrings('en', GameRules.belote).badgeBait, 'DEDANS');
@@ -478,6 +539,23 @@ void main() {
       for (var i = 0; i < en.length; i++) {
         expect(other[i].paragraphs.length, en[i].paragraphs.length);
         expect(other[i].table.length, en[i].table.length);
+      }
+    }
+  });
+
+  test('gives every Baloot rules language the same sections and table rows', () {
+    final en = rulesContent('en', GameRules.baloot);
+    expect(rulesContent('ar', GameRules.baloot).first.title, 'أصل اللعبة');
+    expect(rulesContent('fr', GameRules.baloot), en);
+    for (final lang in ['ar', 'uk']) {
+      final other = rulesContent(lang, GameRules.baloot);
+      expect(other.length, en.length);
+      for (var i = 0; i < en.length; i++) {
+        expect(other[i].paragraphs.length, en[i].paragraphs.length);
+        expect(other[i].table.length, en[i].table.length);
+        for (var j = 0; j < en[i].table.length; j++) {
+          expect(other[i].table[j].length, en[i].table[j].length);
+        }
       }
     }
   });

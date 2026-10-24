@@ -110,9 +110,38 @@ List<int> bidScore(Round r) {
   return earned;
 }
 
+/// What a deal one side counts for both earns each side, as in Baloot.
+///
+/// When the buyer wins, each side scores its own game points; when it
+/// loses, the opponents take the whole deal with every project. A doubled
+/// deal goes whole to the side that wins it, the cards multiplied and the
+/// projects doubled; a gahwa counts as a four and wins the match. A kaboot
+/// is worth the contract's valat points instead of the cards. What stays
+/// with its holder, the baloot, is always its holder's, never multiplied.
+List<int> countedScore(Round r) {
+  final c = Contract.of(r.contract)!;
+  final earned = List.filled(r.score.length, 0);
+  if (!r.isPlayed) return earned;
+  final winner = r.countedWinner;
+  final times = r.doubling == kGahwa ? 4 : r.doubling;
+  final projects = r.countedProjects * (times > 1 ? 2 : 1);
+  if (r.isValat) {
+    earned[winner] = c.valatPoints * times + projects;
+  } else if (times > 1) {
+    earned[winner] = c.dealPoints! * times + projects;
+  } else if (winner == r.taker) {
+    earned.setAll(0, r.countedPoints);
+  } else {
+    earned[winner] = c.dealPoints! + projects;
+  }
+  if (r.keeper != null) earned[r.keeper!] += r.keptPoints ~/ 10;
+  return earned;
+}
+
 /// What each side earns from a single deal, before any held points.
 List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
   if (r.bid != null) return bidScore(r);
+  if (Contract.of(r.contract)?.countedByOneSide ?? false) return countedScore(r);
   if (r.contract != null) return contractScore(r).earned;
   // A deberc decides the game on its own and a thrown-in deal is not played;
   // neither adds any points.
@@ -209,6 +238,11 @@ Tally tally(GameState game) {
     earned.add(e);
     for (var i = 0; i < totals.length; i++) {
       totals[i] += e[i] - baitPenalty[i] - noTricksPenalty[i];
+    }
+    // A gahwa decides the match on its own.
+    if (r.doubling == kGahwa && r.isPlayed) {
+      winner = _best(e);
+      break;
     }
     // Where a valat cannot win the game, the deal after it decides.
     if (game.rules.noWinByValat && r.isValat) continue;

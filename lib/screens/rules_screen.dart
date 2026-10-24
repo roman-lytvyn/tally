@@ -83,7 +83,7 @@ class RulesScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             child: Text(cells[i],
-                textAlign: i == 0 ? TextAlign.left : TextAlign.center,
+                textAlign: i == 0 ? TextAlign.start : TextAlign.center,
                 style: TextStyle(fontSize: 13, color: head ? t.tx2 : t.tx,
                     fontWeight: head ? FontWeight.w700 : FontWeight.w500)),
           ),

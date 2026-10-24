@@ -685,4 +685,127 @@ void main() {
       expect(GameRules.of('coinche'), same(rules));
     });
   });
+
+  group('baloot', () {
+    const rules = GameRules.baloot;
+    Declarations decl(Map<String, int> counts) => Declarations(rules, counts);
+    Round deal(String contract, List<int> score, {int doubling = 1, Map<String, int> declared = const {},
+        int? keeper}) {
+      final d = decl(declared);
+      return Round(
+        gv: Contract.of(contract)!.cardPoints + d.value, dealer: 1, taker: 0, score: score,
+        contract: contract, doubling: doubling, declarations: d, keeper: keeper,
+      );
+    }
+    GameState baloot(List<Round> rounds) => GameState(
+      rules: rules, teamNames: const ['A', 'B'], scoreLimit: 152, rounds: rounds, firstDealer: 1,
+      tieRule: TieRule.hanging, finishRule: FinishRule.mostPoints,
+    );
+
+    test('the opponents count a Hokm deal and the buyer gets the rest of 16', () {
+      final r = deal('hokm', const [100, 62]);
+
+      expect(r.isBaited, isFalse);
+      expect(r.isTie, isFalse);
+      expect(scoreRound(r), [10, 6]);
+      expect(scoreRound(deal('hokm', const [96, 66])), [9, 7]);
+    });
+
+    test('a Sun deal is worth 26, and a five is counted as it is', () {
+      expect(scoreRound(deal('sun', const [80, 50])), [16, 10]);
+      expect(scoreRound(deal('sun', const [66, 64])), [14, 12]);
+    });
+
+    test('a buyer with fewer game points loses the whole deal', () {
+      final r = deal('hokm', const [60, 102]);
+
+      expect(r.isBaited, isTrue);
+      expect(scoreRound(r), [0, 16]);
+      expect(scoreRound(deal('sun', const [50, 80], declared: {'sira': 1})), [0, 30]);
+    });
+
+    test('equal game points are decided by the last digit of the counting side', () {
+      // Hokm: 2 to 5 for the counting side, 1 for the buyer, otherwise the buyer.
+      expect(scoreRound(deal('hokm', const [80, 82])), [0, 16]);
+      expect(scoreRound(deal('hokm', const [81, 81])), [8, 8]);
+      expect(scoreRound(deal('hokm', const [85, 77])), [8, 8]);
+      // Sun: a five goes to the buyer.
+      expect(scoreRound(deal('sun', const [65, 65])), [13, 13]);
+      expect(scoreRound(deal('sun', const [64, 66])), [0, 26]);
+    });
+
+    test('projects add to the deal, and the baloot always stays with its holder', () {
+      expect(scoreRound(deal('hokm', const [120, 62], declared: {'sira': 1})), [12, 6]);
+      expect(scoreRound(deal('sun', const [100, 50], declared: {'sira': 1})), [20, 10]);
+      expect(scoreRound(deal('hokm', const [120, 62], declared: {'baloot': 1}, keeper: 0)), [12, 6]);
+      expect(scoreRound(deal('hokm', const [60, 122], declared: {'baloot': 1}, keeper: 1)), [0, 18]);
+    });
+
+    test('a doubled deal goes whole to its winner, projects doubled', () {
+      expect(scoreRound(deal('hokm', const [100, 62], doubling: 2)), [32, 0]);
+      expect(scoreRound(deal('hokm', const [100, 62], doubling: 3)), [48, 0]);
+      expect(scoreRound(deal('hokm', const [100, 62], doubling: 4)), [64, 0]);
+      expect(scoreRound(deal('hokm', const [60, 102], doubling: 2)), [0, 32]);
+      expect(scoreRound(deal('sun', const [80, 50], doubling: 2)), [52, 0]);
+      expect(scoreRound(deal('hokm', const [120, 62], doubling: 2, declared: {'sira': 1, 'baloot': 1}, keeper: 1)),
+          [36, 2]);
+    });
+
+    test('a kaboot is worth 25 in Hokm and 44 in Sun', () {
+      expect(scoreRound(deal('hokm', const [252, 0], declared: {'valat': 1})), [25, 0]);
+      expect(scoreRound(deal('sun', const [240, 0], declared: {'valat': 1, 'sira': 1})), [48, 0]);
+      expect(scoreRound(deal('hokm', const [0, 252], declared: {'valat': 1})), [0, 25]);
+      expect(scoreRound(deal('hokm', const [252, 0], doubling: 2, declared: {'valat': 1})), [50, 0]);
+    });
+
+    test('the four hundred is a Sun project and the baloot a Hokm one', () {
+      final fourHundred = rules.declarations.firstWhere((k) => k.id == 'fourHundred');
+      final baloot = rules.declarations.firstWhere((k) => k.id == 'baloot');
+
+      expect(Contract.sun.allows(fourHundred), 1);
+      expect(Contract.hokm.allows(fourHundred), 0);
+      expect(Contract.hokm.allows(baloot), 1);
+      expect(Contract.sun.allows(baloot), 0);
+      expect(scoreRound(deal('sun', const [230, 100], declared: {'fourHundred': 1})), [26 + 40 - 20, 20]);
+    });
+
+    test('a gahwa wins the match', () {
+      final t = tally(baloot([
+        deal('hokm', const [60, 102]),
+        deal('hokm', const [100, 62], doubling: kGahwa),
+      ]));
+
+      expect(t.totals, [64, 16]);
+      expect(t.winner, 0);
+    });
+
+    test('keeps a three and a gahwa of a saved deal', () {
+      for (final d in const [3, kGahwa]) {
+        expect(Round.fromJson(deal('hokm', const [100, 62], doubling: d).toJson(), rules: rules).doubling, d);
+      }
+    });
+
+    test('the first side past 152 wins, and equal totals play on', () {
+      final win = tally(baloot([for (var i = 0; i < 10; i++) deal('hokm', const [162, 0])]));
+      expect(win.winner, 0);
+      expect(win.totals[0], 160);
+      final even = tally(baloot([
+        for (var i = 0; i < 5; i++) ...[deal('sun', const [130, 0]), deal('sun', const [0, 130])],
+        deal('hokm', const [81, 81]),
+      ]));
+      expect(even.totals, [138, 138]);
+      expect(even.winner, isNull);
+    });
+
+    test('plays to 152 in two teams of two, every deal Hokm or Sun', () {
+      expect(rules.defaultScoreLimit, 152);
+      expect(rules.playerCounts, [4]);
+      expect(rules.contracts, [Contract.hokm, Contract.sun]);
+      expect(rules.hasDoubling, isTrue);
+      expect(rules.hasBids, isFalse);
+      expect(rules.hasDebercWin, isFalse);
+      expect(rules.hasCirclesAndSticks, isFalse);
+      expect(GameRules.of('baloot'), same(rules));
+    });
+  });
 }
