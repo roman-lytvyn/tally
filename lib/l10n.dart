@@ -30,6 +30,7 @@ class AppStrings {
   bool get _belot => game.id == 'belot';
   bool get _bela => game.id == 'bela';
   bool get _klaverjas => game.id == 'klaverjas';
+  bool get _coinche => game.id == 'coinche';
 
   /// The text in the current language: Ukrainian, English, French, Bulgarian,
   /// Croatian or Dutch.
@@ -43,7 +44,9 @@ class AppStrings {
   };
 
   // Setup
-  String get appTitle        => _klaverjas
+  String get appTitle        => _coinche
+      ? _t('Куанш', 'Coinche', 'Coinche', 'Коанш', 'Coinche', 'Coinche')
+      : _klaverjas
       ? _t('Клаверяс', 'Klaverjas', 'Klaverjas', 'Клаверяс', 'Klaverjas', 'Klaverjas')
       : _bela
       ? _t('Бела', 'Bela', 'Bela', 'Бела', 'Bela', 'Bela')
@@ -90,7 +93,9 @@ class AppStrings {
       'Ако всички пасуват, раздаващият трябва да вземе коза', 'Ako svi kažu dalje, djelitelj mora zvati aduta', 'Als iedereen past, moet de gever troef maken');
 
   /// What a lost contract is called in the game.
-  String get _lost           => _klaverjas
+  String get _lost           => _coinche
+      ? _t('провал', 'down', 'chute', 'провал', 'pad', 'down')
+      : _klaverjas
       ? _t('нат', 'nat', 'nat', 'нат', 'nat', 'nat')
       : _bela
       ? _t('пад', 'fall', 'chute', 'пад', 'pad', 'val')
@@ -219,7 +224,9 @@ class AppStrings {
   String get badgeEggs       => _tie.toUpperCase();
   String get pts             => _t('оч', 'pts', 'pts', 'т.', 'b.', 'pt');
   String badgeNoTricks(int points) => _t('ЛИЖІ −$points', 'SKIS −$points', 'SANS PLI −$points', 'СКИ −$points', 'BEZ ŠTIHA −$points', 'GEEN SLAG −$points');
-  String baitsSoFar(int n)   => _klaverjas
+  String baitsSoFar(int n)   => _coinche
+      ? _t('провали: $n', 'down: $n', 'chutes : $n', 'провали: $n', 'padovi: $n', 'down: $n')
+      : _klaverjas
       ? _t('нат: $n', 'nat: $n', 'nat : $n', 'нат: $n', 'nat: $n', 'nat: $n')
       : _bela
       ? _t('пади: $n', 'falls: $n', 'chutes : $n', 'падове: $n', 'padovi: $n', 'vallen: $n')
@@ -255,7 +262,7 @@ class AppStrings {
       'Как се задава стойността на раздача с обявите ѝ', 'Kako se zadaje vrijednost dijeljenja sa zvanjima', 'Hoe de waarde van een spel met zijn roem wordt bepaald');
   String get valueCounters   => _klaverjas
       ? _t('Терц, 50, 100, стук', 'Tierce, 50, 100, stuk', 'Tierce, 50, 100, stuk', 'Терца, 50, 100, стук', 'Terca, 50, 100, stuk', 'Roem: 20, 50, 100, stuk')
-      : _belote
+      : _belote || _coinche
       ? _t('Терц, 50, 100, белот', 'Tierce, 50, 100, belote', 'Tierce, 50, 100, belote', 'Терца, 50, 100, белот', 'Terca, 50, 100, belote', 'Terts, 50, 100, belote')
       : _t('Терц, 50, бела', 'Tierce, 50, bella', 'Tierce, 50, bella', 'Терца, 50, бела', 'Terca, 50, bela', 'Terts, 50, bella');
   String get valueWheel      => _t('Колесо: 162, 182, 202…', 'Wheel: 162, 182, 202…', 'Roue : 162, 182, 202…',
@@ -346,8 +353,16 @@ class AppStrings {
     'allTrumps' => _t('ВК', 'AT', 'TA', 'ВК', 'SA', 'AT'),
     _           => _t('Масть', 'Suit', 'Coul.', 'Боя', 'Boja', 'Kleur'),
   };
+  /// What the side that won the bidding undertook to make.
+  String get bid             => _t('Замовлення', 'Bid', 'Contrat', 'Обява', 'Licitacija', 'Bod');
+  /// The bid [points] as it is shown: its value, or capot.
+  String bidName(int points) => points == kCapot ? declaration('capot') : '$points';
   /// A doubled contract when [doubling] is 2, a redoubled one when it is 4.
-  String doublingName(int doubling) => doubling == 4
+  String doublingName(int doubling) => _coinche
+      ? doubling == 4
+          ? _t('Сюркуанш', 'Surcoinche', 'Surcoinche', 'Сюркоанш', 'Surcoinche', 'Surcoinche')
+          : _t('Куанш', 'Coinche', 'Coinche', 'Коанш', 'Coinche', 'Coinche')
+      : doubling == 4
       ? _t('Реконтра', 'Re-contra', 'Surcontre', 'Реконтра', 'Rekontra', 'Rekontra')
       : _t('Контра', 'Contra', 'Contre', 'Контра', 'Kontra', 'Kontra');
   String takesAllMsg(String side, int points) => _t(

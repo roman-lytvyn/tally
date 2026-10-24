@@ -80,8 +80,39 @@ int _counted(Round r, Contract c, int i) {
   return (earned: points, held: 0);
 }
 
+/// [points] rounded to the nearest ten, fives up.
+int _roundTen(int points) => (points + 5) ~/ 10 * 10;
+
+/// What a deal played for a bid earns each side.
+///
+/// When the bid is made, the side that won the bidding scores its points
+/// plus the bid, a capot's tricks counting [kCapot] instead of the card
+/// points, and the opponents score their own points. When it fails, the
+/// opponents score 160 plus the bid and the bidding side keeps only what
+/// stays with its holder, such as its belote. A coinche doubles the bid and
+/// a surcoinche quadruples it; the points themselves are never multiplied.
+List<int> bidScore(Round r) {
+  final earned = List.filled(r.score.length, 0);
+  if (!r.isPlayed) return earned;
+  final bid = r.bid! * r.doubling;
+  final taker = r.taker;
+  if (r.isBaited) {
+    final kept = r.keptPoints;
+    if (kept > 0) earned[r.keeper!] = kept;
+    earned[r.opponents.first] += 160 + bid;
+    return earned;
+  }
+  for (var i = 0; i < r.score.length; i++) {
+    earned[i] = _roundTen(r.score[i]);
+  }
+  final capot = r.bid == kCapot ? kCapot - kBaseGV : 0;
+  earned[taker] = _roundTen(r.score[taker] + capot) + bid;
+  return earned;
+}
+
 /// What each side earns from a single deal, before any held points.
 List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
+  if (r.bid != null) return bidScore(r);
   if (r.contract != null) return contractScore(r).earned;
   // A deberc decides the game on its own and a thrown-in deal is not played;
   // neither adds any points.
