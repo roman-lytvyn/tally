@@ -1,3 +1,4 @@
+import 'baloot_rules_content.dart';
 import 'bela_rules_content.dart';
 import 'belot_rules_content.dart';
 import 'belote_rules_content.dart';
@@ -23,6 +24,7 @@ List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]
     : game.id == GameRules.bela.id ? belaRulesContent(lang)
     : game.id == GameRules.klaverjas.id ? klaverjasRulesContent(lang)
     : game.id == GameRules.coinche.id ? coincheRulesContent(lang)
+    : game.id == GameRules.baloot.id ? balootRulesContent(lang)
     : lang == 'uk' ? _uk : _en;
 
 const _en = [
