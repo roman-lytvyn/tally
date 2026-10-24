@@ -258,9 +258,13 @@ class _AppRootState extends State<AppRoot> {
     return Title(
       title: strings.appTitle,
       color: theme.acc,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: _buildScreen(theme, strings),
+      // Arabic reads right to left, whatever the device language is.
+      child: Directionality(
+        textDirection: strings.isRtl ? TextDirection.rtl : TextDirection.ltr,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: _buildScreen(theme, strings),
+        ),
       ),
     );
   }

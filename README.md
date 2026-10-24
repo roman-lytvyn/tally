@@ -238,11 +238,11 @@ Accessible via the ⚙ button:
   sides reach the target in the same deal (the most points by default, or
   the side that took the trump). They are remembered and apply to new games;
   a game in progress keeps the rules it started with
-- **Language** — Ukrainian, English, French, Bulgarian, Croatian or Dutch.
+- **Language** — Ukrainian, English, French, Bulgarian, Croatian, Dutch or Arabic.
   Until one is chosen the app follows the device where players of the game
   commonly speak its language — Ukrainian or French for Deberc, French for
   Belote and Coinche, Bulgarian for Bulgarian Belot, Croatian for Bela, also on Bosnian
-  and Serbian devices, Dutch for Klaverjas — and is in English everywhere
+  and Serbian devices, Dutch for Klaverjas, Arabic for Baloot — and is in English everywhere
   else. Team names still at their defaults switch along with it
 
 ---
