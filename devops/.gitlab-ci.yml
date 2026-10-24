@@ -120,6 +120,15 @@ test:
       else
         echo "No upload key configured, building with the debug key: not publishable to Play"
       fi
+    # Every app builds at once on the same machine, so each Gradle build keeps
+    # to a small memory budget instead of the generous one meant for a desktop.
+    - mkdir -p ~/.gradle
+    - |
+      cat >> ~/.gradle/gradle.properties <<PROPS
+      org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g
+      kotlin.daemon.jvmargs=-Xmx1g
+      org.gradle.workers.max=2
+      PROPS
     - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
     - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
     - mv build/app/outputs/flutter-apk/app-release.apk "$APP_FILE_NAME-$VERSION.apk"
