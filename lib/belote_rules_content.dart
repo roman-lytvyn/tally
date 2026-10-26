@@ -4,6 +4,10 @@ import 'rules_content.dart';
 List<RulesSection> beloteRulesContent(String lang) => switch (lang) {
   'uk' => _uk,
   'fr' => _fr,
+  'bg' => _bg,
+  'hr' => _hr,
+  'nl' => _nl,
+  'ar' => _ar,
   _    => _en,
 };
 
@@ -227,5 +231,294 @@ const _uk = [
         'капот і в кого був белот, і введіть очки однієї сторони; решту застосунок порахує сам, помітить дедан і '
         'літиж і стежитиме, хто роздає.',
     'Торкніться будь-якої роздачі в історії, щоб виправити чи видалити її, а ↶ — щоб скасувати останню.',
+  ]),
+];
+
+const _bg = [
+  RulesSection('Играчи и карти', [
+    'Френският белот се играе от четирима в два отбора по двама, като партньорите седят един срещу друг; могат да '
+        'играят и двама или трима, всеки за себе си. Играе се с тесте от 32 карти, от седмица до асо във всяка боя.',
+    'Раздаващият дава на всеки играч по пет карти, три и после две, и обръща следващата карта с лицето нагоре. '
+        'Раздаването върви около масата: след всяка раздача следващият раздава играчът отляво на раздаващия.',
+  ]),
+  RulesSection('Вземане на коза', [
+    'Като се започне от играча отляво на раздаващия, всеки може да вземе обърнатата карта, така че боята ѝ става '
+        'коз, или да пасува. Ако всички пасуват, във втори кръг играч може да обяви която и да е друга боя. Ако '
+        'всички пак пасуват, картите се хвърлят и раздава следващият играч.',
+    'Играчът, който взема коза, получава обърнатата карта и още две; всички останали получават по три, така че '
+        'всеки държи осем.',
+    'Който вземе коза, трябва да събере в тази раздача повече от противниците.',
+  ]),
+  RulesSection('Игра на картите', [
+    'Играчите трябва да отговарят на изиграната боя. Който не може, трябва да цака с коз, освен ако партньорът му '
+        'вече не печели взятката, а коз, сложен върху коз, трябва да го надвиши винаги когато може.',
+    'В коза редът е вале, деветка, асо, десетка, поп, дама, осмица, седмица; в другите бои — асо, десетка, поп, '
+        'дама, вале, деветка, осмица, седмица.',
+  ]),
+  RulesSection('Стойност на картите', [
+    'Картите струват общо 152 точки, а последната взятка, „dix de der", добавя 10, така че всяка раздача струва 162 '
+        'преди анонсите.',
+  ], tableHeader: ['Карта', 'Коз', 'Другите бои'], table: [
+    ['Вале', '20', '2'],
+    ['Деветка', '14', '0'],
+    ['Асо', '11', '11'],
+    ['Десетка', '10', '10'],
+    ['Поп', '4', '4'],
+    ['Дама', '3', '3'],
+    ['Осмица, седмица', '0', '0'],
+  ]),
+  RulesSection('Анонси', [
+    'Комбинациите се обявяват на първата взятка. Поредиците си записва само страната с най-добрата поредица, а '
+        'каретата — само страната с най-доброто каре. Всичко обявено се добавя към стойността на раздаването.',
+  ], tableHeader: ['Анонс', 'Точки'], table: [
+    ['Терца — три поред', '20'],
+    ['Петдесет — четири поредни', '50'],
+    ['Сто — пет поредни', '100'],
+    ['Каре валета', '200'],
+    ['Каре деветки', '150'],
+    ['Каре аса, десетки, попове или дами', '100'],
+    ['Белот-ребелот — поп и дама коз', '20'],
+  ]),
+  RulesSection('Белот-ребелот', [
+    'Играч с поп и дама коз казва „белот", когато играе първата от тях, и „ребелот", когато играе втората. 20-те '
+        'точки остават за тази страна, каквото и да стане с раздаването.',
+  ]),
+  RulesSection('Капот', [
+    'Страна, която вземе всички взятки, прави капот: тогава картите струват 252 вместо 162.',
+  ]),
+  RulesSection('Дедан', [
+    'Ако страната, взела коза, събере по-малко от противниците, тя е дедан: противниците получават цялото раздаване '
+        'с всички анонси, а взелият коза запазва само своя белот-ребелот.',
+  ]),
+  RulesSection('Литиж — равна раздача', [
+    'Ако взелият коза събере точно колкото противниците, раздаването е литиж. Противниците записват своите точки, а '
+        'точките на взелия коза чакат победителя в следващата раздача. Приложението позволява да го решите по друг '
+        'начин, ако на вашата маса се играе така.',
+  ]),
+  RulesSection('Победа', [
+    'Печели страната, която първа стигне уговорената цел: 1000 точки или 500 за кратка игра. Когато и двете я '
+        'прехвърлят в една раздача, печели страната с повече точки или, ако на вашата маса се играе така, страната, '
+        'взела коза.',
+  ]),
+  RulesSection('Как се води резултатът в приложението', [
+    'След всяка раздача натиснете „Нова раздача", изберете кой е взел коза, пребройте анонсите, отбележете капот и '
+        'кой е имал белота и въведете точките на едната страна; приложението изчислява останалото, разпознава дедан '
+        'и литиж и следи кой раздава.',
+    'Докоснете която и да е раздача в историята, за да я поправите или изтриете, и ↶, за да отмените последната.',
+  ]),
+];
+
+const _hr = [
+  RulesSection('Igrači i karte', [
+    'Belote igraju četvorica u dva para, a partneri sjede jedan nasuprot drugome; mogu igrati i dvojica ili '
+        'trojica, svatko za sebe. Igra se špilom od 32 karte, od sedmice do asa u svakoj boji.',
+    'Djelitelj svakom igraču daje pet karata, tri pa dvije, i okreće sljedeću kartu licem prema gore. Dijeljenje '
+        'ide oko stola: nakon svakog dijeljenja sljedeći dijeli igrač lijevo od djelitelja.',
+  ]),
+  RulesSection('Uzimanje aduta', [
+    'Počevši od igrača lijevo od djelitelja, svaki može uzeti okrenutu kartu, čime njezina boja postaje adut, ili '
+        'reći dalje. Ako svi kažu dalje, u drugom krugu igrač može zvati bilo koju drugu boju. Ako svi opet kažu '
+        'dalje, karte se bacaju i dijeli sljedeći igrač.',
+    'Igrač koji uzme aduta dobiva okrenutu kartu i još dvije; svi ostali dobivaju po tri, pa svatko drži osam.',
+    'Tko uzme aduta, mora u tom dijeljenju skupiti više od protivnika.',
+  ]),
+  RulesSection('Igranje karata', [
+    'Igrači moraju odgovoriti na boju koja je izašla. Tko ne može, mora rezati adutom, osim ako njegov partner već '
+        'dobiva štih, a adut bačen na aduta mora ga nadjačati kad god može.',
+    'U adutu je redoslijed dečko, devetka, as, desetka, kralj, dama, osmica, sedmica; u ostalim bojama as, desetka, '
+        'kralj, dama, dečko, devetka, osmica, sedmica.',
+  ]),
+  RulesSection('Vrijednost karata', [
+    'Karte ukupno vrijede 152 boda, a zadnji štih, dix de der, dodaje 10, pa svako dijeljenje vrijedi 162 prije '
+        'zvanja.',
+  ], tableHeader: ['Karta', 'Adut', 'Ostale boje'], table: [
+    ['Dečko', '20', '2'],
+    ['Devetka', '14', '0'],
+    ['As', '11', '11'],
+    ['Desetka', '10', '10'],
+    ['Kralj', '4', '4'],
+    ['Baba', '3', '3'],
+    ['Osmica, sedmica', '0', '0'],
+  ]),
+  RulesSection('Zvanja', [
+    'Kombinacije se zovu na prvom štihu. Svoje nizove upisuje samo strana s najboljim nizom, a svoje četvorke samo '
+        'strana s najboljom četvorkom. Sve što je zvano dodaje se vrijednosti dijeljenja.',
+  ], tableHeader: ['Zvanje', 'Bodovi'], table: [
+    ['Terca — tri zaredom', '20'],
+    ['Pedeset — četiri zaredom', '50'],
+    ['Sto — pet zaredom', '100'],
+    ['Četiri dečka', '200'],
+    ['Četiri devetke', '150'],
+    ['Četiri asa, desetke, kralja ili babe', '100'],
+    ['Belote-rebelote — kralj i dama aduta', '20'],
+  ]),
+  RulesSection('Belote-rebelote', [
+    'Igrač koji ima kralja i damu aduta kaže „belote" kad baci prvu od njih i „rebelote" kad baci drugu. Tih 20 '
+        'bodova ostaje toj strani što god se dogodilo s dijeljenjem.',
+  ]),
+  RulesSection('Kapot', [
+    'Strana koja uzme sve štihove radi kapot: karte tada vrijede 252 umjesto 162.',
+  ]),
+  RulesSection('Dedans', [
+    'Ako strana koja je uzela aduta skupi manje od protivnika, to je dedans: protivnici dobivaju cijelo dijeljenje '
+        'sa svim zvanjima, a onaj tko je uzeo aduta zadržava samo svoj belote-rebelote.',
+  ]),
+  RulesSection('Litige — izjednačeno dijeljenje', [
+    'Ako onaj tko je uzeo aduta skupi točno koliko i protivnici, dijeljenje je litige. Protivnici upisuju svoje '
+        'bodove, a bodovi onoga tko je uzeo aduta čekaju pobjednika sljedećeg dijeljenja. Aplikacija omogućuje da '
+        'to riješite drukčije ako se za vašim stolom tako igra.',
+  ]),
+  RulesSection('Pobjeda', [
+    'Pobjeđuje strana koja prva dosegne dogovoreni cilj: 1000 bodova ili 500 za kratku igru. Kad obje prijeđu cilj '
+        'u istom dijeljenju, pobjeđuje strana s više bodova ili, ako se za vašim stolom tako igra, strana koja je '
+        'uzela aduta.',
+  ]),
+  RulesSection('Vođenje rezultata u aplikaciji', [
+    'Nakon svakog dijeljenja dodirnite „Novo dijeljenje", odaberite tko je uzeo aduta, prebrojite zvanja, označite '
+        'kapot i tko je imao belote te upišite bodove jedne strane; aplikacija izračuna ostalo, prepoznaje dedans i '
+        'litige i prati tko dijeli.',
+    'Dodirnite bilo koje dijeljenje u povijesti da ga ispravite ili izbrišete, a ↶ da poništite zadnje.',
+  ]),
+];
+
+const _nl = [
+  RulesSection('Spelers en kaarten', [
+    'Belote wordt met vier gespeeld in twee teams van twee, met de partners tegenover elkaar; met twee of drie kan '
+        'ook, ieder voor zich. Er wordt gespeeld met 32 kaarten, zeven tot en met aas in elke kleur.',
+    'De gever geeft elke speler vijf kaarten, eerst drie en dan twee, en legt de volgende kaart open. Het delen '
+        'gaat de tafel rond: na elk spel deelt de speler links van de gever.',
+  ]),
+  RulesSection('Troef nemen', [
+    'Te beginnen bij de speler links van de gever mag ieder de open kaart nemen, waarmee die kleur troef wordt, of '
+        'passen. Als iedereen past, mag een speler in een tweede ronde een andere kleur noemen. Past iedereen '
+        'opnieuw, dan worden de kaarten ingegooid en deelt de volgende speler.',
+    'Wie troef neemt, krijgt de open kaart en nog twee; alle anderen krijgen er drie, zodat ieder er acht heeft.',
+    'Wie troef neemt, moet in dat spel meer halen dan de tegenpartij.',
+  ]),
+  RulesSection('Kaarten spelen', [
+    'Spelers moeten de gevraagde kleur bekennen. Wie dat niet kan, moet troeven, tenzij de partner de slag al wint, '
+        'en een troef op een troef moet die overtroeven wanneer dat kan.',
+    'In troef is de volgorde boer, negen, aas, tien, heer, vrouw, acht, zeven; in de andere kleuren aas, tien, '
+        'heer, vrouw, boer, negen, acht, zeven.',
+  ]),
+  RulesSection('Waarde van de kaarten', [
+    'De kaarten zijn samen 152 punten waard en de laatste slag, dix de der, geeft er 10 bij, dus elk spel is 162 '
+        'waard vóór de roem.',
+  ], tableHeader: ['Kaart', 'Troef', 'Andere kleuren'], table: [
+    ['Boer', '20', '2'],
+    ['Negen', '14', '0'],
+    ['Aas', '11', '11'],
+    ['Tien', '10', '10'],
+    ['Heer', '4', '4'],
+    ['Vrouw', '3', '3'],
+    ['Acht, zeven', '0', '0'],
+  ]),
+  RulesSection('Roem', [
+    'Combinaties worden bij de eerste slag gemeld. Alleen de partij met de beste reeks schrijft haar reeksen, en '
+        'alleen de partij met de beste vier gelijke schrijft haar vieren. Alle gemelde roem komt bij de waarde van '
+        'het spel.',
+  ], tableHeader: ['Roem', 'Punten'], table: [
+    ['Drie op een rij', '20'],
+    ['Vijftig — vier op een rij', '50'],
+    ['Honderd — vijf op een rij', '100'],
+    ['Vier boeren', '200'],
+    ['Vier negens', '150'],
+    ['Vier azen, tienen, heren of vrouwen', '100'],
+    ['Belote-rebelote — heer en vrouw van troef', '20'],
+  ]),
+  RulesSection('Belote-rebelote', [
+    'Wie heer en vrouw van troef heeft, zegt ‘belote\' bij het spelen van de eerste en ‘rebelote\' bij de tweede. '
+        'De 20 punten blijven bij die partij, wat er ook met het spel gebeurt.',
+  ]),
+  RulesSection('Capot', [
+    'Een partij die alle slagen haalt, maakt capot: de kaarten zijn dan 252 waard in plaats van 162.',
+  ]),
+  RulesSection('Dedans', [
+    'Als de partij die troef nam minder haalt dan de tegenpartij, is ze dedans: de tegenpartij krijgt het hele spel '
+        'met alle roem, en de troefnemer houdt alleen haar belote-rebelote.',
+  ]),
+  RulesSection('Litige — een gelijk spel', [
+    'Als de troefnemer precies evenveel haalt als de tegenpartij, is het spel een litige. De tegenpartij schrijft '
+        'haar punten, en de punten van de troefnemer wachten op de winnaar van het volgende spel. In de app kun je '
+        'het anders regelen als jullie tafel dat doet.',
+  ]),
+  RulesSection('Winnen', [
+    'De eerste partij die het afgesproken doel haalt, wint: 1000 punten, of 500 voor een kort spel. Halen beide het '
+        'doel in hetzelfde spel, dan wint de partij met de meeste punten of, als jullie tafel het zo speelt, de '
+        'partij die troef nam.',
+  ]),
+  RulesSection('De stand bijhouden in de app', [
+    'Tik na elk spel op ‘Nieuw spel\', kies wie troef nam, tel de roem, geef capot aan en wie de belote had, en '
+        'voer de punten van één partij in; de app rekent de rest uit, ziet dedans en litige en houdt bij wie deelt.',
+    'Tik op een spel in de lijst om het te verbeteren of te verwijderen, en op ↶ om het laatste ongedaan te maken.',
+  ]),
+];
+
+const _ar = [
+  RulesSection('اللاعبون والأوراق', [
+    'تُلعب البيلوت بأربعة لاعبين في فريقين من لاعبَين، ويجلس الشريكان متقابلين؛ ويمكن أن يلعب اثنان أو ثلاثة أيضًا، '
+        'كلٌّ لنفسه. تُستخدم 32 ورقة، من السبعة إلى الإكَّة في كل نوع.',
+    'يعطي الموزّع كل لاعب خمس أوراق، ثلاثًا ثم اثنتين، ويكشف الورقة التالية. يدور التوزيع حول الطاولة: بعد كل جولة '
+        'يوزّع اللاعب الجالس على يسار الموزّع.',
+  ]),
+  RulesSection('أخذ الحكم', [
+    'بدءًا من اللاعب على يسار الموزّع، يستطيع كل لاعب أن يأخذ الورقة المكشوفة فيصبح نوعها حكمًا، أو أن يمرّر. إذا '
+        'مرّر الجميع، يستطيع لاعب في دور ثانٍ أن يسمّي أي نوع آخر. وإذا مرّر الجميع مرة أخرى، تُرمى الأوراق ويوزّع '
+        'اللاعب التالي.',
+    'يأخذ آخذ الحكم الورقة المكشوفة وورقتين أخريين؛ ويأخذ الباقون ثلاثًا لكل منهم، فيكون مع كل لاعب ثماني أوراق.',
+    'من يأخذ الحكم عليه أن يجمع في تلك الجولة أكثر من خصومه.',
+  ]),
+  RulesSection('لعب الأوراق', [
+    'على اللاعبين أن يلعبوا من النوع المطلوب. ومن لا يستطيع فعليه أن يقطع بالحكم، إلا إذا كان شريكه يربح الأكلة، '
+        'وورقة الحكم الملعوبة فوق ورقة حكم يجب أن تعلوها كلما أمكن.',
+    'في الحكم يكون الترتيب: الولد، التسعة، الإكَّة، العشرة، الشايب، البنت، الثمانية، السبعة؛ وفي الأنواع الأخرى: '
+        'الإكَّة، العشرة، الشايب، البنت، الولد، التسعة، الثمانية، السبعة.',
+  ]),
+  RulesSection('قيمة الأوراق', [
+    'مجموع قيمة الأوراق 152 نقطة، والأكلة الأخيرة، dix de der، تضيف 10، فتساوي كل جولة 162 قبل المشاريع.',
+  ], tableHeader: ['الورقة', 'الحكم', 'الأنواع الأخرى'], table: [
+    ['الولد', '20', '2'],
+    ['التسعة', '14', '0'],
+    ['الإكَّة', '11', '11'],
+    ['العشرة', '10', '10'],
+    ['الشايب', '4', '4'],
+    ['البنت', '3', '3'],
+    ['الثمانية، السبعة', '0', '0'],
+  ]),
+  RulesSection('المشاريع', [
+    'تُعلن التشكيلات في الأكلة الأولى. لا يسجّل متتالياته إلا الطرف صاحب أفضل متتالية، ولا يسجّل الأربع المتشابهة '
+        'إلا الطرف صاحب أفضل أربع. ويُضاف كل ما أُعلن إلى قيمة الجولة.',
+  ], tableHeader: ['المشروع', 'النقاط'], table: [
+    ['سرا — ثلاث متتالية', '20'],
+    ['خمسين — أربع متتالية', '50'],
+    ['مية — خمس متتالية', '100'],
+    ['أربعة أولاد', '200'],
+    ['أربع تسعات', '150'],
+    ['أربع إكَك أو عشرات أو شياب أو بنات', '100'],
+    ['بيلوت-ريبيلوت — الشايب والبنت من الحكم', '20'],
+  ]),
+  RulesSection('بيلوت-ريبيلوت', [
+    'من يملك الشايب والبنت من الحكم يقول «بيلوت» حين يلعب الأولى منهما و«ريبيلوت» حين يلعب الثانية. وتبقى النقاط '
+        'العشرون لذلك الطرف مهما حدث في الجولة.',
+  ]),
+  RulesSection('الكابو', [
+    'الطرف الذي يأخذ كل الأكلات يسجّل كابو: وتساوي الأوراق حينئذ 252 بدل 162.',
+  ]),
+  RulesSection('الدودان', [
+    'إذا جمع الطرف الذي أخذ الحكم أقل من خصومه، يكون دودان: يأخذ الخصوم الجولة كلها مع كل المشاريع، ولا يحتفظ آخذ '
+        'الحكم إلا ببيلوت-ريبيلوت.',
+  ]),
+  RulesSection('الليتيج — جولة متعادلة', [
+    'إذا جمع آخذ الحكم مثل خصومه تمامًا، تكون الجولة ليتيج. يسجّل الخصوم نقاطهم، وتنتظر نقاط آخذ الحكم الفائز '
+        'بالجولة التالية. ويتيح التطبيق حسمها بطريقة أخرى إن كانت طاولتكم تلعب هكذا.',
+  ]),
+  RulesSection('الفوز', [
+    'يفوز أول طرف يبلغ الهدف المتفق عليه: 1000 نقطة، أو 500 للعبة قصيرة. وإذا تجاوزه الطرفان في الجولة نفسها، يفوز '
+        'الطرف صاحب النقاط الأكثر، أو، إن كانت طاولتكم تلعب هكذا، الطرف الذي أخذ الحكم.',
+  ]),
+  RulesSection('تسجيل النتيجة في التطبيق', [
+    'بعد كل جولة اضغط «جولة جديدة»، واختر من أخذ الحكم، واحسب المشاريع، وعلّم الكابو ومن كانت معه البيلوت، واكتب '
+        'نقاط أحد الطرفين؛ يحسب التطبيق الباقي، ويكشف الدودان والليتيج، ويتابع من يوزّع.',
+    'اضغط على أي جولة في السجل لتصحيحها أو حذفها، و↶ للتراجع عن الأخيرة.',
   ]),
 ];

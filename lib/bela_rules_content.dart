@@ -2,8 +2,12 @@ import 'rules_content.dart';
 
 /// The rules of Bela in [lang], English when there is none.
 List<RulesSection> belaRulesContent(String lang) => switch (lang) {
-  'hr' => _hr,
   'uk' => _uk,
+  'fr' => _fr,
+  'bg' => _bg,
+  'hr' => _hr,
+  'nl' => _nl,
+  'ar' => _ar,
   _    => _en,
 };
 
@@ -179,5 +183,242 @@ const _uk = [
     'Після кожної роздачі натисніть «Нова роздача», виберіть, хто назвав козир, порахуйте комбінації та введіть '
         'очки однієї сторони; застосунок порахує другу і перед збереженням покаже, що буде записано.',
     '«Белот» завершує гру на користь сторони, що його мала. «Пад» записує програну роздачу без введення очок.',
+  ]),
+];
+
+const _fr = [
+  RulesSection('Joueurs et cartes', [
+    'La Bela se joue à quatre en deux équipes de deux, les partenaires assis face à face, avec 32 cartes, du sept à '
+        'l\'as dans chaque couleur. La donne et le jeu tournent dans le sens inverse des aiguilles d\'une montre. '
+        'On peut aussi jouer à deux, chacun pour soi.',
+    'Chaque joueur reçoit huit cartes : six en main, faces visibles pour lui, et deux faces cachées, le talon, '
+        'qu\'il ramasse une fois l\'atout appelé.',
+  ]),
+  RulesSection('L\'appel de l\'atout', [
+    'En commençant à côté du donneur, chaque joueur appelle une couleur d\'atout ou passe. Si les trois premiers '
+        'passent, le donneur doit appeler : il ne peut pas passer.',
+  ]),
+  RulesSection('Valeur des cartes', [
+    'Le dernier pli ajoute 10, donc les cartes d\'une donne valent 162 points.',
+  ], tableHeader: ['Carte', 'Atout', 'Autre couleur'], table: [
+    ['Valet', '20', '2'],
+    ['Neuf', '14', '0'],
+    ['As', '11', '11'],
+    ['Dix', '10', '10'],
+    ['Roi', '4', '4'],
+    ['Dame', '3', '3'],
+    ['Huit, sept', '0', '0'],
+  ]),
+  RulesSection('Annonces', [
+    'Les suites et les carrés s\'annoncent au premier pli. Seul le camp qui a la plus forte annonce marque ses '
+        'annonces ; l\'autre camp n\'en marque aucune. La bela s\'annonce quand sa première carte est jouée.',
+  ], tableHeader: ['Annonce', 'Points'], table: [
+    ['Tierce — trois cartes qui se suivent', '20'],
+    ['Quarte — quatre cartes qui se suivent', '50'],
+    ['Quinte ou plus longue', '100'],
+    ['Carré d\'as, de dix, de rois ou de dames', '100'],
+    ['Carré de neuf', '150'],
+    ['Carré de valets', '200'],
+    ['Bela — roi et dame d\'atout', '20'],
+    ['Štiglja — tous les plis', '90'],
+  ]),
+  RulesSection('Belot bulgare', [
+    'Les huit cartes d\'une même couleur dans une seule main forment un belot, et le camp qui le tient gagne toute '
+        'la partie d\'un coup.',
+  ]),
+  RulesSection('La chute', [
+    'Le camp qui a appelé l\'atout doit marquer plus que ses adversaires, annonces comprises. Sinon, il chute : les '
+        'adversaires reçoivent toute la donne, avec les annonces et la bela du camp appelant.',
+  ]),
+  RulesSection('L\'égalité', [
+    'Quand les deux camps marquent autant, le camp qui a appelé l\'atout chute aussi. Certaines tables gardent ses '
+        'points en suspens pour le gagnant de la donne suivante ou laissent plutôt chaque camp garder les siens ; '
+        'l\'application vous laisse choisir.',
+  ]),
+  RulesSection('La victoire', [
+    'Le premier camp à atteindre 1001 gagne ; une partie plus courte se joue en 501 ou 701. Quand les deux le '
+        'dépassent dans la même donne, le camp qui a le plus de points gagne.',
+  ]),
+  RulesSection('Tenir le score dans l\'application', [
+    'Après chaque donne, touchez « Nouvelle donne », choisissez qui a appelé l\'atout, comptez les annonces et '
+        'saisissez les points d\'un camp ; l\'application calcule l\'autre camp et montre ce qui sera inscrit avant '
+        'd\'enregistrer.',
+    '« Belot » termine la partie pour le camp qui le tenait. « Chute » enregistre une donne perdue sans saisir de '
+        'points.',
+  ]),
+];
+
+const _bg = [
+  RulesSection('Играчи и карти', [
+    'Белата се играе от четирима в два отбора по двама, като партньорите седят един срещу друг, с тесте от 32 '
+        'карти, от седмица до асо във всяка боя. Раздаването и играта вървят обратно на часовниковата стрелка. '
+        'Могат да играят и двама, всеки за себе си.',
+    'Всеки играч получава осем карти: шест в ръката и две с лицето надолу, талонът, които се вземат, след като '
+        'козът е обявен.',
+  ]),
+  RulesSection('Обявяване на коза', [
+    'Като се започне до раздаващия, всеки играч обявява боя за коз или пасува. Ако първите трима пасуват, '
+        'раздаващият трябва да обяви: раздаващият не може да пасува.',
+  ]),
+  RulesSection('Стойност на картите', [
+    'Последната взятка добавя 10, така че картите в една раздача струват 162 точки.',
+  ], tableHeader: ['Карта', 'Коз', 'Друга боя'], table: [
+    ['Вале', '20', '2'],
+    ['Деветка', '14', '0'],
+    ['Асо', '11', '11'],
+    ['Десетка', '10', '10'],
+    ['Поп', '4', '4'],
+    ['Дама', '3', '3'],
+    ['Осмица, седмица', '0', '0'],
+  ]),
+  RulesSection('Анонси', [
+    'Поредиците и каретата се обявяват на първата взятка. Анонсите си записва само страната с най-високия анонс; '
+        'другата страна не записва нито един. Белата се обявява, когато се изиграе първата ѝ карта.',
+  ], tableHeader: ['Анонс', 'Точки'], table: [
+    ['Терца — три поред', '20'],
+    ['Кварта — четири поред', '50'],
+    ['Квинта или по-дълга', '100'],
+    ['Каре аса, десетки, попове или дами', '100'],
+    ['Каре деветки', '150'],
+    ['Каре валета', '200'],
+    ['Бела — поп и дама коз', '20'],
+    ['Щигля — всички взятки', '90'],
+  ]),
+  RulesSection('Белот', [
+    'Всичките осем карти от една боя в една ръка се наричат белот и страната, която го държи, печели цялата игра '
+        'наведнъж.',
+  ]),
+  RulesSection('Падът', [
+    'Страната, обявила коза, трябва да събере повече от противниците, заедно с анонсите. Ако не събере, тя пада: '
+        'противниците получават цялото раздаване, заедно с анонсите и белата на обявилите.',
+  ]),
+  RulesSection('Равни точки', [
+    'Когато двете страни съберат еднакво, страната, обявила коза, също пада. На някои маси точките ѝ чакат '
+        'победителя в следващото раздаване или всяка страна запазва своите; в приложението можете да изберете.',
+  ]),
+  RulesSection('Победа', [
+    'Печели страната, която първа стигне 1001; по-кратката игра е до 501 или 701. Когато и двете го прехвърлят в '
+        'една раздача, печели страната с повече точки.',
+  ]),
+  RulesSection('Как се води резултатът в приложението', [
+    'След всяка раздача натиснете „Нова раздача", изберете кой е обявил коза, пребройте анонсите и въведете точките '
+        'на едната страна; приложението изчислява другата страна и показва какво ще се запише, преди да запазите.',
+    '„Белот" завършва играта в полза на страната, която го е държала. „Пад" записва загубено раздаване без '
+        'въвеждане на точки.',
+  ]),
+];
+
+const _nl = [
+  RulesSection('Spelers en kaarten', [
+    'Bela wordt met vier gespeeld in twee teams van twee, met de partners tegenover elkaar, met 32 kaarten, zeven '
+        'tot en met aas in elke kleur. Het delen en spelen gaat tegen de klok in. Met twee kan ook, ieder voor zich.',
+    'Elke speler krijgt acht kaarten: zes in de hand en twee gedekt, de talon, die hij oppakt zodra de troef '
+        'gemaakt is.',
+  ]),
+  RulesSection('Troef maken', [
+    'Te beginnen naast de gever maakt elke speler een troefkleur of past. Als de eerste drie passen, moet de gever '
+        'troef maken: de gever kan niet passen.',
+  ]),
+  RulesSection('Waarde van de kaarten', [
+    'De laatste slag geeft er 10 bij, dus de kaarten van een spel zijn 162 punten waard.',
+  ], tableHeader: ['Kaart', 'Troef', 'Andere kleur'], table: [
+    ['Boer', '20', '2'],
+    ['Negen', '14', '0'],
+    ['Aas', '11', '11'],
+    ['Tien', '10', '10'],
+    ['Heer', '4', '4'],
+    ['Vrouw', '3', '3'],
+    ['Acht, zeven', '0', '0'],
+  ]),
+  RulesSection('Roem', [
+    'Reeksen en vier gelijke worden bij de eerste slag gemeld. Alleen de partij met de hoogste roem schrijft haar '
+        'roem; de andere partij schrijft niets. De bela wordt gemeld als haar eerste kaart gespeeld wordt.',
+  ], tableHeader: ['Roem', 'Punten'], table: [
+    ['Drie op een rij', '20'],
+    ['Vier op een rij', '50'],
+    ['Vijf op een rij of langer', '100'],
+    ['Vier azen, tienen, heren of vrouwen', '100'],
+    ['Vier negens', '150'],
+    ['Vier boeren', '200'],
+    ['Bela — heer en vrouw van troef', '20'],
+    ['Štiglja — alle slagen', '90'],
+  ]),
+  RulesSection('Bulgaarse belot', [
+    'Alle acht kaarten van één kleur in één hand heten een belot, en de partij die hem heeft wint in één keer de '
+        'hele partij.',
+  ]),
+  RulesSection('De val', [
+    'De partij die troef maakte, moet meer halen dan de tegenpartij, roem inbegrepen. Lukt dat niet, dan valt ze: '
+        'de tegenpartij krijgt het hele spel, ook de roem en de bela van de partij die troef maakte.',
+  ]),
+  RulesSection('Gelijke punten', [
+    'Als beide partijen evenveel halen, valt de partij die troef maakte ook. Aan sommige tafels blijven haar punten '
+        'bewaard voor de winnaar van het volgende spel, of houdt elke partij juist de hare; in de app kun je kiezen.',
+  ]),
+  RulesSection('Winnen', [
+    'De eerste partij die 1001 haalt, wint; een kortere partij gaat tot 501 of 701. Halen beide het in hetzelfde '
+        'spel, dan wint de partij met de meeste punten.',
+  ]),
+  RulesSection('De stand bijhouden in de app', [
+    'Tik na elk spel op ‘Nieuw spel\', kies wie troef maakte, tel de roem en voer de punten van één partij in; de '
+        'app rekent de andere partij uit en laat zien wat er geschreven wordt voordat je opslaat.',
+    '‘Belot\' beëindigt de partij voor de partij die hem had. ‘Val\' registreert een verloren spel zonder punten in '
+        'te voeren.',
+  ]),
+];
+
+const _ar = [
+  RulesSection('اللاعبون والأوراق', [
+    'تُلعب بيلا بأربعة لاعبين في فريقين من لاعبَين، ويجلس الشريكان متقابلين، بـ32 ورقة، من السبعة إلى الإكَّة في كل '
+        'نوع. ويدور التوزيع واللعب عكس عقارب الساعة. ويمكن أن يلعب اثنان أيضًا، كلٌّ لنفسه.',
+    'يأخذ كل لاعب ثماني أوراق: ستًّا في يده واثنتين مقلوبتين، هما التالون، يلتقطهما بعد إعلان الحكم.',
+  ]),
+  RulesSection('إعلان الحكم', [
+    'بدءًا من الجالس بجانب الموزّع، يعلن كل لاعب نوعًا للحكم أو يمرّر. وإذا مرّر الثلاثة الأوائل، وجب على الموزّع '
+        'أن يعلن: لا يستطيع الموزّع أن يمرّر.',
+  ]),
+  RulesSection('قيمة الأوراق', [
+    'الأكلة الأخيرة تضيف 10، فتساوي أوراق الجولة 162 نقطة.',
+  ], tableHeader: ['الورقة', 'الحكم', 'نوع آخر'], table: [
+    ['الولد', '20', '2'],
+    ['التسعة', '14', '0'],
+    ['الإكَّة', '11', '11'],
+    ['العشرة', '10', '10'],
+    ['الشايب', '4', '4'],
+    ['البنت', '3', '3'],
+    ['الثمانية، السبعة', '0', '0'],
+  ]),
+  RulesSection('المشاريع', [
+    'تُعلن المتتاليات والأربع المتشابهة في الأكلة الأولى. ولا يسجّل مشاريعه إلا الطرف صاحب أعلى مشروع؛ ولا يسجّل '
+        'الطرف الآخر شيئًا. وتُعلن البيلا حين تُلعب أولى ورقتيها.',
+  ], tableHeader: ['المشروع', 'النقاط'], table: [
+    ['سرا — ثلاث متتالية', '20'],
+    ['كوارت — أربع متتالية', '50'],
+    ['كوينت أو أطول', '100'],
+    ['أربع إكَك أو عشرات أو شياب أو بنات', '100'],
+    ['أربع تسعات', '150'],
+    ['أربعة أولاد', '200'],
+    ['بيلا — الشايب والبنت من الحكم', '20'],
+    ['شتيليا — كل الأكلات', '90'],
+  ]),
+  RulesSection('البيلوت البلغاري', [
+    'الأوراق الثماني كلها من نوع واحد في يد واحدة تُسمّى بيلوت، والطرف الذي يملكها يفوز باللعبة كلها دفعة واحدة.',
+  ]),
+  RulesSection('السقوط', [
+    'على الطرف الذي أعلن الحكم أن يجمع أكثر من خصومه، مع المشاريع. وإن لم يفعل، يسقط: يأخذ الخصوم الجولة كلها، '
+        'ومعها مشاريع الطرف المعلن وبيلته.',
+  ]),
+  RulesSection('التعادل', [
+    'إذا جمع الطرفان القدر نفسه، يسقط الطرف الذي أعلن الحكم أيضًا. وتحفظ بعض الطاولات نقاطه للفائز بالجولة التالية '
+        'أو تترك لكل طرف نقاطه؛ ويتيح لكم التطبيق الاختيار.',
+  ]),
+  RulesSection('الفوز', [
+    'يفوز أول طرف يبلغ 1001؛ وتُلعب اللعبة الأقصر حتى 501 أو 701. وإذا تجاوزه الطرفان في الجولة نفسها، يفوز الطرف '
+        'صاحب النقاط الأكثر.',
+  ]),
+  RulesSection('تسجيل النتيجة في التطبيق', [
+    'بعد كل جولة اضغط «جولة جديدة»، واختر من أعلن الحكم، واحسب المشاريع، وأدخل نقاط أحد الطرفين؛ يحسب التطبيق الطرف '
+        'الآخر ويعرض ما سيُسجَّل قبل الحفظ.',
+    '«بيلوت» تُنهي اللعبة لصالح الطرف الذي امتلكه. و«سقوط» تسجّل جولة خاسرة دون إدخال نقاط.',
   ]),
 ];

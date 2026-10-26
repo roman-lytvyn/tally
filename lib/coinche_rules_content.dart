@@ -2,8 +2,12 @@ import 'rules_content.dart';
 
 /// The rules of Coinche in [lang], English when there is none.
 List<RulesSection> coincheRulesContent(String lang) => switch (lang) {
-  'fr' => _fr,
   'uk' => _uk,
+  'fr' => _fr,
+  'bg' => _bg,
+  'hr' => _hr,
+  'nl' => _nl,
+  'ar' => _ar,
   _    => _en,
 };
 
@@ -195,5 +199,260 @@ const _uk = [
         'замовлення кнопками − і +, позначте куанш чи сюркуанш, порахуйте комбінації та введіть очки однієї '
         'сторони; застосунок порахує решту, додасть замовлення, помітить провал і стежитиме, хто роздає.',
     'Торкніться будь-якої роздачі в історії, щоб виправити чи видалити її, а ↶ — щоб скасувати останню.',
+  ]),
+];
+
+const _bg = [
+  RulesSection('Играчи и карти', [
+    'Коанш се играе от четирима в два отбора по двама, като партньорите седят един срещу друг, с тесте от 32 карти, '
+        'от седмица до асо във всяка боя. Всеки играч получава осем карти и не се обръща карта.',
+  ]),
+  RulesSection('Стойност на картите', [
+    'Последната взятка, „dix de der", добавя 10, така че картите в една раздача струват 162 точки.',
+  ], tableHeader: ['Карта', 'Коз', 'Друга боя'], table: [
+    ['Вале', '20', '2'],
+    ['Деветка', '14', '0'],
+    ['Асо', '11', '11'],
+    ['Десетка', '10', '10'],
+    ['Поп', '4', '4'],
+    ['Дама', '3', '3'],
+    ['Осмица, седмица', '0', '0'],
+  ]),
+  RulesSection('Обявяване', [
+    'Като се започне отляво на раздаващия, всеки играч пасува или обявява брой точки и коз. Най-ниската обява е 80, '
+        'всяка обява трябва да е по-висока от предишната, през десет, до 160; най-високата обява е капот — обещание '
+        'да се вземат всички взятки.',
+    'Наддаването свършва, когато другите трима пасуват подред след обява. Ако и четиримата пасуват в началото, '
+        'картите се раздават отново.',
+  ]),
+  RulesSection('Коанш и сюркоанш', [
+    'Противник, който се съмнява, че обявата може да бъде изпълнена, може да я коанширува: това приключва '
+        'наддаването и удвоява стойността на обявата. Обявилата страна може да отговори със сюркоанш, който я '
+        'удвоява отново.',
+  ]),
+  RulesSection('Анонси и белот', [
+    'С първата карта играчите обявяват поредиците си в една боя и каретата си. Анонсите си записва само страната с '
+        'най-добрия анонс, и то всичките.',
+    'Играч с поп и дама коз казва „белот", когато играе първата, и „ребелот", когато играе втората, за 20 точки, '
+        'които остават за тази страна, каквото и да стане с договора.',
+  ], tableHeader: ['Анонс', 'Точки'], table: [
+    ['Терца — три поред', '20'],
+    ['Кварта — четири поредни', '50'],
+    ['Квинта — пет поредни', '100'],
+    ['Каре аса, десетки, попове или дами', '100'],
+    ['Каре деветки', '150'],
+    ['Каре валета', '200'],
+    ['Белот — поп и дама коз', '20'],
+  ]),
+  RulesSection('Изпълнение на договора', [
+    'Обявилата страна изпълнява договора, когато точките ѝ, заедно с анонсите и белота, достигнат обявата; капот се '
+        'изпълнява само ако се вземат всичките осем взятки. Тогава страната записва точките си плюс обявата, а '
+        'противниците записват своите точки. Взятките при капот струват 250 вместо 162.',
+    'Когато договорът е провален, противниците записват 160 плюс обявата, а обявилата страна запазва само белота '
+        'си. Коанш удвоява обявата, а сюркоанш я учетворява, докато точките от картите остават същите. Всички '
+        'резултати се закръглят до най-близките десет, петиците нагоре.',
+    'Клубовете се различават в тези подробности: някои броят само обявата, други умножават целия резултат, трети '
+        'изискват обявилата страна и да надиграе противниците. Приложението следва описаното тук броене.',
+  ]),
+  RulesSection('Победа', [
+    'Играта обикновено е до 2000 точки, понякога до 1000, 1500 или 3000. Печели страната, която първа стигне целта; '
+        'когато и двете я стигнат в една раздача, печели по-високият резултат.',
+  ]),
+  RulesSection('Как се води резултатът в приложението', [
+    'След всяка раздача натиснете „Нова раздача", изберете страната, спечелила наддаването, задайте обявата ѝ с − и '
+        '+, отбележете коанш или сюркоанш, пребройте анонсите и въведете точките на едната страна; приложението '
+        'изчислява останалото, добавя обявата, разпознава провален договор и следи кой раздава.',
+    'Докоснете която и да е раздача в историята, за да я поправите или изтриете, и ↶, за да отмените последната.',
+  ]),
+];
+
+const _hr = [
+  RulesSection('Igrači i karte', [
+    'Coinche igraju četvorica u dva para, a partneri sjede jedan nasuprot drugome, sa špilom od 32 karte, od '
+        'sedmice do asa u svakoj boji. Svaki igrač dobiva osam karata i nijedna se karta ne okreće.',
+  ]),
+  RulesSection('Vrijednost karata', [
+    'Zadnji štih, dix de der, dodaje 10, pa karte jednog dijeljenja vrijede 162 boda.',
+  ], tableHeader: ['Karta', 'Adut', 'Ostale boje'], table: [
+    ['Dečko', '20', '2'],
+    ['Devetka', '14', '0'],
+    ['As', '11', '11'],
+    ['Desetka', '10', '10'],
+    ['Kralj', '4', '4'],
+    ['Baba', '3', '3'],
+    ['Osmica, sedmica', '0', '0'],
+  ]),
+  RulesSection('Licitacija', [
+    'Počevši lijevo od djelitelja, svaki igrač kaže dalje ili licitira broj bodova i boju aduta. Najniža licitacija '
+        'je 80, svaka mora biti viša od prethodne, za po deset, do 160; najviša licitacija od svih je kapot, '
+        'obećanje da će se uzeti svi štihovi.',
+    'Licitacija završava kad ostala trojica nakon licitacije redom kažu dalje. Ako sva četvorica na početku kažu '
+        'dalje, karte se dijele ponovno.',
+  ]),
+  RulesSection('Coinche i surcoinche', [
+    'Protivnik koji sumnja da se licitacija može ispuniti može je coinchirati, čime licitacija završava, a '
+        'vrijednost licitacije se udvostručuje. Strana koja je licitirala može odgovoriti surcoincheom, koji je '
+        'ponovno udvostručuje.',
+  ]),
+  RulesSection('Zvanja i belote', [
+    'S prvom kartom igrači zovu svoje nizove u jednoj boji i svoje četvorke. Svoja zvanja upisuje samo strana s '
+        'najboljim zvanjem, i to sva.',
+    'Igrač koji ima kralja i damu aduta kaže „belote" kad baci prvu i „rebelote" kad baci drugu, za 20 bodova koji '
+        'ostaju toj strani što god se dogodilo s ugovorom.',
+  ], tableHeader: ['Zvanje', 'Bodovi'], table: [
+    ['Terca — tri zaredom', '20'],
+    ['Cinquante — četiri zaredom', '50'],
+    ['Cent — pet zaredom', '100'],
+    ['Četiri asa, desetke, kralja ili babe', '100'],
+    ['Četiri devetke', '150'],
+    ['Četiri dečka', '200'],
+    ['Belote — kralj i dama aduta', '20'],
+  ]),
+  RulesSection('Ispunjenje ugovora', [
+    'Strana koja je licitirala ispunjava ugovor kad njezini bodovi, sa zvanjima i belote, dosegnu licitaciju; kapot '
+        'se ispunjava samo uzimanjem svih osam štihova. Tada upisuje svoje bodove plus licitaciju, a protivnici '
+        'upisuju svoje bodove. Štihovi kapota vrijede 250 umjesto 162.',
+    'Kad ugovor padne, protivnici upisuju 160 plus licitaciju, a strana koja je licitirala zadržava samo svoj '
+        'belote. Coinche udvostručuje licitaciju, a surcoinche je učetverostručuje, dok bodovi karata ostaju isti. '
+        'Svi se rezultati zaokružuju na najbližu deseticu, petice prema gore.',
+    'Klubovi se razlikuju u tim pojedinostima: neki broje samo licitaciju, neki množe cijeli rezultat, neki traže '
+        'da strana koja je licitirala i nadigra protivnike. Aplikacija slijedi ovdje opisano brojanje.',
+  ]),
+  RulesSection('Pobjeda', [
+    'Igra se obično igra do 2000 bodova, ponekad do 1000, 1500 ili 3000. Pobjeđuje strana koja prva dosegne cilj; '
+        'kad ga obje dosegnu u istom dijeljenju, pobjeđuje viši rezultat.',
+  ]),
+  RulesSection('Vođenje rezultata u aplikaciji', [
+    'Nakon svakog dijeljenja dodirnite „Novo dijeljenje", odaberite stranu koja je dobila licitaciju, postavite '
+        'njezinu licitaciju s − i +, označite coinche ili surcoinche, prebrojite zvanja i upišite bodove jedne '
+        'strane; aplikacija izračuna ostalo, dodaje licitaciju, prepoznaje pali ugovor i prati tko dijeli.',
+    'Dodirnite bilo koje dijeljenje u povijesti da ga ispravite ili izbrišete, a ↶ da poništite zadnje.',
+  ]),
+];
+
+const _nl = [
+  RulesSection('Spelers en kaarten', [
+    'Coinche wordt met vier gespeeld in twee teams van twee, met de partners tegenover elkaar, met 32 kaarten, '
+        'zeven tot en met aas in elke kleur. Elke speler krijgt acht kaarten en er wordt geen kaart opengelegd.',
+  ]),
+  RulesSection('Waarde van de kaarten', [
+    'De laatste slag, de dix de der, geeft er 10 bij, dus de kaarten van een spel zijn 162 punten waard.',
+  ], tableHeader: ['Kaart', 'Troef', 'Andere kleur'], table: [
+    ['Boer', '20', '2'],
+    ['Negen', '14', '0'],
+    ['Aas', '11', '11'],
+    ['Tien', '10', '10'],
+    ['Heer', '4', '4'],
+    ['Vrouw', '3', '3'],
+    ['Acht, zeven', '0', '0'],
+  ]),
+  RulesSection('Bieden', [
+    'Te beginnen links van de gever past elke speler of biedt een aantal punten en een troefkleur. Het laagste bod '
+        'is 80, elk bod moet hoger zijn dan het vorige, in stappen van tien, tot 160; het hoogste bod van allemaal '
+        'is capot, de belofte om alle slagen te halen.',
+    'Het bieden eindigt als de andere drie na een bod om de beurt passen. Als alle vier aan het begin passen, wordt '
+        'er opnieuw gedeeld.',
+  ]),
+  RulesSection('Coinche en surcoinche', [
+    'Een tegenstander die betwijfelt of een bod gehaald kan worden, kan het coinchen: dat beëindigt het bieden en '
+        'verdubbelt de waarde van het bod. De biedende partij kan antwoorden met een surcoinche, die het opnieuw '
+        'verdubbelt.',
+  ]),
+  RulesSection('Roem en de belote', [
+    'Bij de eerste kaart melden spelers hun reeksen in één kleur en hun vier gelijke. Alleen de partij met de beste '
+        'roem schrijft haar roem, en dan alles.',
+    'Wie heer en vrouw van troef heeft, zegt ‘belote\' bij het spelen van de eerste en ‘rebelote\' bij de tweede, '
+        'voor 20 punten die bij die partij blijven, wat er ook met het contract gebeurt.',
+  ], tableHeader: ['Roem', 'Punten'], table: [
+    ['Drie op een rij', '20'],
+    ['Cinquante — vier op een rij', '50'],
+    ['Cent — vijf op een rij', '100'],
+    ['Vier azen, tienen, heren of vrouwen', '100'],
+    ['Vier negens', '150'],
+    ['Vier boeren', '200'],
+    ['Belote — heer en vrouw van troef', '20'],
+  ]),
+  RulesSection('Het contract halen', [
+    'De biedende partij haalt haar contract als haar punten, met roem en belote, het bod bereiken; een capot is '
+        'alleen gehaald met alle acht slagen. Ze schrijft dan haar punten plus het bod, en de tegenpartij schrijft '
+        'haar eigen punten. De slagen van een capot tellen 250 in plaats van 162.',
+    'Mislukt het contract, dan schrijft de tegenpartij 160 plus het bod, en de biedende partij houdt alleen haar '
+        'belote. Een coinche verdubbelt het bod en een surcoinche verviervoudigt het, terwijl de kaartpunten '
+        'blijven zoals ze zijn. Alle scores worden afgerond op het dichtstbijzijnde tiental, vijven naar boven.',
+    'Clubs verschillen in deze details: sommige tellen alleen het bod, sommige vermenigvuldigen de hele score, '
+        'sommige eisen dat de biedende partij ook meer haalt dan de tegenpartij. De app volgt de telling die hier '
+        'beschreven staat.',
+  ]),
+  RulesSection('Winnen', [
+    'Er wordt meestal tot 2000 punten gespeeld, soms tot 1000, 1500 of 3000. De eerste partij die het doel haalt, '
+        'wint; halen beide het in hetzelfde spel, dan wint de hoogste score.',
+  ]),
+  RulesSection('De stand bijhouden in de app', [
+    'Tik na elk spel op ‘Nieuw spel\', kies de partij die het bieden won, stel haar bod in met − en +, geef een '
+        'coinche of surcoinche aan, tel de roem en voer de punten van één partij in; de app rekent de rest uit, '
+        'telt het bod erbij, ziet een mislukt contract en houdt bij wie deelt.',
+    'Tik op een spel in de lijst om het te verbeteren of te verwijderen, en op ↶ om het laatste ongedaan te maken.',
+  ]),
+];
+
+const _ar = [
+  RulesSection('اللاعبون والأوراق', [
+    'تُلعب كوانش بأربعة لاعبين في فريقين من لاعبَين، ويجلس الشريكان متقابلين، بـ32 ورقة، من السبعة إلى الإكَّة في '
+        'كل نوع. يأخذ كل لاعب ثماني أوراق ولا تُكشف أي ورقة.',
+  ]),
+  RulesSection('قيمة الأوراق', [
+    'الأكلة الأخيرة، dix de der، تضيف 10، فتساوي أوراق الجولة 162 نقطة.',
+  ], tableHeader: ['الورقة', 'الحكم', 'نوع آخر'], table: [
+    ['الولد', '20', '2'],
+    ['التسعة', '14', '0'],
+    ['الإكَّة', '11', '11'],
+    ['العشرة', '10', '10'],
+    ['الشايب', '4', '4'],
+    ['البنت', '3', '3'],
+    ['الثمانية، السبعة', '0', '0'],
+  ]),
+  RulesSection('المزايدة', [
+    'بدءًا من يسار الموزّع، يمرّر كل لاعب أو يزايد بعدد من النقاط ونوع للحكم. أدنى مزايدة 80، ويجب أن تعلو كل '
+        'مزايدة على سابقتها، بعشرة كل مرة، حتى 160؛ وأعلى مزايدة على الإطلاق هي الكابو، أي التعهد بأخذ كل الأكلات.',
+    'تنتهي المزايدة حين يمرّر الثلاثة الآخرون تباعًا بعد مزايدة. وإذا مرّر الأربعة في البداية، تُوزَّع الأوراق من '
+        'جديد.',
+  ]),
+  RulesSection('الكوانش والسوركوانش', [
+    'الخصم الذي يشك في إمكان تنفيذ المزايدة يستطيع أن يقول كوانش، فتنتهي المزايدة وتتضاعف قيمتها. ويستطيع الطرف '
+        'المزايد أن يردّ بسوركوانش، فتتضاعف مرة أخرى.',
+  ]),
+  RulesSection('المشاريع والبيلوت', [
+    'مع الورقة الأولى يعلن اللاعبون متتالياتهم من نوع واحد وأربعهم المتشابهة. ولا يسجّل مشاريعه إلا الطرف صاحب أفضل '
+        'مشروع، ويسجّلها كلها.',
+    'من يملك الشايب والبنت من الحكم يقول «بيلوت» حين يلعب الأولى و«ريبيلوت» حين يلعب الثانية، مقابل 20 نقطة تبقى '
+        'لذلك الطرف مهما حدث للعقد.',
+  ], tableHeader: ['المشروع', 'النقاط'], table: [
+    ['سرا — ثلاث متتالية', '20'],
+    ['خمسين — أربع متتالية', '50'],
+    ['مية — خمس متتالية', '100'],
+    ['أربع إكَك أو عشرات أو شياب أو بنات', '100'],
+    ['أربع تسعات', '150'],
+    ['أربعة أولاد', '200'],
+    ['بيلوت — الشايب والبنت من الحكم', '20'],
+  ]),
+  RulesSection('تنفيذ العقد', [
+    'ينفّذ الطرف المزايد عقده حين تبلغ نقاطه، مع المشاريع والبيلوت، قيمة المزايدة؛ ولا يُنفَّذ الكابو إلا بأخذ '
+        'الأكلات الثماني كلها. فيسجّل حينئذ نقاطه مضافًا إليها المزايدة، ويسجّل الخصوم نقاطهم. وتُحسب أكلات الكابو '
+        '250 بدل 162.',
+    'وإذا فشل العقد، يسجّل الخصوم 160 مضافًا إليها المزايدة، ولا يحتفظ الطرف المزايد إلا ببيلوته. الكوانش يضاعف '
+        'المزايدة والسوركوانش يضربها في أربعة، أما نقاط الأوراق فتبقى كما هي. وتُقرَّب كل النتائج إلى أقرب عشرة، '
+        'والخمسة إلى الأعلى.',
+    'تختلف النوادي في هذه التفاصيل: بعضها يحسب المزايدة وحدها، وبعضها يضاعف النتيجة كلها، وبعضها يشترط أن يتفوق '
+        'الطرف المزايد على خصومه أيضًا. ويتّبع التطبيق الحساب الموصوف هنا.',
+  ]),
+  RulesSection('الفوز', [
+    'تُلعب اللعبة عادةً حتى 2000 نقطة، وأحيانًا حتى 1000 أو 1500 أو 3000. يفوز أول طرف يبلغ الهدف؛ وإذا بلغه '
+        'الطرفان في الجولة نفسها، تفوز النتيجة الأعلى.',
+  ]),
+  RulesSection('تسجيل النتيجة في التطبيق', [
+    'بعد كل جولة اضغط «جولة جديدة»، واختر الطرف الذي فاز بالمزايدة، وحدّد مزايدته بـ− و+، وعلّم الكوانش أو '
+        'السوركوانش، واحسب المشاريع، واكتب نقاط أحد الطرفين؛ يحسب التطبيق الباقي، ويضيف المزايدة، ويكشف العقد '
+        'الفاشل، ويتابع من يوزّع.',
+    'اضغط على أي جولة في السجل لتصحيحها أو حذفها، و↶ للتراجع عن الأخيرة.',
   ]),
 ];

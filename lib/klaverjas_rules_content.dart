@@ -2,8 +2,12 @@ import 'rules_content.dart';
 
 /// The rules of Klaverjas in [lang], English when there is none.
 List<RulesSection> klaverjasRulesContent(String lang) => switch (lang) {
-  'nl' => _nl,
   'uk' => _uk,
+  'fr' => _fr,
+  'bg' => _bg,
+  'hr' => _hr,
+  'nl' => _nl,
+  'ar' => _ar,
   _    => _en,
 };
 
@@ -178,5 +182,234 @@ const _uk = [
     'Після кожної роздачі натисни «Нова роздача», обери гравчу сторону, порахуй роем і введи очки однієї сторони; '
         'решту застосунок порахує сам, помітить нат і стежитиме, хто роздає.',
     'Торкнися будь-якої роздачі в історії, щоб виправити чи видалити її, а ↶ скасовує останню.',
+  ]),
+];
+
+const _fr = [
+  RulesSection('Joueurs et cartes', [
+    'Le Klaverjas se joue à quatre en deux équipes de deux, les partenaires assis face à face, avec 32 cartes, du '
+        'sept à l\'as dans chaque couleur. Chaque joueur reçoit huit cartes.',
+    'Le camp qui choisit l\'atout est le camp qui joue ; l\'autre camp essaie de l\'en empêcher. Les tables '
+        'choisissent l\'atout de différentes façons : à tour de rôle, par une carte retournée, ou avec le premier '
+        'joueur obligé d\'en choisir un.',
+  ]),
+  RulesSection('Valeur des cartes', [
+    'Le dernier pli ajoute 10, donc les cartes d\'une donne valent 162 points. Le valet d\'atout s\'appelle le jas, '
+        'le neuf d\'atout le nel.',
+  ], tableHeader: ['Carte', 'Atout', 'Autre couleur'], table: [
+    ['Valet', '20', '2'],
+    ['Neuf', '14', '0'],
+    ['As', '11', '11'],
+    ['Dix', '10', '10'],
+    ['Roi', '4', '4'],
+    ['Dame', '3', '3'],
+    ['Huit, sept', '0', '0'],
+  ]),
+  RulesSection('Règles d\'Amsterdam et de Rotterdam', [
+    'Il y a deux grandes façons de jouer. Dans les deux, il faut fournir la couleur et, si on ne le peut pas, '
+        'couper, en surcoupant un atout déjà joué si possible.',
+    'Selon les règles de Rotterdam, il faut couper même quand le partenaire est déjà maître du pli. Selon les '
+        'règles d\'Amsterdam, ce n\'est pas obligatoire : un joueur dont le partenaire est maître peut jouer '
+        'n\'importe quelle carte.',
+    'L\'application suit les règles d\'Amsterdam. La différence ne touche que le jeu, donc le score se tient de la '
+        'même façon dans les deux cas.',
+  ]),
+  RulesSection('Roem', [
+    'Le roem se compte dans les plis : le camp qui gagne un pli marque le roem formé par ses quatre cartes. Les '
+        'suites se comptent dans l\'ordre sept, huit, neuf, dix, valet, dame, roi, as, dans une même couleur. Le '
+        'roem s\'ajoute à la valeur de la donne.',
+  ], tableHeader: ['Roem', 'Points'], table: [
+    ['Trois à la suite', '20'],
+    ['Quatre à la suite', '50'],
+    ['Quatre as, rois, dames ou dix', '100'],
+    ['Carré de valets', '200'],
+    ['Stuk — roi et dame d\'atout', '20'],
+  ]),
+  RulesSection('Pit', [
+    'Un camp qui fait les huit plis fait pit et marque 100 de plus en plus des 162 des cartes.',
+  ]),
+  RulesSection('Nat', [
+    'Le camp qui joue doit marquer plus que ses adversaires, roem compris. Sinon, il est nat : les adversaires '
+        'reçoivent les 162 des cartes et tout le roem de la donne, y compris celui du camp qui joue, et le camp qui '
+        'joue ne reçoit rien. L\'égalité de points compte aussi comme nat.',
+  ]),
+  RulesSection('La victoire', [
+    'Une partie se joue souvent en un nombre convenu de donnes, en général seize, après quoi le total le plus élevé '
+        'gagne ; beaucoup de tables jouent plutôt en 1500 points. L\'application joue en 1500 : le premier camp qui '
+        'les atteint gagne, et quand les deux les atteignent dans la même donne, le score le plus élevé gagne.',
+  ]),
+  RulesSection('Tenir le score dans l\'application', [
+    'Après chaque donne, touchez « Nouvelle donne », choisissez le camp qui joue, comptez le roem et saisissez les '
+        'points d\'un camp ; l\'application calcule le reste, voit le nat et sait qui donne.',
+    'Touchez une donne de l\'historique pour la corriger ou la supprimer, et ↶ pour annuler la dernière.',
+  ]),
+];
+
+const _bg = [
+  RulesSection('Играчи и карти', [
+    'Клаверясът се играе от четирима в два отбора по двама, като партньорите седят един срещу друг, с тесте от 32 '
+        'карти, от седмица до асо във всяка боя. Всеки играч получава осем карти.',
+    'Страната, която избира коза, е играещата страна; другата страна се опитва да я спре. Масите избират коза по '
+        'различен начин: поред, с обърната карта или като първият играч е длъжен да избере.',
+  ]),
+  RulesSection('Стойност на картите', [
+    'Последната взятка добавя 10, така че картите в една раздача струват 162 точки. Валето коз се нарича яс, '
+        'деветката коз — нел.',
+  ], tableHeader: ['Карта', 'Коз', 'Друга боя'], table: [
+    ['Вале', '20', '2'],
+    ['Деветка', '14', '0'],
+    ['Асо', '11', '11'],
+    ['Десетка', '10', '10'],
+    ['Поп', '4', '4'],
+    ['Дама', '3', '3'],
+    ['Осмица, седмица', '0', '0'],
+  ]),
+  RulesSection('Амстердамски и ротердамски правила', [
+    'Има два основни начина на игра. И при двата играчът трябва да отговори на боята, а ако не може — да цака, като '
+        'надцаква вече изиграния коз, ако е възможно.',
+    'По ротердамските правила играчът трябва да цака дори когато партньорът му вече взима взятката. По '
+        'амстердамските правила това не е задължително: играч, чийто партньор взима, може да играе всяка карта.',
+    'Приложението следва амстердамските правила. Разликата е само в играта, така че резултатът се води еднакво и '
+        'при двете.',
+  ]),
+  RulesSection('Роем', [
+    'Роемът се брои във взятките: страната, която спечели взятка, записва роема сред четирите ѝ карти. Поредиците '
+        'се броят в реда седмица, осмица, деветка, десетка, вале, дама, поп, асо, в една боя. Роемът се добавя към '
+        'стойността на раздаването.',
+  ], tableHeader: ['Роем', 'Точки'], table: [
+    ['Три поредни', '20'],
+    ['Четири поредни', '50'],
+    ['Четири аса, попа, дами или десетки', '100'],
+    ['Каре валета', '200'],
+    ['Щук — поп и дама коз', '20'],
+  ]),
+  RulesSection('Пит', [
+    'Страната, която вземе всичките осем взятки, прави пит и получава още 100 над 162-те точки от картите.',
+  ]),
+  RulesSection('Нат', [
+    'Играещата страна трябва да събере повече от противниците, заедно с роема. Ако не събере, тя е нат: '
+        'противниците получават 162-те точки от картите и целия роем от раздаването, включително този на играещата '
+        'страна, а играещата страна не получава нищо. Равните точки също се броят за нат.',
+  ]),
+  RulesSection('Победа', [
+    'Често играта е за уговорен брой раздавания, обикновено шестнайсет, след което печели по-високият сбор; много '
+        'маси вместо това играят до 1500 точки. Приложението играе до 1500: печели страната, която първа ги '
+        'достигне, а когато и двете ги достигнат в една раздача, печели по-високият резултат.',
+  ]),
+  RulesSection('Как се води резултатът в приложението', [
+    'След всяка раздача натиснете „Нова раздача", изберете играещата страна, пребройте роема и въведете точките на '
+        'едната страна; приложението изчислява останалото, разпознава нат и следи кой раздава.',
+    'Докоснете която и да е раздача в историята, за да я поправите или изтриете, и ↶, за да отмените последната.',
+  ]),
+];
+
+const _hr = [
+  RulesSection('Igrači i karte', [
+    'Klaverjas igraju četvorica u dva para, a partneri sjede jedan nasuprot drugome, sa špilom od 32 karte, od '
+        'sedmice do asa u svakoj boji. Svaki igrač dobiva osam karata.',
+    'Strana koja bira adut je strana koja igra; druga strana je pokušava zaustaviti. Stolovi biraju adut na '
+        'različite načine: redom, okrenutom kartom ili tako da prvi igrač mora izabrati.',
+  ]),
+  RulesSection('Vrijednost karata', [
+    'Zadnji štih donosi 10, pa karte jednog dijeljenja vrijede 162 boda. Dečko u adutu zove se jas, devetka u adutu '
+        'nel.',
+  ], tableHeader: ['Karta', 'Adut', 'Ostale boje'], table: [
+    ['Dečko', '20', '2'],
+    ['Devetka', '14', '0'],
+    ['As', '11', '11'],
+    ['Desetka', '10', '10'],
+    ['Kralj', '4', '4'],
+    ['Baba', '3', '3'],
+    ['Osmica, sedmica', '0', '0'],
+  ]),
+  RulesSection('Amsterdamska i roterdamska pravila', [
+    'Postoje dva glavna načina igre. U oba igrač mora odgovoriti na boju, a ako ne može, mora rezati adutom, i to '
+        'višim od već odigranog aduta ako je moguće.',
+    'Po roterdamskim pravilima igrač mora rezati i kad njegov partner već nosi štih. Po amsterdamskim pravilima to '
+        'nije obavezno: igrač čiji partner nosi štih smije odigrati bilo koju kartu.',
+    'Aplikacija slijedi amsterdamska pravila. Razlika je samo u igri, pa se rezultat vodi jednako u oba slučaja.',
+  ]),
+  RulesSection('Roem', [
+    'Roem se broji u štihovima: strana koja dobije štih upisuje roem među njegove četiri karte. Nizovi se broje '
+        'redom sedmica, osmica, devetka, desetka, dečko, baba, kralj, as, u jednoj boji. Roem se dodaje vrijednosti '
+        'dijeljenja.',
+  ], tableHeader: ['Roem', 'Bodovi'], table: [
+    ['Tri u nizu', '20'],
+    ['Četiri u nizu', '50'],
+    ['Četiri asa, kralja, babe ili desetke', '100'],
+    ['Četiri dečka', '200'],
+    ['Stuk — kralj i baba u adutu', '20'],
+  ]),
+  RulesSection('Pit', [
+    'Strana koja uzme svih osam štihova ima pit i dobiva još 100 povrh 162 boda od karata.',
+  ]),
+  RulesSection('Nat', [
+    'Strana koja igra mora skupiti više od protivnika, uključujući roem. Ako ne skupi, ona je nat: protivnici '
+        'dobivaju 162 boda od karata i sav roem dijeljenja, i onaj strane koja igra, a strana koja igra ne dobiva '
+        'ništa. I jednak broj bodova računa se kao nat.',
+  ]),
+  RulesSection('Pobjeda', [
+    'Partija se često igra na dogovoreni broj dijeljenja, obično šesnaest, nakon čega pobjeđuje veći zbroj; mnogi '
+        'stolovi umjesto toga igraju do 1500 bodova. Aplikacija igra do 1500: pobjeđuje strana koja ih prva '
+        'dosegne, a kad ih obje dosegnu u istom dijeljenju, pobjeđuje veći rezultat.',
+  ]),
+  RulesSection('Vođenje rezultata u aplikaciji', [
+    'Nakon svakog dijeljenja dodirnite „Novo dijeljenje", odaberite stranu koja igra, prebrojite roem i upišite '
+        'bodove jedne strane; aplikacija izračuna ostalo, prepoznaje nat i prati tko dijeli.',
+    'Dodirnite bilo koje dijeljenje u povijesti da ga ispravite ili izbrišete, a ↶ da poništite zadnje.',
+  ]),
+];
+
+const _ar = [
+  RulesSection('اللاعبون والأوراق', [
+    'تُلعب كلافرياس بأربعة لاعبين في فريقين من لاعبَين، ويجلس الشريكان متقابلين، بـ32 ورقة، من السبعة إلى الإكَّة '
+        'في كل نوع. ويأخذ كل لاعب ثماني أوراق.',
+    'الطرف الذي يختار الحكم هو الطرف اللاعب؛ ويحاول الطرف الآخر أن يوقفه. وتختار الطاولات الحكم بطرق مختلفة: '
+        'بالدور، أو بورقة مكشوفة، أو بإلزام اللاعب الأول باختياره.',
+  ]),
+  RulesSection('قيمة الأوراق', [
+    'الأكلة الأخيرة تضيف 10، فتساوي أوراق الجولة 162 نقطة. ويُسمّى الولد من الحكم «ياس»، والتسعة من الحكم «نِل».',
+  ], tableHeader: ['الورقة', 'الحكم', 'نوع آخر'], table: [
+    ['الولد', '20', '2'],
+    ['التسعة', '14', '0'],
+    ['الإكَّة', '11', '11'],
+    ['العشرة', '10', '10'],
+    ['الشايب', '4', '4'],
+    ['البنت', '3', '3'],
+    ['الثمانية، السبعة', '0', '0'],
+  ]),
+  RulesSection('قواعد أمستردام وروتردام', [
+    'هناك طريقتان رئيسيتان للعب. وفي كلتيهما يجب على اللاعب أن يلعب من النوع نفسه، وإن لم يستطع فعليه أن يقطع '
+        'بالحكم، وأن يعلو على حكم لُعب قبله إن أمكن.',
+    'في قواعد روتردام يجب على اللاعب أن يقطع حتى لو كان شريكه رابحًا للأكلة. وفي قواعد أمستردام لا يلزم ذلك: اللاعب '
+        'الذي يربح شريكه الأكلة يستطيع أن يلعب أي ورقة.',
+    'يتّبع التطبيق قواعد أمستردام. والفرق في اللعب وحده، فتُحسب النتيجة بالطريقة نفسها في الحالتين.',
+  ]),
+  RulesSection('الروم', [
+    'يُحسب الروم داخل الأكلات: الطرف الذي يربح أكلة يسجّل الروم الموجود بين أوراقها الأربع. وتُحسب المتتاليات '
+        'بالترتيب سبعة، ثمانية، تسعة، عشرة، ولد، بنت، شايب، إكَّة، في نوع واحد. ويُضاف الروم إلى قيمة الجولة.',
+  ], tableHeader: ['الروم', 'النقاط'], table: [
+    ['ثلاث متتالية', '20'],
+    ['أربع متتالية', '50'],
+    ['أربع إكَك أو شياب أو بنات أو عشرات', '100'],
+    ['أربعة أولاد', '200'],
+    ['ستوك — الشايب والبنت من الحكم', '20'],
+  ]),
+  RulesSection('البِت', [
+    'الطرف الذي يأخذ الأكلات الثماني كلها يحقق البِت ويسجّل 100 زيادة على نقاط الأوراق الـ162.',
+  ]),
+  RulesSection('النات', [
+    'على الطرف اللاعب أن يجمع أكثر من خصومه، مع الروم. وإن لم يفعل، يصبح نات: يأخذ الخصوم نقاط الأوراق الـ162 وكل '
+        'روم الجولة، ومنه روم الطرف اللاعب، ولا يأخذ الطرف اللاعب شيئًا. والتعادل في النقاط يُعدّ نات أيضًا.',
+  ]),
+  RulesSection('الفوز', [
+    'كثيرًا ما تُلعب اللعبة عددًا متفقًا عليه من الجولات، عادةً ست عشرة، ثم يفوز صاحب المجموع الأعلى؛ وتلعب طاولات '
+        'كثيرة بدلًا من ذلك حتى 1500 نقطة. ويلعب التطبيق حتى 1500: يفوز أول طرف يبلغها، وإذا بلغها الطرفان في '
+        'الجولة نفسها، تفوز النتيجة الأعلى.',
+  ]),
+  RulesSection('تسجيل النتيجة في التطبيق', [
+    'بعد كل جولة اضغط «جولة جديدة»، واختر الطرف اللاعب، واحسب الروم، وأدخل نقاط أحد الطرفين؛ يحسب التطبيق الباقي، '
+        'ويكشف النات، ويتابع من يوزّع.',
+    'اضغط على أي جولة في السجل لتصحيحها أو حذفها، و↶ للتراجع عن الأخيرة.',
   ]),
 ];
