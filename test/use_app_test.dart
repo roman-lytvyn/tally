@@ -59,6 +59,8 @@ void main() {
     expect(read('windows/runner/main.cpp'), contains('L"other"'));
     expect(read('windows/runner/Runner.rc'), allOf(contains('"other.exe"'), isNot(contains('"deberc'))));
     expect(read('pubspec.yaml'), allOf(contains('display_name: Інша'), contains('identity_name: org.example.other')));
+    expect(read('web/index.html'), allOf(contains('<title>Other</title>'), contains('-title" content="Other"')));
+    expect(read('web/manifest.json'), allOf(contains('"name": "Other"'), contains('"short_name": "Other"')));
     expect(read('devops/linux/icons/16.png'), 'icon');
   });
 
@@ -77,6 +79,7 @@ void main() {
     expect(apps.values.where((p) => p['APP_MS_STORE'] == 'true'), hasLength(1));
     for (final app in ['belote', 'belot', 'bela', 'klaverjas', 'coinche', 'baloot']) {
       expect(File('devops/apps/$app/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
+      expect(File('devops/apps/$app/web/icons/Icon-maskable-512.png').existsSync(), isTrue);
     }
   });
 

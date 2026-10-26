@@ -15,6 +15,9 @@ backdrop, keeping their soft shadow, and laid out the way each platform wants:
 - Windows: a multi-size .ico for the executable and installer, and a large
   PNG the MSIX package builds its tiles from.
 - Linux: menu icons in the hicolor sizes the .deb installs.
+- Web: the tab icon, the icons the web app installs to a home screen with,
+  maskable ones that keep the cards inside the shape a launcher cuts, and an
+  opaque one for iOS.
 
 Run from the repository root: python devops/icons/generate_icons.py [app]
 """
@@ -156,6 +159,19 @@ def linux(cards: Image.Image, out: Path) -> None:
         fitted(cards, size, box=0.94).save(folder / f"{size}.png", optimize=True)
 
 
+def web(cards: Image.Image, out: Path) -> None:
+    folder = out / "web/icons"
+    folder.mkdir(parents=True, exist_ok=True)
+    fitted(cards, 32, box=0.96).save(out / "web/favicon.png", optimize=True)
+    for size in (192, 512):
+        fitted(cards, size, box=0.94).save(folder / f"Icon-{size}.png", optimize=True)
+        # A maskable icon is cut to any shape, of which a circle of 40% of the
+        # side around the centre always stays visible.
+        fitted(cards, size, radius=0.36, background=BACKDROP).save(folder / f"Icon-maskable-{size}.png", optimize=True)
+    # iOS rounds the corners itself and shows transparency as black.
+    fitted(cards, 180, box=0.82, background=BACKDROP).save(folder / "apple-touch-icon.png", optimize=True)
+
+
 def main() -> None:
     app = sys.argv[1] if len(sys.argv) > 1 else "deberc"
     out = ROOT if app == "deberc" else ROOT / "devops/apps" / app
@@ -164,6 +180,7 @@ def main() -> None:
     ios(cards, out)
     windows(cards, out)
     linux(cards, out)
+    web(cards, out)
 
 
 if __name__ == "__main__":

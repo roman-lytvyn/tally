@@ -186,6 +186,39 @@ build-linux:
     paths:
       - "*.deb"
 
+# The web app is packed into a .zip the website serves as it is. It is built
+# for WebAssembly with the engine files inside the app, and the fonts the engine
+# falls back to are put next to it, so it loads nothing from other hosts.
+.web-build:
+  extends: [.flutter, .each-app]
+  script:
+    - !reference [.use-app, script]
+    - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
+    - flutter build web --release --wasm --no-web-resources-cdn --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - dart run devops/web/fallback_fonts.dart build/web/fonts
+    # Debug symbols are of no use to a browser, and web/sw.js takes the place of
+    # Flutter's own service worker.
+    - find build/web -name '*.symbols' -delete
+    - rm -f build/web/flutter_service_worker.js
+    - command -v zip > /dev/null || (apt-get update -qq && apt-get install -y -qq zip > /dev/null)
+    - (cd build/web && zip -qr "$CI_PROJECT_DIR/$APP_FILE_NAME-$VERSION-web.zip" .)
+
+build-web:
+  extends: .web-build
+  stage: build
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+    # A merge request that touches the web app or the build checks it still builds.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - web/**/*
+        - devops/**/*
+  artifacts:
+    paths:
+      - "*-web.zip"
+
 # The GitLab Runner service runs under its own account, so a Flutter that was
 # added to a user's PATH is invisible to it. This puts Flutter on PATH for the
 # job from FLUTTER_HOME or a handful of common install folders, and fails with
@@ -409,8 +442,45 @@ publish-linux:
     paths:
       - "*.deb"
 
-# The website offers the Android and Linux files of the latest release, so once
-# both are attached it is rebuilt with this release and goes live with it.
+# The released tag is built for the web and the .zip attached to the release,
+# for the website to serve as the online version of the app.
+publish-web:
+  extends: .web-build
+  stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  variables:
+    GIT_DEPTH: 0
+  needs:
+    - release-version
+  before_script:
+    - |
+      if [ -z "$VERSION" ]; then
+        echo "Nothing to publish"
+        exit 0
+      fi
+    - git checkout "$VERSION"
+    - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache"
+    - flutter pub get
+  after_script:
+    - |
+      [ -z "$VERSION" ] && exit 0
+      . "devops/apps/$APP.env"
+      zip="$APP_FILE_NAME-$VERSION-web.zip"
+      [ -f "$zip" ] || exit 0
+      url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$zip"
+      curl -sf -X POST -H "PRIVATE-TOKEN: $TAG_PUSH_TOKEN" \
+        --data-urlencode "name=$zip" --data-urlencode "url=$url" \
+        --data-urlencode "link_type=package" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$VERSION/assets/links" > /dev/null \
+        && echo "Attached $zip to release $VERSION" \
+        || echo "Could not attach $zip to release $VERSION"
+  artifacts:
+    paths:
+      - "*-web.zip"
+
+# The website offers the files of the latest release and serves its web app,
+# so once they are attached it is rebuilt with this release and goes live with it.
 website:
   stage: deploy
   rules:
@@ -419,6 +489,7 @@ website:
     - release-version
     - publish
     - publish-linux
+    - publish-web
     - publish-windows
   inherit:
     variables: false

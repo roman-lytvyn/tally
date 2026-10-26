@@ -1,6 +1,6 @@
 // Switches the checkout to one app of the family before it is built: the
-// app's name, package id and file names on every platform, and its own icons
-// when it has them.
+// app's name, package id and file names on every platform, the web app's name,
+// and its own icons when it has them.
 //
 // Each app is described by devops/apps/<app>.env. The platform files keep the
 // values of whichever app the checkout was last switched to, Deberc in the
@@ -45,6 +45,12 @@ const places = <(String, String, String)>[
   ('windows/runner/Runner.rc', r'(VALUE "OriginalFilename", ")([^"]*)(\.exe")', 'APP_FILE_NAME'),
   ('pubspec.yaml', r'(\n  display_name: )([^\r\n]*)()', 'APP_TITLE'),
   ('pubspec.yaml', r'(\n  identity_name: )([^\r\n]*)()', 'APP_PACKAGE_ID'),
+  ('web/index.html', r'(<title>)([^<]*)(<)', 'APP_NAME'),
+  ('web/index.html', r'(name="apple-mobile-web-app-title" content=")([^"]*)(")', 'APP_NAME'),
+  ('web/index.html', r'(name="description" content=")([^"]*)(")', 'APP_SUMMARY'),
+  ('web/manifest.json', r'("name": ")([^"]*)(")', 'APP_NAME'),
+  ('web/manifest.json', r'("short_name": ")([^"]*)(")', 'APP_NAME'),
+  ('web/manifest.json', r'("description": ")([^"]*)(")', 'APP_SUMMARY'),
 ];
 
 /// Writes the identity of [app] into the platform files under [root] and lays
