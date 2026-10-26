@@ -2,8 +2,12 @@ import 'rules_content.dart';
 
 /// The rules of Baloot in [lang], English when there is none.
 List<RulesSection> balootRulesContent(String lang) => switch (lang) {
-  'ar' => _ar,
   'uk' => _uk,
+  'fr' => _fr,
+  'bg' => _bg,
+  'hr' => _hr,
+  'nl' => _nl,
+  'ar' => _ar,
   _    => _en,
 };
 
@@ -203,5 +207,282 @@ const _uk = [
         'тріо, фор чи кахву, порахуй проєкти та введи очки за карти однієї сторони; застосунок переведе їх в '
         'ігрові, помітить програну роздачу й стежитиме, хто роздає.',
     'Торкнися будь-якої роздачі в історії, щоб виправити чи видалити її, а ↶ скасовує останню.',
+  ]),
+];
+
+const _fr = [
+  RulesSection('Joueurs et cartes', [
+    'Le Baloot se joue à quatre en deux équipes de deux, les partenaires assis face à face, avec 32 cartes, du sept '
+        'à l\'as dans chaque couleur. Le jeu tourne dans le sens inverse des aiguilles d\'une montre.',
+    'Chaque joueur reçoit d\'abord cinq cartes et une carte est retournée. Le joueur qui l\'achète prend cette '
+        'carte et les autres reçoivent le reste de leurs huit cartes.',
+  ]),
+  RulesSection('Hokm et Sun', [
+    'Chaque joueur à son tour peut acheter la carte retournée en Hokm, une donne avec atout, ou en Sun, une donne '
+        'sans atout ; le Sun l\'emporte sur le Hokm. En Hokm, la couleur de la carte est l\'atout ou, au second '
+        'tour, une autre couleur que l\'acheteur nomme.',
+    'Une donne en Hokm vaut 16 points de partie et une donne en Sun 26, hors projets.',
+  ]),
+  RulesSection('Valeur des cartes', [
+    'Le dernier pli ajoute 10, donc les cartes d\'une donne en Hokm valent 162 points et celles d\'une donne en Sun '
+        '130.',
+  ], tableHeader: ['Carte', 'Atout en Hokm', 'Autres couleurs et Sun'], table: [
+    ['Valet', '20', '2'],
+    ['Neuf', '14', '0'],
+    ['As', '11', '11'],
+    ['Dix', '10', '10'],
+    ['Roi', '4', '4'],
+    ['Dame', '3', '3'],
+    ['Huit, sept', '0', '0'],
+  ]),
+  RulesSection('Projets et baloot', [
+    'Les joueurs annoncent leurs suites et leurs carrés avec la première carte. Seul le camp qui a le meilleur '
+        'projet marque ses projets. En points de partie, un projet compte deux fois plus en Sun qu\'en Hokm.',
+    'Le roi et la dame d\'atout dans une même main forment le baloot : 2 points de partie en Hokm, qui restent '
+        'toujours à leur détenteur et ne sont jamais doublés.',
+  ], tableHeader: ['Projet', 'Hokm', 'Sun'], table: [
+    ['Sira — trois à la suite', '2', '4'],
+    ['Cinquante — quatre qui se suivent', '5', '10'],
+    ['Cent — cinq à la suite, ou quatre rois, dames, valets ou dix ; quatre as en Hokm', '10', '20'],
+    ['Quatre cents — quatre as', '—', '40'],
+    ['Baloot — roi et dame d\'atout', '2', '—'],
+  ]),
+  RulesSection('Compter une donne', [
+    'Un camp compte ses points de cartes et les convertit en points de partie ; l\'autre camp reçoit le reste. En '
+        'Hokm, les points sont arrondis à la dizaine, un cinq arrondi vers le bas, puis divisés par dix ; en Sun, '
+        'ils sont arrondis de la même façon et doublés, tandis qu\'un cinq est simplement divisé par deux.',
+    'D\'habitude, ce sont les adversaires de l\'acheteur qui comptent. L\'acheteur gagne la donne s\'il marque plus '
+        'de points de partie que ses adversaires, projets et baloot compris ; chaque camp marque alors les siens. '
+        'Si l\'acheteur marque moins, les adversaires prennent toute la donne : 16 ou 26 avec tous les projets.',
+    'À égalité de points de partie, le dernier chiffre du camp qui compte décide. En Hokm, le camp qui compte gagne '
+        'sur 2 à 5, l\'acheteur sur 1 et sur 6 à 0 ; en Sun, un cinq va à l\'acheteur.',
+  ]),
+  RulesSection('Kaboot', [
+    'Un camp qui fait tous les plis fait un kaboot : 25 points de partie en Hokm et 44 en Sun, plus ses projets.',
+  ]),
+  RulesSection('Double, three, four et gahwa', [
+    'Les adversaires peuvent doubler une donne ; en Hokm, l\'acheteur peut répondre par un three, les adversaires '
+        'par un four, et l\'acheteur par une gahwa. Une donne en Sun ne peut qu\'être doublée.',
+    'Une donne doublée va entière au camp qui la gagne : 16 ou 26 fois deux, trois ou quatre, avec les projets '
+        'doublés et le baloot tel quel. Qui gagne une gahwa gagne toute la partie.',
+  ]),
+  RulesSection('La victoire', [
+    'La partie se joue en 152 points de partie. Le premier camp à dépasser 152 gagne ; quand les deux le dépassent '
+        'dans la même donne, le score le plus élevé gagne, et à égalité on joue une donne de plus.',
+    'Les tables diffèrent sur certains détails, comme qui compte une donne doublée et comment se règle une égalité. '
+        'L\'application suit le compte décrit ici.',
+  ]),
+  RulesSection('Tenir le score dans l\'application', [
+    'Après chaque donne, touchez « Nouvelle donne », choisissez le camp qui a acheté, choisissez Hokm ou Sun, '
+        'marquez un double, three, four ou gahwa, comptez les projets et saisissez les points de cartes d\'un camp '
+        '; l\'application les convertit en points de partie, voit une donne perdue et sait qui donne.',
+    'Touchez une donne de l\'historique pour la corriger ou la supprimer, et ↶ pour annuler la dernière.',
+  ]),
+];
+
+const _bg = [
+  RulesSection('Играчи и карти', [
+    'Балутът се играе от четирима в два отбора по двама, като партньорите седят един срещу друг, с тесте от 32 '
+        'карти, от седмица до асо във всяка боя. Играта върви обратно на часовниковата стрелка.',
+    'Всеки играч първо получава пет карти и една карта се обръща с лицето нагоре. Играчът, който я купи, взема тази '
+        'карта, а останалите получават остатъка от осемте си карти.',
+  ]),
+  RulesSection('Хокм и сун', [
+    'Всеки играч поред може да купи обърнатата карта като хокм — раздаване с коз, или като сун — раздаване без коз; '
+        'сун е по-силен от хокм. При хокм боята на картата е коз или, във втори кръг, друга боя, която купувачът '
+        'назове.',
+    'Раздаване хокм струва 16 точки за играта, а раздаване сун — 26, без проектите.',
+  ]),
+  RulesSection('Стойност на картите', [
+    'Последната взятка добавя 10, така че картите в раздаване хокм струват 162 точки, а в раздаване сун — 130.',
+  ], tableHeader: ['Карта', 'Коз при хокм', 'Другите бои и сун'], table: [
+    ['Вале', '20', '2'],
+    ['Деветка', '14', '0'],
+    ['Асо', '11', '11'],
+    ['Десетка', '10', '10'],
+    ['Поп', '4', '4'],
+    ['Дама', '3', '3'],
+    ['Осмица, седмица', '0', '0'],
+  ]),
+  RulesSection('Проекти и балут', [
+    'Играчите обявяват поредиците и каретата си с първата карта. Проектите си записва само страната с най-добрия '
+        'проект. В точки за играта проектът струва два пъти повече при сун, отколкото при хокм.',
+    'Поп и дама коз в една ръка са балутът — 2 точки за играта при хокм, които винаги остават за притежателя си и '
+        'никога не се удвояват.',
+  ], tableHeader: ['Проект', 'Хокм', 'Сун'], table: [
+    ['Сира — три поредни', '2', '4'],
+    ['Петдесет — четири поредни', '5', '10'],
+    ['Сто — пет поредни или четири попа, дами, валета или десетки; четири аса при хокм', '10', '20'],
+    ['Четиристотин — четири аса', '—', '40'],
+    ['Балут — поп и дама коз', '2', '—'],
+  ]),
+  RulesSection('Броене на раздаването', [
+    'Едната страна брои точките от картите си и ги превръща в точки за играта; другата страна получава остатъка. '
+        'При хокм точките се закръглят до десетици, като петицата се закръгля надолу, и се делят на десет; при сун '
+        'се закръглят по същия начин и се удвояват, а петицата просто се дели на две.',
+    'Обикновено броят противниците на купувача. Купувачът печели раздаването, ако събере повече точки за играта от '
+        'противниците, заедно с проектите и балута; тогава всяка страна записва своите. Ако купувачът събере '
+        'по-малко, противниците вземат цялото раздаване: 16 или 26 с всички проекти.',
+    'При равни точки за играта решава последната цифра на броящата страна. При хокм броящата страна печели при 2 до '
+        '5, а купувачът при 1 и при 6 до 0; при сун петицата е за купувача.',
+  ]),
+  RulesSection('Кабут', [
+    'Страната, която вземе всички взятки, прави кабут: 25 точки за играта при хокм и 44 при сун, плюс проектите си.',
+  ]),
+  RulesSection('Дабъл, три, четири и гахуа', [
+    'Противниците могат да удвоят раздаването; при хокм купувачът може да отговори с три, противниците с четири, а '
+        'купувачът с гахуа. Раздаване сун може само да се удвои.',
+    'Удвоеното раздаване отива цялото при страната, която го спечели: 16 или 26 по две, три или четири, с удвоени '
+        'проекти и балута без промяна. Който спечели гахуа, печели цялата игра.',
+  ]),
+  RulesSection('Победа', [
+    'Играта е до 152 точки. Печели първата страна, която надхвърли 152; когато и двете го надхвърлят в една '
+        'раздача, печели по-високият резултат, а при равенство се играе още едно раздаване.',
+    'Масите се различават в някои подробности, например кой брои удвоено раздаване и как се решава равенство. '
+        'Приложението следва броенето, описано тук.',
+  ]),
+  RulesSection('Как се води резултатът в приложението', [
+    'След всяка раздача натиснете „Нова раздача", изберете купилата страна, изберете хокм или сун, отбележете '
+        'дабъл, три, четири или гахуа, пребройте проектите и въведете точките от картите на едната страна; '
+        'приложението ги превръща в точки за играта, разпознава загубено раздаване и следи кой раздава.',
+    'Докоснете която и да е раздача в историята, за да я поправите или изтриете, и ↶, за да отмените последната.',
+  ]),
+];
+
+const _hr = [
+  RulesSection('Igrači i karte', [
+    'Balot igraju četvorica u dva para, a partneri sjede jedan nasuprot drugome, sa špilom od 32 karte, od sedmice '
+        'do asa u svakoj boji. Igra ide suprotno od kazaljke na satu.',
+    'Svaki igrač najprije dobiva pet karata i jedna se karta okrene licem prema gore. Igrač koji je kupi uzima tu '
+        'kartu, a ostali dobivaju ostatak svojih osam karata.',
+  ]),
+  RulesSection('Hokm i sun', [
+    'Svaki igrač redom može kupiti okrenutu kartu kao hokm, dijeljenje s adutom, ili kao sun, dijeljenje bez aduta; '
+        'sun je jači od hokma. U hokmu je boja karte adut ili, u drugom krugu, neka druga boja koju kupac imenuje.',
+    'Dijeljenje u hokmu vrijedi 16 bodova igre, a dijeljenje u sunu 26, bez projekata.',
+  ]),
+  RulesSection('Vrijednost karata', [
+    'Zadnji štih donosi 10, pa karte dijeljenja u hokmu vrijede 162 boda, a u sunu 130.',
+  ], tableHeader: ['Karta', 'Adut u hokmu', 'Ostale boje i sun'], table: [
+    ['Dečko', '20', '2'],
+    ['Devetka', '14', '0'],
+    ['As', '11', '11'],
+    ['Desetka', '10', '10'],
+    ['Kralj', '4', '4'],
+    ['Baba', '3', '3'],
+    ['Osmica, sedmica', '0', '0'],
+  ]),
+  RulesSection('Projekti i balot', [
+    'Igrači prijavljuju nizove i četiri iste s prvom kartom. Projekte upisuje samo strana s najboljim projektom. U '
+        'bodovima igre projekt u sunu vrijedi dvostruko više nego u hokmu.',
+    'Kralj i baba u adutu u istoj ruci čine balot, 2 boda igre u hokmu koji uvijek ostaju vlasniku i nikad se ne '
+        'udvostručuju.',
+  ], tableHeader: ['Projekt', 'Hokm', 'Sun'], table: [
+    ['Sira — tri u nizu', '2', '4'],
+    ['Pedeset — četiri zaredom', '5', '10'],
+    ['Sto — pet u nizu ili četiri kralja, babe, dečka ili desetke; četiri asa u hokmu', '10', '20'],
+    ['Četiristo — četiri asa', '—', '40'],
+    ['Balot — kralj i baba u adutu', '2', '—'],
+  ]),
+  RulesSection('Brojanje dijeljenja', [
+    'Jedna strana broji svoje bodove karata i pretvara ih u bodove igre; druga strana dobiva ostatak. U hokmu se '
+        'bodovi zaokružuju na desetice, petica se zaokružuje prema dolje, i dijele s deset; u sunu se zaokružuju na '
+        'isti način i udvostručuju, a petica se jednostavno prepolovi.',
+    'Obično broje protivnici kupca. Kupac dobiva dijeljenje ako skupi više bodova igre od protivnika, uključujući '
+        'projekte i balot; tada svaka strana upisuje svoje. Ako kupac skupi manje, protivnici uzimaju cijelo '
+        'dijeljenje: 16 ili 26 sa svim projektima.',
+    'Kod jednakih bodova igre odlučuje zadnja znamenka strane koja broji. U hokmu strana koja broji dobiva na 2 do '
+        '5, a kupac na 1 i na 6 do 0; u sunu petica ide kupcu.',
+  ]),
+  RulesSection('Kabut', [
+    'Strana koja uzme sve štihove ima kabut: 25 bodova igre u hokmu i 44 u sunu, uz svoje projekte.',
+  ]),
+  RulesSection('Dabl, tri, četiri i gahva', [
+    'Protivnici mogu udvostručiti dijeljenje; u hokmu kupac može odgovoriti s tri, protivnici s četiri, a kupac s '
+        'gahvom. Dijeljenje u sunu može se samo udvostručiti.',
+    'Udvostručeno dijeljenje ide cijelo strani koja ga dobije: 16 ili 26 puta dva, tri ili četiri, s udvostručenim '
+        'projektima i balotom kakav jest. Tko dobije gahvu, dobiva cijelu partiju.',
+  ]),
+  RulesSection('Pobjeda', [
+    'Partija se igra do 152 boda igre. Pobjeđuje prva strana koja prijeđe 152; kad ih obje prijeđu u istom '
+        'dijeljenju, pobjeđuje veći rezultat, a kod jednakog rezultata igra se još jedno dijeljenje.',
+    'Stolovi se razlikuju u nekim pojedinostima, primjerice tko broji udvostručeno dijeljenje i kako se rješava '
+        'neriješeno. Aplikacija slijedi brojanje opisano ovdje.',
+  ]),
+  RulesSection('Vođenje rezultata u aplikaciji', [
+    'Nakon svakog dijeljenja dodirnite „Novo dijeljenje", odaberite stranu koja je kupila, odaberite hokm ili sun, '
+        'označite dabl, tri, četiri ili gahvu, prebrojite projekte i upišite bodove karata jedne strane; aplikacija '
+        'ih pretvara u bodove igre, prepoznaje izgubljeno dijeljenje i prati tko dijeli.',
+    'Dodirnite bilo koje dijeljenje u povijesti da ga ispravite ili izbrišete, a ↶ da poništite zadnje.',
+  ]),
+];
+
+const _nl = [
+  RulesSection('Spelers en kaarten', [
+    'Baloot wordt met vier gespeeld in twee teams van twee, met de partners tegenover elkaar, met 32 kaarten, zeven '
+        'tot en met aas in elke kleur. Er wordt tegen de klok in gespeeld.',
+    'Elke speler krijgt eerst vijf kaarten en één kaart wordt opengedraaid. De speler die hem koopt, neemt die '
+        'kaart en de anderen krijgen de rest van hun acht kaarten.',
+  ]),
+  RulesSection('Hokm en sun', [
+    'Om de beurt mag elke speler de opengedraaide kaart kopen als hokm, een spel met troef, of als sun, een spel '
+        'zonder troef; sun gaat boven hokm. Bij hokm is de kleur van de kaart troef, of in een tweede ronde een '
+        'andere kleur die de koper noemt.',
+    'Een hokm-spel is 16 spelpunten waard en een sun-spel 26, zonder projecten.',
+  ]),
+  RulesSection('Waarde van de kaarten', [
+    'De laatste slag geeft er 10 bij, dus de kaarten van een hokm-spel zijn 162 punten waard en die van een '
+        'sun-spel 130.',
+  ], tableHeader: ['Kaart', 'Troef bij hokm', 'Andere kleuren en sun'], table: [
+    ['Boer', '20', '2'],
+    ['Negen', '14', '0'],
+    ['Aas', '11', '11'],
+    ['Tien', '10', '10'],
+    ['Heer', '4', '4'],
+    ['Vrouw', '3', '3'],
+    ['Acht, zeven', '0', '0'],
+  ]),
+  RulesSection('Projecten en de baloot', [
+    'Spelers melden hun reeksen en vier gelijke bij de eerste kaart. Alleen de partij met het beste project '
+        'schrijft haar projecten. In spelpunten telt een project bij sun twee keer zoveel als bij hokm.',
+    'Heer en vrouw van troef in één hand zijn de baloot, 2 spelpunten bij hokm die altijd bij hun houder blijven en '
+        'nooit verdubbeld worden.',
+  ], tableHeader: ['Project', 'Hokm', 'Sun'], table: [
+    ['Sira — drie op een rij', '2', '4'],
+    ['Vijftig — vier op een rij', '5', '10'],
+    ['Honderd — vijf op een rij, of vier heren, vrouwen, boeren of tienen; vier azen bij hokm', '10', '20'],
+    ['Vierhonderd — vier azen', '—', '40'],
+    ['Baloot — heer en vrouw van troef', '2', '—'],
+  ]),
+  RulesSection('Een spel tellen', [
+    'Eén partij telt haar kaartpunten en zet ze om in spelpunten; de andere partij krijgt de rest. Bij hokm worden '
+        'de punten op tientallen afgerond, een vijf naar beneden, en door tien gedeeld; bij sun worden ze op '
+        'dezelfde manier afgerond en verdubbeld, terwijl een vijf gewoon gehalveerd wordt.',
+    'Normaal tellen de tegenstanders van de koper. De koper wint het spel als hij meer spelpunten haalt dan de '
+        'tegenstanders, projecten en baloot inbegrepen; dan schrijft elke partij de hare. Haalt de koper minder, '
+        'dan nemen de tegenstanders het hele spel: 16 of 26 met alle projecten.',
+    'Bij gelijke spelpunten beslist het laatste cijfer van de tellende partij. Bij hokm wint de tellende partij op '
+        '2 tot en met 5, de koper op 1 en op 6 tot en met 0; bij sun gaat een vijf naar de koper.',
+  ]),
+  RulesSection('Kaboot', [
+    'Een partij die alle slagen haalt, maakt kaboot: 25 spelpunten bij hokm en 44 bij sun, plus haar projecten.',
+  ]),
+  RulesSection('Double, three, four en gahwa', [
+    'De tegenstanders mogen een spel verdubbelen; bij hokm kan de koper antwoorden met een three, de tegenstanders '
+        'met een four en de koper met een gahwa. Een sun-spel kan alleen verdubbeld worden.',
+    'Een verdubbeld spel gaat helemaal naar de partij die het wint: 16 of 26 keer twee, drie of vier, met de '
+        'projecten verdubbeld en de baloot zoals hij is. Wie een gahwa wint, wint de hele partij.',
+  ]),
+  RulesSection('Winnen', [
+    'De partij gaat tot 152 spelpunten. De eerste partij die over 152 gaat, wint; gaan beide erover in hetzelfde '
+        'spel, dan wint de hoogste stand, en bij gelijke stand wordt nog een spel gespeeld.',
+    'Tafels verschillen in sommige details, zoals wie een verdubbeld spel telt en hoe een gelijke stand wordt '
+        'beslist. De app volgt de telling die hier beschreven staat.',
+  ]),
+  RulesSection('De stand bijhouden in de app', [
+    'Tik na elk spel op ‘Nieuw spel\', kies de partij die kocht, kies hokm of sun, markeer een double, three, four '
+        'of gahwa, tel de projecten en voer de kaartpunten van één partij in; de app zet ze om in spelpunten, ziet '
+        'een verloren spel en houdt bij wie deelt.',
+    'Tik op een spel in de lijst om het te verbeteren of te verwijderen, en op ↶ om het laatste ongedaan te maken.',
   ]),
 ];

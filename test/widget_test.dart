@@ -490,92 +490,67 @@ void main() {
 
   test('has the rules of every game in every language', () {
     for (final game in GameRules.all) {
+      final en = rulesContent('en', game);
       for (final lang in kLanguages) {
-        expect(rulesContent(lang, game), isNotEmpty);
-        expect(rulesContent(lang, game).first.title, isIn(const [
+        final other = rulesContent(lang, game);
+        expect(other.first.title, isIn(const [
           'Players and cards', 'Гравці й карти', 'Гравці та карти', 'Joueurs et cartes', 'Играчи и карти',
           'Igrači i karte', 'Spelers en kaarten', 'اللاعبون والأوراق',
         ]));
+        if (lang != 'en') expect(other.first.title, isNot(en.first.title), reason: '${game.id} $lang');
       }
     }
     expect(rulesContent('fr', GameRules.belote).first.title, 'Joueurs et cartes');
-    expect(rulesContent('uk', GameRules.belote).first.title, 'Гравці й карти');
     expect(rulesContent('uk', GameRules.belote), isNot(rulesContent('uk')));
-    expect(rulesContent('fr'), rulesContent('en'));
-    expect(rulesContent('bg', GameRules.belot).first.title, 'Играчи и карти');
-    expect(rulesContent('uk', GameRules.belot), isNot(rulesContent('uk', GameRules.belote)));
-    expect(rulesContent('fr', GameRules.belot), rulesContent('en', GameRules.belot));
+    expect(rulesContent('hr', GameRules.klaverjas).first.title, 'Igrači i karte');
+    expect(rulesContent('ar').first.title, 'اللاعبون والأوراق');
   });
 
-  test('gives every Bulgarian Belot rules language the same sections and table rows', () {
-    final en = rulesContent('en', GameRules.belot);
-    for (final lang in ['bg', 'uk']) {
-      final other = rulesContent(lang, GameRules.belot);
-      expect(other.length, en.length);
-      for (var i = 0; i < en.length; i++) {
-        expect(other[i].paragraphs.length, en[i].paragraphs.length);
-        expect(other[i].table.length, en[i].table.length);
-      }
-    }
-  });
-
-  test('gives every Klaverjas rules language the same sections and table rows', () {
-    final en = rulesContent('en', GameRules.klaverjas);
-    expect(rulesContent('nl', GameRules.klaverjas).first.title, 'Spelers en kaarten');
-    expect(rulesContent('fr', GameRules.klaverjas), en);
-    for (final lang in ['nl', 'uk']) {
-      final other = rulesContent(lang, GameRules.klaverjas);
-      expect(other.length, en.length);
-      for (var i = 0; i < en.length; i++) {
-        expect(other[i].paragraphs.length, en[i].paragraphs.length);
-        expect(other[i].table.length, en[i].table.length);
-      }
-    }
-  });
-
-  test('gives every Coinche rules language the same sections and table rows', () {
-    final en = rulesContent('en', GameRules.coinche);
-    expect(rulesContent('fr', GameRules.coinche).first.title, 'Joueurs et cartes');
-    expect(rulesContent('nl', GameRules.coinche), en);
-    for (final lang in ['fr', 'uk']) {
-      final other = rulesContent(lang, GameRules.coinche);
-      expect(other.length, en.length);
-      for (var i = 0; i < en.length; i++) {
-        expect(other[i].paragraphs.length, en[i].paragraphs.length);
-        expect(other[i].table.length, en[i].table.length);
-      }
-    }
-  });
-
-  test('gives every Baloot rules language the same sections and table rows', () {
-    final en = rulesContent('en', GameRules.baloot);
-    expect(rulesContent('ar', GameRules.baloot).first.title, 'اللاعبون والأوراق');
-    expect(rulesContent('fr', GameRules.baloot), en);
-    for (final lang in ['ar', 'uk']) {
-      final other = rulesContent(lang, GameRules.baloot);
-      expect(other.length, en.length);
-      for (var i = 0; i < en.length; i++) {
-        expect(other[i].paragraphs.length, en[i].paragraphs.length);
-        expect(other[i].table.length, en[i].table.length);
-        for (var j = 0; j < en[i].table.length; j++) {
-          expect(other[i].table[j].length, en[i].table[j].length);
+  test('gives every rules language of a game the same sections, table rows and numbers', () {
+    for (final game in GameRules.all) {
+      final en = rulesContent('en', game);
+      for (final lang in kLanguages) {
+        final other = rulesContent(lang, game);
+        final where = '${game.id} $lang';
+        expect(other.length, en.length, reason: where);
+        for (var i = 0; i < en.length; i++) {
+          expect(other[i].paragraphs.length, en[i].paragraphs.length, reason: '$where §$i');
+          expect(other[i].tableHeader?.length, en[i].tableHeader?.length, reason: '$where §$i');
+          expect(other[i].table.length, en[i].table.length, reason: '$where §$i');
+          for (var j = 0; j < en[i].table.length; j++) {
+            expect(other[i].table[j].length, en[i].table[j].length, reason: '$where §$i row $j');
+            // The points in a table are the same in every language; only the words change.
+            for (var k = 0; k < en[i].table[j].length; k++) {
+              final cell = en[i].table[j][k];
+              if (RegExp(r'^[\d\s,.+−–/×%-]+$').hasMatch(cell)) {
+                expect(other[i].table[j][k], cell, reason: '$where §$i row $j');
+              }
+            }
+          }
         }
       }
     }
   });
 
-  test('gives every Bela rules language the same sections and table rows', () {
-    final en = rulesContent('en', GameRules.bela);
-    expect(rulesContent('hr', GameRules.bela).first.title, 'Igrači i karte');
-    expect(rulesContent('fr', GameRules.bela), en);
-    for (final lang in ['hr', 'uk']) {
-      final other = rulesContent(lang, GameRules.bela);
-      expect(other.length, en.length);
-      for (var i = 0; i < en.length; i++) {
-        expect(other[i].paragraphs.length, en[i].paragraphs.length);
-        expect(other[i].table.length, en[i].table.length);
-      }
-    }
+  testWidgets('shows the rules in the language chosen in the settings', (tester) async {
+    const hr = AppStrings('hr', GameRules.klaverjas);
+    await openApp(tester, rules: GameRules.klaverjas);
+    await tapText(tester, const AppStrings('uk', GameRules.klaverjas).settingsBtn);
+    await tapText(tester, 'Hrvatski');
+    await tapText(tester, hr.backBtn);
+    await tapText(tester, hr.rulesBtn);
+
+    expect(find.text('IGRAČI I KARTE'), findsOneWidget);
+  });
+
+  testWidgets('reads the Arabic rules right to left', (tester) async {
+    SharedPreferences.setMockInitialValues({'deberc_lang': 'ar'});
+    await openApp(tester, rules: GameRules.belote);
+    await tapText(tester, const AppStrings('ar', GameRules.belote).rulesBtn);
+
+    final title = find.text('اللاعبون والأوراق');
+    expect(title, findsOneWidget);
+    expect(Directionality.of(tester.element(title)), TextDirection.rtl);
   });
 
   testWidgets('offers no way to continue when nothing was played', (tester) async {
