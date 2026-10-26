@@ -1,6 +1,6 @@
 import 'rules_content.dart';
 
-/// The rules and history of Bulgarian Belot in [lang], English when there is none.
+/// The rules of Bulgarian Belot in [lang], English when there is none.
 List<RulesSection> belotRulesContent(String lang) => switch (lang) {
   'bg' => _bg,
   'uk' => _uk,
@@ -8,16 +8,6 @@ List<RulesSection> belotRulesContent(String lang) => switch (lang) {
 };
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Belot is the Bulgarian member of the Jass, or jack–nine, family of card games, in which the jack and the '
-        'nine are the highest trumps. It came to Bulgaria from the French Belote and is now the most played card '
-        'game in the country.',
-    'The Bulgarian game took its own form: instead of taking a turned-up card, players bid for a contract, as '
-        'in bridge, which is why it is also called bridge-belot. A deal can be played in one suit, without trumps '
-        'or with every suit trump.',
-    'Its relatives include the French Belote, the Croatian Bela, the Armenian Bazar Blot, the Saudi Baloot and '
-        'the Ukrainian Deberc.',
-  ]),
   RulesSection('Players and cards', [
     'Belot is played by four in two teams of two, partners sitting opposite each other, with a 32-card deck, '
         'seven to ace in each suit. The deal and the play go counter-clockwise.',
@@ -87,14 +77,6 @@ const _en = [
 ];
 
 const _bg = [
-  RulesSection('Откъде идва играта', [
-    'Белотът е българският представител на семейството игри джас, в които валето и деветката са най-силните '
-        'козове. В България идва от френския белот и днес е най-играната игра на карти в страната.',
-    'Българската игра има своя форма: вместо да се вземе обърната карта, играчите обявяват договор, както в '
-        'бриджа, затова се нарича и бридж-белот. Раздаването може да се играе в една боя, без коз или всичко коз.',
-    'Сродни игри са френският белот, хърватската бела, арменският базар блот, саудитският балут и украинският '
-        'деберц.',
-  ]),
   RulesSection('Играчи и карти', [
     'Белот играят четирима в два отбора по двама, партньорите седят един срещу друг, с колода от 32 карти, от '
         'седмица до асо във всяка боя. Раздаването и играта вървят обратно на часовниковата стрелка.',
@@ -163,15 +145,6 @@ const _bg = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Белот — болгарський представник родини джас, карткових ігор, у яких валет і дев\'ятка — найстарші козирі. '
-        'До Болгарії він прийшов із французького белоту й сьогодні це найпопулярніша карткова гра в країні.',
-    'Болгарська гра має свою форму: замість того щоб брати відкриту карту, гравці торгуються за контракт, як у '
-        'бриджі, тому її ще називають бридж-белот. Роздачу можна грати в одній масті, без козиря або коли козирні '
-        'всі масті.',
-    'Її родичі — французький белот, хорватська бела, вірменський базар блот, саудівський балут і український '
-        'деберць.',
-  ]),
   RulesSection('Гравці й карти', [
     'У белот грають четверо, двома командами по двоє, партнери сидять один навпроти одного, колодою з 32 карт, '
         'від сімки до туза в кожній масті. Роздача й гра йдуть проти годинникової стрілки.',

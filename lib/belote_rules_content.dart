@@ -1,6 +1,6 @@
 import 'rules_content.dart';
 
-/// The rules and history of Belote in [lang], English when there is none.
+/// The rules of Belote in [lang], English when there is none.
 List<RulesSection> beloteRulesContent(String lang) => switch (lang) {
   'uk' => _uk,
   'fr' => _fr,
@@ -8,18 +8,6 @@ List<RulesSection> beloteRulesContent(String lang) => switch (lang) {
 };
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Belote is the best-known French member of the Jass, or jack–nine, family of card games, in which the '
-        'jack and the nine are the highest trumps.',
-    'The family comes from the Low Countries, where the Dutch Klaverjas is recorded in the 18th century. '
-        'Belote appears in France in the early 1920s and within a decade became one of the most played card '
-        'games there, in cafés, at home and in clubs.',
-    'The same game travelled further east and south: Bela in Croatia, Belot in Bulgaria, Bazar Blot in Armenia, '
-        'Baloot in Saudi Arabia, and Deberc in Ukraine, which shares its card values, its declarations and the '
-        'king and queen of trumps.',
-    'Where the name comes from is not known. A story about a Monsieur Belot who invented the game is often '
-        'repeated, but no document supports it.',
-  ]),
   RulesSection('Players and cards', [
     'Belote is played by four in two teams of two, partners sitting opposite each other; two or three can also '
         'play, each for themselves. The game uses a 32-card deck, seven to ace in each suit.',
@@ -95,18 +83,6 @@ const _en = [
 ];
 
 const _fr = [
-  RulesSection('D\'où vient le jeu', [
-    'La belote est le membre français le plus connu de la famille du jass, les jeux où le valet et le neuf '
-        'sont les plus forts atouts.',
-    'La famille vient des Pays-Bas, où le klaverjas néerlandais est attesté dès le XVIIIe siècle. La belote '
-        'apparaît en France au début des années 1920 et devient en une dizaine d\'années l\'un des jeux de cartes '
-        'les plus joués du pays, au café, en famille et en club.',
-    'Le même jeu a voyagé plus loin vers l\'est et le sud : la bela en Croatie, le belot en Bulgarie, le bazar '
-        'blot en Arménie, le baloot en Arabie saoudite, et le deberc en Ukraine, qui en partage la valeur des '
-        'cartes, les annonces et le roi et la dame d\'atout.',
-    'L\'origine du nom n\'est pas connue. On raconte souvent qu\'un certain M. Belot l\'aurait inventé, mais '
-        'aucun document ne le confirme.',
-  ]),
   RulesSection('Joueurs et cartes', [
     'La belote se joue à quatre, en deux équipes de deux, les partenaires face à face ; on peut aussi y jouer à '
         'deux ou à trois, chacun pour soi. Le jeu compte 32 cartes, du sept à l\'as dans chaque couleur.',
@@ -182,18 +158,6 @@ const _fr = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Белот — найвідоміший французький представник родини ясу, карткових ігор, де найстаршими козирями є валет '
-        'і дев\'ятка.',
-    'Родина походить з Нідерландів, де нідерландський клаверяс відомий ще з XVIII століття. Белот з\'являється '
-        'у Франції на початку 1920-х і за якесь десятиліття стає однією з найпопулярніших карткових ігор країни — '
-        'у кав\'ярнях, удома й у клубах.',
-    'Та сама гра мандрувала далі на схід і південь: бела в Хорватії, белот у Болгарії, базар блот у Вірменії, '
-        'балут у Саудівській Аравії і деберць в Україні, який має ту саму вартість карт, ті самі комбінації та '
-        'короля й даму козирів.',
-    'Звідки походить назва, невідомо. Часто переказують історію про такого собі пана Белота, що нібито вигадав '
-        'гру, але жоден документ цього не підтверджує.',
-  ]),
   RulesSection('Гравці й карти', [
     'У белот грають учотирьох, двома командами по двоє, партнери сидять навпроти; можна грати й удвох чи втрьох, '
         'кожен сам за себе. Колода — 32 карти, від сімки до туза в кожній масті.',

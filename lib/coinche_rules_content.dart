@@ -1,6 +1,6 @@
 import 'rules_content.dart';
 
-/// The rules and history of Coinche in [lang], English when there is none.
+/// The rules of Coinche in [lang], English when there is none.
 List<RulesSection> coincheRulesContent(String lang) => switch (lang) {
   'fr' => _fr,
   'uk' => _uk,
@@ -8,15 +8,6 @@ List<RulesSection> coincheRulesContent(String lang) => switch (lang) {
 };
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Coinche, also called Belote contrée, grew out of Belote in France in the 20th century. Belote itself took '
-        'shape in France around 1920 from the jack–nine family of games, in which the jack and the nine are the '
-        'highest trumps.',
-    'Instead of taking or refusing a turned-up card, the players bid for the trump, and the side that bids the '
-        'most has to make what it promised. Coinche is now the favourite way to play Belote in clubs and '
-        'tournaments across France. Its relatives include the Dutch Klaverjas, the Croatian Bela, the Bulgarian '
-        'Belot and the Ukrainian Deberc.',
-  ]),
   RulesSection('Players and cards', [
     'Coinche is played by four in two teams of two, partners sitting opposite each other, with a 32-card deck, '
         'seven to ace in each suit. Every player gets eight cards and no card is turned up.',
@@ -80,14 +71,6 @@ const _en = [
 ];
 
 const _fr = [
-  RulesSection('Les origines du jeu', [
-    'La coinche, ou belote contrée, est née de la belote en France au XXe siècle. La belote elle-même a pris forme '
-        'en France vers 1920, dans la famille des jeux où le valet et le neuf sont les plus forts atouts.',
-    'Au lieu de prendre ou de refuser une carte retournée, les joueurs annoncent des contrats, et le camp qui '
-        'annonce le plus doit réaliser ce qu\'il a promis. La coinche est aujourd\'hui la façon préférée de jouer à '
-        'la belote dans les clubs et les tournois de toute la France. Parmi ses cousins : le klaverjas néerlandais, '
-        'la bela croate, le belot bulgare et le deberc ukrainien.',
-  ]),
   RulesSection('Joueurs et cartes', [
     'La coinche se joue à quatre, en deux équipes de deux, les partenaires face à face, avec un jeu de 32 cartes, '
         'du sept à l\'as dans chaque couleur. Chaque joueur reçoit huit cartes et aucune carte n\'est retournée.',
@@ -152,14 +135,6 @@ const _fr = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Куанш, або белот контре, виріс із белоту у Франції у XX столітті. Сам белот склався у Франції близько 1920 '
-        'року з родини ігор, у яких валет і дев\'ятка — найстарші козирі.',
-    'Замість того щоб брати чи не брати відкриту карту, гравці торгуються за козир, і сторона, що замовила '
-        'найбільше, мусить виконати обіцяне. Нині куанш — улюблений спосіб грати в белот у клубах і на турнірах по '
-        'всій Франції. Серед його родичів — нідерландський клаверяс, хорватська бела, болгарський белот і '
-        'український деберць.',
-  ]),
   RulesSection('Гравці та карти', [
     'У куанш грають учотирьох, двома командами по двоє, партнери сидять навпроти, колодою з 32 карт, від сімки до '
         'туза в кожній масті. Кожен гравець отримує вісім карт, жодна карта не відкривається.',

@@ -463,12 +463,12 @@ void main() {
     });
   });
 
-  testWidgets('explains the rules and where the game comes from', (tester) async {
+  testWidgets('explains the rules of the game', (tester) async {
     await openApp(tester);
     await tapText(tester, uk.rulesBtn);
 
     expect(find.text(uk.rulesTitle), findsOneWidget);
-    expect(find.text('ЗВІДКИ ПОХОДИТЬ ГРА'), findsOneWidget);
+    expect(find.text('ГРАВЦІ Й КАРТИ'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('ЯЙЦЯ — НІЧИЯ'), 300);
     expect(find.text('ЯЙЦЯ — НІЧИЯ'), findsOneWidget);
 
@@ -483,7 +483,7 @@ void main() {
     await openApp(tester, rules: GameRules.belote);
     await tapText(tester, const AppStrings('fr', GameRules.belote).rulesBtn);
 
-    expect(find.text('D\'OÙ VIENT LE JEU'), findsOneWidget);
+    expect(find.text('JOUEURS ET CARTES'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('BELOTE-REBELOTE'), 300);
     expect(find.text('BELOTE-REBELOTE'), findsOneWidget);
   });
@@ -492,13 +492,17 @@ void main() {
     for (final game in GameRules.all) {
       for (final lang in kLanguages) {
         expect(rulesContent(lang, game), isNotEmpty);
+        expect(rulesContent(lang, game).first.title, isIn(const [
+          'Players and cards', 'Гравці й карти', 'Гравці та карти', 'Joueurs et cartes', 'Играчи и карти',
+          'Igrači i karte', 'Spelers en kaarten', 'اللاعبون والأوراق',
+        ]));
       }
     }
-    expect(rulesContent('fr', GameRules.belote).first.title, 'D\'où vient le jeu');
-    expect(rulesContent('uk', GameRules.belote).first.title, 'Звідки походить гра');
+    expect(rulesContent('fr', GameRules.belote).first.title, 'Joueurs et cartes');
+    expect(rulesContent('uk', GameRules.belote).first.title, 'Гравці й карти');
     expect(rulesContent('uk', GameRules.belote), isNot(rulesContent('uk')));
     expect(rulesContent('fr'), rulesContent('en'));
-    expect(rulesContent('bg', GameRules.belot).first.title, 'Откъде идва играта');
+    expect(rulesContent('bg', GameRules.belot).first.title, 'Играчи и карти');
     expect(rulesContent('uk', GameRules.belot), isNot(rulesContent('uk', GameRules.belote)));
     expect(rulesContent('fr', GameRules.belot), rulesContent('en', GameRules.belot));
   });
@@ -517,7 +521,7 @@ void main() {
 
   test('gives every Klaverjas rules language the same sections and table rows', () {
     final en = rulesContent('en', GameRules.klaverjas);
-    expect(rulesContent('nl', GameRules.klaverjas).first.title, 'Waar het spel vandaan komt');
+    expect(rulesContent('nl', GameRules.klaverjas).first.title, 'Spelers en kaarten');
     expect(rulesContent('fr', GameRules.klaverjas), en);
     for (final lang in ['nl', 'uk']) {
       final other = rulesContent(lang, GameRules.klaverjas);
@@ -531,7 +535,7 @@ void main() {
 
   test('gives every Coinche rules language the same sections and table rows', () {
     final en = rulesContent('en', GameRules.coinche);
-    expect(rulesContent('fr', GameRules.coinche).first.title, 'Les origines du jeu');
+    expect(rulesContent('fr', GameRules.coinche).first.title, 'Joueurs et cartes');
     expect(rulesContent('nl', GameRules.coinche), en);
     for (final lang in ['fr', 'uk']) {
       final other = rulesContent(lang, GameRules.coinche);
@@ -545,7 +549,7 @@ void main() {
 
   test('gives every Baloot rules language the same sections and table rows', () {
     final en = rulesContent('en', GameRules.baloot);
-    expect(rulesContent('ar', GameRules.baloot).first.title, 'أصل اللعبة');
+    expect(rulesContent('ar', GameRules.baloot).first.title, 'اللاعبون والأوراق');
     expect(rulesContent('fr', GameRules.baloot), en);
     for (final lang in ['ar', 'uk']) {
       final other = rulesContent(lang, GameRules.baloot);
@@ -562,7 +566,7 @@ void main() {
 
   test('gives every Bela rules language the same sections and table rows', () {
     final en = rulesContent('en', GameRules.bela);
-    expect(rulesContent('hr', GameRules.bela).first.title, 'Odakle dolazi igra');
+    expect(rulesContent('hr', GameRules.bela).first.title, 'Igrači i karte');
     expect(rulesContent('fr', GameRules.bela), en);
     for (final lang in ['hr', 'uk']) {
       final other = rulesContent(lang, GameRules.bela);

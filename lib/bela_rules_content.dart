@@ -1,6 +1,6 @@
 import 'rules_content.dart';
 
-/// The rules and history of Bela in [lang], English when there is none.
+/// The rules of Bela in [lang], English when there is none.
 List<RulesSection> belaRulesContent(String lang) => switch (lang) {
   'hr' => _hr,
   'uk' => _uk,
@@ -8,13 +8,6 @@ List<RulesSection> belaRulesContent(String lang) => switch (lang) {
 };
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Bela is the Croatian member of the Jass, or jack–nine, family of card games, in which the jack and the nine '
-        'are the highest trumps. It came to the Adriatic from the Hungarian and French forms of the game and is '
-        'now played all over Croatia, Bosnia and Herzegovina, Serbia and Montenegro, in cafés as much as at home.',
-    'Its relatives include the French Belote, the Bulgarian Belot, the Saudi Baloot, the Dutch Klaverjas and the '
-        'Ukrainian Deberc.',
-  ]),
   RulesSection('Players and cards', [
     'Bela is played by four in two teams of two, partners sitting opposite each other, with a 32-card deck, '
         'seven to ace in each suit. The deal and the play go counter-clockwise. Two can play as well, each for '
@@ -74,13 +67,6 @@ const _en = [
 ];
 
 const _hr = [
-  RulesSection('Odakle dolazi igra', [
-    'Bela je hrvatska inačica obitelji kartaških igara Jass, u kojoj su dečko i devetka najjači aduti. Na Jadran '
-        'je stigla iz mađarskih i francuskih oblika igre, a danas se igra po cijeloj Hrvatskoj, Bosni i '
-        'Hercegovini, Srbiji i Crnoj Gori, u kafiću jednako kao i kod kuće.',
-    'Njezini su rođaci francuska Belote, bugarski Belot, saudijski Baloot, nizozemski Klaverjas i ukrajinski '
-        'Deberc.',
-  ]),
   RulesSection('Igrači i karte', [
     'Belu igraju četvorica u dvije ekipe po dvoje, partneri sjede jedan nasuprot drugome, s 32 karte, od sedmice '
         'do asa u svakoj boji. Dijeli se i igra suprotno od kazaljke na satu. Mogu igrati i dvojica, svatko za '
@@ -140,13 +126,6 @@ const _hr = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Бела — хорватська гра з родини карткових ігор Jass, у яких валет і дев\'ятка — найстарші козирі. На '
-        'Адріатику вона прийшла з угорських і французьких різновидів гри, а тепер у неї грають по всій Хорватії, '
-        'Боснії і Герцеговині, Сербії та Чорногорії — і в кав\'ярнях, і вдома.',
-    'Її родичі — французький белот, болгарський белот, саудівський балот, нідерландський клаверяс і '
-        'український деберць.',
-  ]),
   RulesSection('Гравці та карти', [
     'У белу грають учотирьох, двома командами по двоє, партнери сидять один навпроти одного, колодою з 32 карт, '
         'від сімки до туза в кожній масті. Роздають і ходять проти годинникової стрілки. Можна грати й удвох, '
