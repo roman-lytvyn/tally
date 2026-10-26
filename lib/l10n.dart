@@ -70,9 +70,8 @@ class AppStrings {
   String get continuePrev    => _t('Продовжити попередню →', 'Continue previous →', 'Reprendre la partie →',
       'Продължи предишната →', 'Nastavi prethodnu →', 'Vorig spel hervatten →', 'متابعة اللعبة السابقة ←');
   String get settingsBtn     => _t('⚙ Налаштування', '⚙ Settings', '⚙ Réglages', '⚙ Настройки', '⚙ Postavke', '⚙ Instellingen', '⚙ الإعدادات');
-  String get rulesBtn        => _t('📖 Правила та історія', '📖 Rules and history', '📖 Règles et histoire',
-      '📖 Правила и история', '📖 Pravila i povijest', '📖 Regels en geschiedenis', '📖 القواعد والتاريخ');
-  String get rulesTitle      => _t('Правила та історія', 'Rules and history', 'Règles et histoire', 'Правила и история', 'Pravila i povijest', 'Regels en geschiedenis', 'القواعد والتاريخ');
+  String get rulesBtn        => _t('📖 Правила', '📖 Rules', '📖 Règles', '📖 Правила', '📖 Pravila', '📖 Regels', '📖 القواعد');
+  String get rulesTitle      => _t('Правила', 'Rules', 'Règles', 'Правила', 'Pravila', 'Regels', 'القواعد');
   String get ourTeamHint     => _t('Наша команда', 'Our team', 'Notre équipe', 'Нашият отбор', 'Naša ekipa', 'Ons team', 'فريقنا');
   String get otherTeamHint   => _t('Інша команда', 'Other team', 'L\'autre équipe', 'Другият отбор', 'Druga ekipa', 'Het andere team', 'الفريق الآخر');
   String get players         => _t('Гравці', 'Players', 'Joueurs', 'Играчи', 'Igrači', 'Spelers', 'اللاعبون');

@@ -9,43 +9,6 @@ Ukraine.
 
 ---
 
-## Where the Game Comes From
-
-Deberc has no single inventor and no documented birthday. What can be traced
-is the family it belongs to and the path that family took across Europe.
-
-- **The Klaverjas family.** Deberc is one of the *Jass* or *jack–nine* games,
-  where the jack and the nine are the highest trumps. The family comes from the
-  Low Countries: the Dutch *klaverjassen* is recorded in the 18th century, and
-  *jas* was originally the name of the trump jack. Protestant mercenaries in
-  Dutch service carried the game to Switzerland in the late 18th century, where
-  the first record of *Jassen* dates from 1796. Its relatives include the Swiss
-  Jass, the French Belote, the Bulgarian Bela, the Cypriot Pilotta and the
-  Armenian Bazar Blot. Belote is a sibling of Deberc, not its ancestor.
-- **Central and Eastern Europe.** Under names such as *Klabberjass*,
-  *Kalabriás* and *Klabrias* the game spread through the German lands and
-  Austria-Hungary. It became a particular favourite in Jewish communities: in
-  1890 Vienna staged a popular farce, *Die Klabriaspartie*, about friends playing
-  it in a café, and emigrants later took the two-handed form (*Clobyosh*,
-  *Klob*, *Bela*) to Britain, the United States, South Africa and Israel.
-- **Ukrainian lands.** A large part of that Jewish world lived in today's
-  Ukraine — Odesa, Galicia, Podillia, the Kyiv region — and this is where the
-  game took the form known as Deberc. Its vocabulary still shows the route:
-  the Odesa variant is called *klabor* (from *Klabber*), the trump nine is the
-  *manela* (the *Nell* / *Menel* of Jass), and a lost deal is *bet* or *bait*,
-  matching the *bête* of Klaberjass. During the 20th century the game spread
-  across the whole Soviet Union, which is why "Moscow" and "Kharkiv" variants
-  also exist; that spread does not make it a Russian game.
-
-**Legends without sources.** Stories that Deberc was invented by convicts on
-Sakhalin in the early 20th century, or in the village of Kybyntsi in the
-1870s, are repeated online but are not backed by any document, and the
-Sakhalin story contradicts the much older history of the family. They are
-legends, not history. The origin of the word *Deberc* itself is not
-established.
-
----
-
 ## The Rules in Brief
 
 Local rules differ from table to table; this is the common core.
@@ -180,9 +143,9 @@ Tap **«New game»** to start.
 
 > If there is an unfinished game saved, a **«Continue previous»** button will appear below «New game».
 
-The **«📖 Rules and history»** button on the home screen opens the rules and
-the story of the game inside the app, in the chosen language, so a new player
-can learn them at the table without going online.
+The **«📖 Rules»** button on the home screen opens the rules of the game inside
+the app, in the chosen language, so a new player can learn them at the table
+without going online.
 
 ### 2. Recording a Round
 

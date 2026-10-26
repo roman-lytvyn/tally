@@ -17,7 +17,7 @@ class RulesSection {
   const RulesSection(this.title, this.paragraphs, {this.tableHeader, this.table = const []});
 }
 
-/// The rules and history of [game] in [lang], English when there is none.
+/// The rules of [game] in [lang], English when there is none.
 List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]) =>
     game.id == GameRules.belote.id ? beloteRulesContent(lang)
     : game.id == GameRules.belot.id ? belotRulesContent(lang)
@@ -28,21 +28,6 @@ List<RulesSection> rulesContent(String lang, [GameRules game = GameRules.deberc]
     : lang == 'uk' ? _uk : _en;
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Deberc has no single inventor and no documented birthday. It belongs to the Jass, or jack–nine, family of '
-        'card games, in which the jack and the nine are the highest trumps.',
-    'The family comes from the Low Countries: the Dutch klaverjassen is recorded in the 18th century, and from '
-        'there the game reached Switzerland, where Jass is first mentioned in 1796. Its relatives include the Swiss '
-        'Jass, the French Belote, the Bulgarian Bela, the Cypriot Pilotta and the Armenian Bazar Blot.',
-    'Under names such as Klabberjass, Kalabriás and Klabrias the game spread through the German lands and '
-        'Austria-Hungary and became especially loved in Jewish communities, which later carried it to Britain, '
-        'the United States, South Africa and Israel.',
-    'Many of those communities lived in today\'s Ukraine — Odesa, Galicia, Podillia, the Kyiv region — and this '
-        'is where the game took the form known as Deberc. Its words still show the route: the Odesa variant is '
-        'called klabor, the trump nine is the manela, and a lost deal is bait, like the bête of Klaberjass.',
-    'Stories that the game was invented in a particular prison camp or village are repeated online but are not '
-        'backed by any document. The origin of the word Deberc itself is not known.',
-  ]),
   RulesSection('Players and cards', [
     'Two players or three each play for themselves; four play in two teams of two, partners sitting opposite '
         'each other. The game uses a 32-card deck, seven to ace in each suit.',
@@ -114,20 +99,6 @@ const _en = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Деберць не має одного винахідника чи задокументованої дати народження. Він належить до родини ігор Ясс, '
-        'або «валет–дев\'ятка», у яких валет і дев\'ятка — найстарші козирі.',
-    'Ця родина походить із Нижніх земель: нідерландський клаверяс відомий з XVIII століття, а звідти гра дійшла '
-        'до Швейцарії, де Ясс уперше згадано 1796 року. Її родичі — швейцарський Ясс, французька Белот, болгарська '
-        'Бела, кіпрська Пілотта і вірменський Базар Блот.',
-    'Під назвами Клаберяс, Калабріаш і Клабріас гра поширилася німецькими землями та Австро-Угорщиною й особливо '
-        'полюбилася в єврейських громадах, які згодом принесли її до Британії, США, Південної Африки та Ізраїлю.',
-    'Багато цих громад жили на теренах сучасної України — в Одесі, Галичині, на Поділлі, Київщині, — і саме тут '
-        'гра набула вигляду, відомого як деберць. Її слова досі показують цей шлях: одеський варіант зветься '
-        'клабор, козирна дев\'ятка — манела, а програна роздача — байт, як bête у клаберясі.',
-    'Історії про те, що гру вигадали в певному таборі чи селі, повторюються в мережі, але не підтверджені '
-        'жодним документом. Походження самого слова «деберць» невідоме.',
-  ]),
   RulesSection('Гравці й карти', [
     'Двоє або троє гравців грають кожен за себе; четверо — двома командами по двоє, партнери сидять навпроти. '
         'Колода — 32 карти, від сімки до туза в кожній масті.',

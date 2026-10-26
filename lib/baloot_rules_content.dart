@@ -1,6 +1,6 @@
 import 'rules_content.dart';
 
-/// The rules and history of Baloot in [lang], English when there is none.
+/// The rules of Baloot in [lang], English when there is none.
 List<RulesSection> balootRulesContent(String lang) => switch (lang) {
   'ar' => _ar,
   'uk' => _uk,
@@ -8,14 +8,6 @@ List<RulesSection> balootRulesContent(String lang) => switch (lang) {
 };
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Baloot is the national card game of Saudi Arabia and is played across the Gulf. It belongs to the '
-        'jack–nine family of games, in which the jack and the nine are the highest trumps, and is a close relative '
-        'of the French Belote, whose name it carries.',
-    'The game is thought to have reached the Arabian Peninsula in the 20th century, by way of India or the Levant. '
-        'Today it is played at home, in cafés and in large tournaments, and its words — sira, hokm, sun, gahwa — '
-        'are part of everyday speech.',
-  ]),
   RulesSection('Players and cards', [
     'Baloot is played by four in two teams of two, partners sitting opposite each other, with a 32-card deck, '
         'seven to ace in each suit. Play goes counter-clockwise.',
@@ -85,12 +77,6 @@ const _en = [
 ];
 
 const _ar = [
-  RulesSection('أصل اللعبة', [
-    'البلوت هي لعبة الورق الأشهر في المملكة العربية السعودية وتُلعب في أنحاء الخليج. تنتمي إلى عائلة ألعاب '
-        'الولد والتسعة، حيث يكون الولد والتسعة أعلى أوراق الحكم، وهي قريبة من لعبة البيلوت الفرنسية التي تحمل اسمها.',
-    'يُعتقد أن اللعبة وصلت إلى الجزيرة العربية في القرن العشرين عن طريق الهند أو بلاد الشام. وهي اليوم تُلعب في '
-        'البيوت والمقاهي والبطولات الكبيرة، وكلماتها — سرا وحكم وصن وقهوة — جزء من الكلام اليومي.',
-  ]),
   RulesSection('اللاعبون والأوراق', [
     'يلعب البلوت أربعة لاعبين في فريقين، كل شريكين متقابلين، باثنتين وثلاثين ورقة، من السبعة إلى الإكَّة في كل '
         'نوع. يدور اللعب عكس عقارب الساعة.',
@@ -153,14 +139,6 @@ const _ar = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Балут — найпопулярніша карткова гра Саудівської Аравії, у неї грають по всій Перській затоці. Вона належить '
-        'до родини ігор «валет–дев\'ятка», у яких валет і дев\'ятка — найстарші козирі, і є близькою родичкою '
-        'французької белот, назву якої носить.',
-    'Вважається, що гра потрапила на Аравійський півострів у XX столітті через Індію або Левант. Сьогодні в неї '
-        'грають удома, в кав\'ярнях і на великих турнірах, а її слова — сира, хокм, сан, кахва — стали частиною '
-        'повсякденної мови.',
-  ]),
   RulesSection('Гравці й карти', [
     'У балут грають четверо двома командами по двоє, партнери сидять навпроти, колодою з 32 карт, від сімки до '
         'туза в кожній масті. Гра йде проти годинникової стрілки.',

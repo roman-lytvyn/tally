@@ -1,6 +1,6 @@
 import 'rules_content.dart';
 
-/// The rules and history of Klaverjas in [lang], English when there is none.
+/// The rules of Klaverjas in [lang], English when there is none.
 List<RulesSection> klaverjasRulesContent(String lang) => switch (lang) {
   'nl' => _nl,
   'uk' => _uk,
@@ -8,14 +8,6 @@ List<RulesSection> klaverjasRulesContent(String lang) => switch (lang) {
 };
 
 const _en = [
-  RulesSection('Where the game comes from', [
-    'Klaverjas, or klaverjassen, is the Dutch member of the Jass, or jack–nine, family of card games, in which the '
-        'jack and the nine are the highest trumps. It is recorded in the Low Countries in the 18th century, and the '
-        'family most likely spread from there to Switzerland, France and further east.',
-    'Today it is the most popular card game in the Netherlands and Flanders, played at home, in cafés, in clubs '
-        'and in competitions. Its relatives include the Swiss Jass, the French Belote, the Croatian Bela, the '
-        'Bulgarian Belot and the Ukrainian Deberc.',
-  ]),
   RulesSection('Players and cards', [
     'Klaverjas is played by four in two teams of two, partners sitting opposite each other, with a 32-card deck, '
         'seven to ace in each suit. Every player gets eight cards.',
@@ -74,14 +66,6 @@ const _en = [
 ];
 
 const _nl = [
-  RulesSection('Waar het spel vandaan komt', [
-    'Klaverjassen is het Nederlandse lid van de familie van de jas, of boer–negen: kaartspellen waarin de boer en '
-        'de negen de hoogste troeven zijn. Het spel wordt in de 18e eeuw in de Lage Landen beschreven, en de familie '
-        'heeft zich waarschijnlijk van hieruit naar Zwitserland, Frankrijk en verder naar het oosten verspreid.',
-    'Nu is het het populairste kaartspel van Nederland en Vlaanderen, gespeeld thuis, in het café, op de club en '
-        'in competities. Verwant zijn onder meer de Zwitserse jass, het Franse belote, de Kroatische bela, het '
-        'Bulgaarse belot en het Oekraïense deberc.',
-  ]),
   RulesSection('Spelers en kaarten', [
     'Klaverjassen speel je met vier in twee teams van twee, partners tegenover elkaar, met een spel van 32 kaarten, '
         'zeven tot en met aas in elke kleur. Iedere speler krijgt acht kaarten.',
@@ -141,14 +125,6 @@ const _nl = [
 ];
 
 const _uk = [
-  RulesSection('Звідки походить гра', [
-    'Клаверяс, або клаверяссен, — нідерландський член родини ігор Ясс, або «валет–дев\'ятка», у яких валет і '
-        'дев\'ятка — найстарші козирі. Його згадують у Нижніх землях у XVIII столітті, і звідти родина, найімовірніше, '
-        'поширилася до Швейцарії, Франції та далі на схід.',
-    'Сьогодні це найпопулярніша карткова гра Нідерландів і Фландрії: у неї грають удома, в кав\'ярнях, клубах і '
-        'на змаганнях. Її родичі — швейцарський Ясс, французький Белот, хорватська Бела, болгарський Белот і '
-        'український Деберць.',
-  ]),
   RulesSection('Гравці й карти', [
     'У клаверяс грають учотирьох двома командами по двоє, партнери сидять навпроти. Колода — 32 карти, від сімки '
         'до туза в кожній масті. Кожен гравець отримує вісім карт.',
