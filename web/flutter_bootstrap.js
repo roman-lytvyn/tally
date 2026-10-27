@@ -6,6 +6,9 @@
 // The fonts for characters the app's own fonts lack are served from the
 // app's fonts/ folder instead of a font CDN, so the app loads nothing from
 // other hosts.
+// A page that hosts the app gives it an element marked data-app-host, and the
+// app runs inside that element at the size the page gives it; without one the
+// app fills the whole window.
 (async () => {
   if ('serviceWorker' in navigator) {
     try {
@@ -20,7 +23,11 @@
       console.warn('The app will not work offline:', e);
     }
   }
+  const host = document.querySelector('[data-app-host]');
   _flutter.loader.load({
-    config: { fontFallbackBaseUrl: new URL('fonts/', document.baseURI).href },
+    config: {
+      fontFallbackBaseUrl: new URL('fonts/', document.baseURI).href,
+      ...(host ? { hostElement: host } : {}),
+    },
   });
 })();
