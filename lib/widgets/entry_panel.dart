@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../main.dart' show maxAppWidth;
 import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
@@ -230,18 +231,14 @@ class _EntryPanelState extends State<EntryPanel> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(s.editingRound(widget.number!),
-                    style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
                 Text(widget.teamNames[_dealer],
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.teamColor(_dealer))),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.teamColor(_dealer))),
               ],
             ),
             const SizedBox(height: 8),
           ],
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(flex: 2, child: _takerColumn()),
-            const SizedBox(width: 10),
-            Expanded(flex: 3, child: _valueColumn()),
-          ]),
+          _takerRow(),
           if (widget.rules.hasContracts) ...[
             const SizedBox(height: _gap),
             _choiceRow([
@@ -251,6 +248,22 @@ class _EntryPanelState extends State<EntryPanel> {
               if (widget.rules.hasDoubling && _doublingsWithContracts)
                 for (final d in _doublings) _doublingChoice(d),
             ]),
+          ],
+          // A contra and a re-contra are said about the contract the taker set.
+          if (widget.rules.hasDoubling && !_doublingsWithContracts) ...[
+            const SizedBox(height: _gap),
+            _choiceRow([for (final d in _doublings) _doublingChoice(d)]),
+          ],
+          if (_hasValue || _bid != null) ...[
+            const SizedBox(height: _gap),
+            SizedBox(
+              height: _rowHeight,
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                if (_hasValue) Expanded(child: _valueBtn()),
+                if (_hasValue && _bid != null) const SizedBox(width: _gap),
+                if (_bid != null) Expanded(child: _bidRow()),
+              ]),
+            ),
           ],
           if (_keptBy != null && _debercBy == null) ...[
             const SizedBox(height: 6),
@@ -273,7 +286,7 @@ class _EntryPanelState extends State<EntryPanel> {
                   // The colon keeps the highlighted side as far away as the row's edges do.
                   if (i > 0) Padding(
                     padding: const EdgeInsets.symmetric(horizontal: _scoreGap),
-                    child: Text(':', style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)),
+                    child: Text(':', style: TextStyle(fontSize: 18, color: t.tx3, fontWeight: FontWeight.w700)),
                   ),
                   Expanded(child: _teamInput(i, score[i])),
                 ],
@@ -334,86 +347,149 @@ class _EntryPanelState extends State<EntryPanel> {
     decoration: BoxDecoration(color: bg,
         border: Border.all(color: color.withValues(alpha: 0.25)),
         borderRadius: BorderRadius.circular(10)),
-    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
     child: Row(children: [
-      Text(icon, style: TextStyle(fontSize: 13, color: color)),
-      const SizedBox(width: 6),
-      Expanded(child: Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color))),
+      Text(icon, style: TextStyle(fontSize: 15, color: color)),
+      const SizedBox(width: 8),
+      Expanded(child: Text(text, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color))),
     ]),
   );
 
-  /// Who took the trump, one side under another, and the way to record a
-  /// redeal when the rules allow one.
-  Widget _takerColumn() => Column(
+  /// Who took the trump, the sides next to each other, and the way to record
+  /// a redeal when the rules allow one.
+  Widget _takerRow() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      _columnHeader(Text(s.trumpTakenBy,
-          style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600))),
-      for (var i = 0; i < _sides; i++) ...[
-        if (i > 0) const SizedBox(height: _gap),
-        SizedBox(key: ValueKey('taker.$i'), height: _rowHeight, child: _sideChip(i, _taker == i, '♠',
-            () => setState(() { _taker = i; _startInput(i); }))),
-      ],
-      // A contra and a re-contra are said about the contract the taker set.
-      if (widget.rules.hasDoubling && !_doublingsWithContracts) ...[
-        const SizedBox(height: _gap),
-        _choiceRow([for (final d in _doublings) _doublingChoice(d)]),
-      ],
-      if (!widget.dealerMustPlay) ...[
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides, gv: widget.rules.cardPoints)),
-          child: Text(s.allPassed, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-              color: t.tx2, decoration: TextDecoration.underline, decorationColor: t.tx3)),
-        ),
-      ],
+      SizedBox(
+        height: 30,
+        child: Row(children: [
+          Text(s.trumpTakenBy, style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 10),
+          if (!widget.dealerMustPlay)
+            Expanded(child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides, gv: widget.rules.cardPoints)),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.allPassed, maxLines: 1,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.tx2,
+                        decoration: TextDecoration.underline, decorationColor: t.tx3))),
+              ),
+            )),
+        ]),
+      ),
+      const SizedBox(height: 4),
+      SizedBox(
+        height: _rowHeight,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          for (var i = 0; i < _sides; i++) ...[
+            if (i > 0) const SizedBox(width: _gap),
+            Expanded(key: ValueKey('taker.$i'), child: _sideChip(i, _taker == i, '♠',
+                () => setState(() { _taker = i; _startInput(i); }))),
+          ],
+        ]),
+      ),
     ],
   );
 
-  /// The value of the deal: counted up from tierces, fifties and bella, or
-  /// picked on a wheel, either way as tall as the side buttons beside it.
-  Widget _valueColumn() => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      _columnHeader(Text(s.dealValue(_gv),
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc))),
-      SizedBox(
-        height: _rowHeight * _valueRows + _gap * (_valueRows - 1),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: widget.valueWheel && !widget.rules.hasContracts
-              ? Container(
+  /// The value is picked on a wheel instead of counted up from declarations.
+  bool get _wheel => widget.valueWheel && !widget.rules.hasContracts;
+
+  /// Whether the deal has a value of its own to set: declarations, or the wheel.
+  bool get _hasValue => _wheel || widget.rules.declarations.isNotEmpty;
+
+  /// The declarations the deal's contract allows, in the order the rules give them.
+  List<DeclarationKind> get _allowed => [for (final k in widget.rules.declarations) if (_max(k) > 0) k];
+
+  /// The value of the deal and what was declared in it; tapping it opens the
+  /// declarations, or the wheel, in a sheet of their own.
+  Widget _valueBtn() {
+    final declared = [
+      for (final k in widget.rules.declarations)
+        if (_decl[k.id] > 0) _decl[k.id] > 1 ? '${s.declaration(k.id)} ×${_decl[k.id]}' : s.declaration(k.id),
+    ];
+    final on = declared.isNotEmpty;
+    final enabled = _wheel || _allowed.isNotEmpty;
+    return GestureDetector(
+      key: const ValueKey('declarations'),
+      onTap: enabled ? _openValue : null,
+      child: Container(
+        padding: const EdgeInsetsDirectional.only(start: 12, end: 6),
+        decoration: BoxDecoration(
+          color: on ? t.accDim : Colors.transparent,
+          border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(children: [
+          Expanded(child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(on ? declared.join(', ') : _wheel ? s.gameValue : s.declarations,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, height: 1.2, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
+              const SizedBox(height: 2),
+              Text(s.dealValue(_gv), maxLines: 1,
+                  style: TextStyle(fontSize: 15, height: 1.2, fontWeight: FontWeight.w800, color: t.acc)),
+            ],
+          )),
+          Icon(Icons.expand_less, size: 24, color: enabled ? t.tx2 : t.tx3),
+        ]),
+      ),
+    );
+  }
+
+  /// Shows the declarations of the deal, or the wheel, with controls the
+  /// size of a finger; the panel follows every change.
+  void _openValue() => showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: t.bg2,
+    isScrollControlled: true,
+    constraints: const BoxConstraints(maxWidth: maxAppWidth),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (context) => Directionality(
+      textDirection: s.isRtl ? TextDirection.rtl : TextDirection.ltr,
+      child: StatefulBuilder(builder: (context, setSheet) {
+        void update(VoidCallback change) { setState(change); setSheet(() {}); }
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                Expanded(child: Text(_wheel ? s.gameValue : s.declarations,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.tx))),
+                Text(s.dealValue(_gv), key: const ValueKey('sheetValue'),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.acc)),
+              ]),
+              const SizedBox(height: 14),
+              if (_wheel)
+                Container(
                   key: const ValueKey('valueWheel'),
+                  height: 220,
                   decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
                   clipBehavior: Clip.antiAlias,
                   child: _ValueWheel(
                     theme: t, values: widget.rules.dealValues, value: _gv,
-                    onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv, widget.rules)),
+                    onChanged: (gv) => update(() => _decl = Declarations.fromGv(gv, widget.rules)),
                   ),
                 )
-              : Column(key: const ValueKey('counters'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  for (final (i, row) in [
-                    ..._declarationRows,
-                    if (widget.rules.hasContracts)
-                      for (var n = _declarationRows.length; n < _valueRows; n++) <DeclarationKind>[],
-                  ].indexed) ...[
-                    if (i > 0) const SizedBox(height: _gap),
-                    Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      for (final (j, k) in row.indexed) ...[
-                        if (j > 0) const SizedBox(width: _gap),
-                        Expanded(child: _max(k) == 1 ? _toggle(k) : _counter(k)),
-                      ],
-                    ])),
+              else
+                Flexible(child: SingleChildScrollView(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, k) in _allowed.indexed) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      SizedBox(height: 54, child: _max(k) == 1 ? _toggle(k, update) : _counter(k, update)),
+                    ],
                   ],
-                ]),
-        ),
-      ),
-      // The bid sits under the value, keeping the panel short enough for a phone.
-      if (_bid != null) ...[
-        const SizedBox(height: _gap),
-        _bidRow(),
-      ],
-    ],
+                ))),
+              const SizedBox(height: 16),
+              _ctaBtn(s.done, () => Navigator.of(context).pop()),
+            ]),
+          ),
+        );
+      }),
+    ),
   );
 
   /// The bid of the deal, stepped through the bids the game allows.
@@ -427,7 +503,7 @@ class _EntryPanelState extends State<EntryPanel> {
         behavior: HitTestBehavior.opaque,
         onTap: enabled ? () => setState(() => _bid = bids[to]) : null,
         child: SizedBox(width: 44, child: Center(child: Text(sign,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
       );
     }
     return Container(
@@ -439,8 +515,9 @@ class _EntryPanelState extends State<EntryPanel> {
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         step('−', at - 1),
-        Expanded(child: Center(child: Text('${s.bid}: ${s.bidName(_bid!)}', key: const ValueKey('bid'),
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: t.acc)))),
+        Expanded(child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text('${s.bid}: ${s.bidName(_bid!)}',
+            key: const ValueKey('bid'), maxLines: 1,
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: t.acc))))),
         step('+', at + 1),
       ]),
     );
@@ -464,44 +541,23 @@ class _EntryPanelState extends State<EntryPanel> {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2))),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2))),
           ),
         )),
       ],
     ]),
   );
 
-  /// The declarations the deal can have laid out two to a row, in the order
-  /// the rules give them.
-  List<List<DeclarationKind>> get _declarationRows {
-    final kinds = [for (final k in widget.rules.declarations) if (_max(k) > 0) k];
-    return [for (var i = 0; i < kinds.length; i += 2) kinds.sublist(i, i + 2 > kinds.length ? kinds.length : i + 2)];
-  }
-
-  /// The value column is as tall as the side buttons, or as the declarations
-  /// when there are more rows of them.
-  /// Where contracts allow different declarations, rows for every one of
-  /// the game count, so the panel keeps its height between contracts.
-  int get _valueRows {
-    final rows = widget.rules.hasContracts ? (widget.rules.declarations.length + 1) ~/ 2 : _declarationRows.length;
-    return rows > _sides ? rows : _sides;
-  }
-
-  static const double _rowHeight = 31;
-  static const double _gap = 4;
-
-  Widget _columnHeader(Widget child) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: SizedBox(height: 16, child: Align(alignment: AlignmentDirectional.centerStart, child: child)),
-  );
+  static const double _rowHeight = 46;
+  static const double _gap = 6;
 
   /// A label followed by one chip per side, the [selected] one marked.
   Widget _sideRow(String label, int selected, String mark, void Function(int) onSelect) => Row(children: [
-    Text(label, style: TextStyle(fontSize: 12, color: t.tx2, fontWeight: FontWeight.w600)),
+    Text(label, style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
     const SizedBox(width: 8),
     for (var i = 0; i < widget.teamNames.length; i++) ...[
-      if (i > 0) const SizedBox(width: 6),
-      Expanded(child: _sideChip(i, selected == i, mark, () => onSelect(i))),
+      if (i > 0) const SizedBox(width: _gap),
+      Expanded(child: SizedBox(height: 40, child: _sideChip(i, selected == i, mark, () => onSelect(i)))),
     ],
   ]);
 
@@ -523,7 +579,7 @@ class _EntryPanelState extends State<EntryPanel> {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text('${on ? '🏆 ' : '✦ '}${s.deberc}', maxLines: 1,
-              style: TextStyle(fontSize: 13, fontWeight: on ? FontWeight.w800 : FontWeight.w700,
+              style: TextStyle(fontSize: 15, fontWeight: on ? FontWeight.w800 : FontWeight.w700,
                   color: on ? const Color(0xFF111111) : t.tx2)),
         ),
       ),
@@ -543,56 +599,60 @@ class _EntryPanelState extends State<EntryPanel> {
         ),
         alignment: Alignment.center,
         child: Text('${on ? '$mark ' : ''}${widget.teamNames[i]}', maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.teamColor(i) : t.tx2)),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: on ? t.teamColor(i) : t.tx2)),
       ),
     );
   }
 
-  Widget _counter(DeclarationKind k) {
+  /// A declaration that can be declared more than once: its name, how many
+  /// times, and steppers on both sides of the count.
+  Widget _counter(DeclarationKind k, void Function(VoidCallback) update) {
     final count = _decl[k.id];
-    final label = s.declaration(k.id);
     final on = count > 0;
     Widget step(String sign, int to, bool enabled) => GestureDetector(
       key: ValueKey('${k.id}.$sign'),
       behavior: HitTestBehavior.opaque,
-      onTap: enabled ? () => setState(() => _decl = _decl.withCount(k.id, to)) : null,
-      child: SizedBox(width: 22, child: Center(child: Text(sign,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: enabled ? t.tx2 : t.tx3)))),
+      onTap: enabled ? () => update(() => _decl = _decl.withCount(k.id, to)) : null,
+      child: SizedBox(width: 56, child: Center(child: Text(sign,
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: enabled ? t.tx : t.tx3)))),
     );
     return Container(
+      padding: const EdgeInsetsDirectional.only(start: 14),
       decoration: BoxDecoration(
         color: on ? t.accDim : Colors.transparent,
         border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Expanded(child: Align(alignment: AlignmentDirectional.centerStart, child: Text(s.declaration(k.id),
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)))),
         step('−', count - 1, on),
-        Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1,
-              style: TextStyle(fontSize: 9, height: 1, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx3))),
-          const SizedBox(height: 2),
-          Text('$count', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w800,
-              color: on ? t.acc : t.tx2)),
-        ])),
+        SizedBox(width: 32, child: Center(child: Text('$count',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: on ? t.acc : t.tx2)))),
         step('+', count + 1, count < _max(k)),
       ]),
     );
   }
 
-  Widget _toggle(DeclarationKind k) {
+  /// A declaration that is either declared or not.
+  Widget _toggle(DeclarationKind k, void Function(VoidCallback) update) {
     final on = _decl[k.id] > 0;
     return GestureDetector(
       key: ValueKey(k.id),
-      onTap: () => setState(() => _decl = _decl.withCount(k.id, on ? 0 : 1)),
+      onTap: () => update(() => _decl = _decl.withCount(k.id, on ? 0 : 1)),
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: on ? t.accDim : Colors.transparent,
           border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
           borderRadius: BorderRadius.circular(12),
         ),
-        alignment: Alignment.center,
-        child: Text('${on ? '✓ ' : ''}${s.declaration(k.id)}', maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
+        child: Row(children: [
+          Expanded(child: Text(s.declaration(k.id), maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2))),
+          Icon(on ? Icons.check_circle : Icons.circle_outlined, size: 26, color: on ? t.acc : t.tx3),
+        ]),
       ),
     );
   }
@@ -615,12 +675,12 @@ class _EntryPanelState extends State<EntryPanel> {
         child: Column(
           children: [
             Text(widget.teamNames[idx],
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.4,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.4,
                     color: t.teamColor(idx))),
             const SizedBox(height: 2),
             Text(
               shown != null ? '$shown' : '—',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.1,
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.1,
                   color: shown != null ? t.tx : t.tx3),
             ),
           ],
@@ -633,13 +693,12 @@ class _EntryPanelState extends State<EntryPanel> {
     const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
     // Points are not typed while a deberc is recorded.
     final typing = _debercBy == null;
-    return GridView.count(
-      crossAxisCount: 3,
+    return GridView(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, mainAxisSpacing: _gap, crossAxisSpacing: _gap, mainAxisExtent: _rowHeight),
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 5,
-      crossAxisSpacing: 5,
-      childAspectRatio: 3.2,
       children: keys.map((k) {
         if (k.isEmpty) return widget.rules.hasDebercWin ? _debercKey() : const SizedBox();
         final isDel = k == '⌫';
@@ -653,7 +712,7 @@ class _EntryPanelState extends State<EntryPanel> {
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
-              child: Text(k, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600,
+              child: Text(k, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600,
                   color: isDel ? t.danger : t.tx)),
             ),
           ),
@@ -666,19 +725,21 @@ class _EntryPanelState extends State<EntryPanel> {
     onTap: onTap,
     child: Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(gradient: t.ctaGradient, borderRadius: BorderRadius.circular(14)),
       alignment: Alignment.center,
-      child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
+      child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
     ),
   );
 
   Widget _ghostBtn(String label, VoidCallback onTap) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+      height: _rowHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      alignment: Alignment.center,
       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(12)),
-      child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.tx2)),
+      child: Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.tx2)),
     ),
   );
 
@@ -713,9 +774,10 @@ class _EntryPanelState extends State<EntryPanel> {
       key: const ValueKey('delete'),
       onTap: _confirmDelete,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+        height: _rowHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(color: t.dangerDim, borderRadius: BorderRadius.circular(12)),
-        child: Icon(Icons.delete_outline, size: 21, color: t.danger),
+        child: Icon(Icons.delete_outline, size: 23, color: t.danger),
       ),
     ),
   );
@@ -723,13 +785,15 @@ class _EntryPanelState extends State<EntryPanel> {
   Widget _baitBtn() => GestureDetector(
     onTap: _bait,
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      height: _rowHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: t.dangerDim,
         border: Border.all(color: t.danger.withValues(alpha: 0.3), width: 1.5),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(s.bait, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.danger)),
+      child: Text(s.bait, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.danger)),
     ),
   );
 
@@ -738,7 +802,7 @@ class _EntryPanelState extends State<EntryPanel> {
     return GestureDetector(
       onTap: enabled ? _save : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        height: _rowHeight,
         decoration: BoxDecoration(
           gradient: enabled ? t.ctaGradient : null,
           color: enabled ? null : t.acc.withValues(alpha: 0.15),
@@ -746,7 +810,7 @@ class _EntryPanelState extends State<EntryPanel> {
         ),
         alignment: Alignment.center,
         child: Text(s.save,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
                 color: enabled ? const Color(0xFF111111) : t.tx3)),
       ),
     );
@@ -792,7 +856,7 @@ class _ValueWheelState extends State<_ValueWheel> {
       behavior: ScrollConfiguration.of(context).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
       child: CupertinoPicker.builder(
         scrollController: _controller,
-        itemExtent: 28,
+        itemExtent: 40,
         childCount: widget.values.length,
         selectionOverlay: Container(
           margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -805,7 +869,7 @@ class _ValueWheelState extends State<_ValueWheel> {
         onSelectedItemChanged: (i) => widget.onChanged(widget.values[i]),
         itemBuilder: (context, i) => Center(
           child: Text('${widget.values[i]}',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: t.tx)),
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: t.tx)),
         ),
       ),
     );
