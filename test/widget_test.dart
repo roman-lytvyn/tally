@@ -50,6 +50,18 @@ void main() {
     await tapText(tester, uk.newRound);
   }
 
+  /// Opens the sheet with the declarations of the deal, or its value wheel.
+  Future<void> openDeclarations(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('declarations')));
+    await tester.pumpAndSettle();
+  }
+
+  /// Closes the declarations sheet, back to the panel.
+  Future<void> closeDeclarations(WidgetTester tester) async {
+    await tester.tap(find.text(uk.done));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('keeps the highlighted score as far from the colon as from the row edges', (tester) async {
     await openRound(tester);
 
@@ -119,6 +131,7 @@ void main() {
       expect(find.text('501'), findsOneWidget);
       await tapText(tester, uk.newGame);
       await tapText(tester, uk.newRound);
+      await openDeclarations(tester);
       expect(find.byKey(const ValueKey('tierce.+')), findsOneWidget);
       expect(find.byKey(const ValueKey('fifty.+')), findsNothing);
       expect(find.byKey(const ValueKey('bella')), findsOneWidget);
@@ -142,8 +155,10 @@ void main() {
       await tapText(tester, uk.newRound);
       expect(find.text(uk.heldBy(uk.declaration('belote'))), findsNothing);
 
+      await openDeclarations(tester);
       await tester.tap(find.byKey(const ValueKey('belote')));
       await tester.pump();
+      await closeDeclarations(tester);
       expect(find.text(uk.dealValue(182)), findsOneWidget);
       expect(find.text(uk.heldBy(uk.declaration('belote'))), findsOneWidget);
 
@@ -163,7 +178,9 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('contract.noTrumps')));
       await tester.pump();
       expect(find.text(uk.dealValue(130)), findsOneWidget);
+      await openDeclarations(tester);
       expect(find.byKey(const ValueKey('tierce.+')), findsNothing);
+      await closeDeclarations(tester);
 
       await tester.tap(find.text('8'));
       await tester.tap(find.text('0').last);
@@ -192,7 +209,9 @@ void main() {
       await tapText(tester, uk.newRound);
       expect(find.text(ba.trumpTakenBy), findsOneWidget);
       expect(find.text(uk.dealValue(162)), findsOneWidget);
+      await openDeclarations(tester);
       expect(find.byKey(const ValueKey('fourHundred.+')), findsNothing);
+      await closeDeclarations(tester);
 
       await tester.tap(find.text('1').last);
       await tester.tap(find.text('0').last);
@@ -740,12 +759,18 @@ void main() {
     await openRound(tester);
     expect(find.text(uk.dealValue(162)), findsOneWidget);
 
+    await openDeclarations(tester);
     await tester.tap(find.byKey(const ValueKey('tierce.+')));
     await tester.tap(find.byKey(const ValueKey('fifty.+')));
     await tester.tap(find.byKey(const ValueKey('bella')));
     await tester.pump();
+    // The sheet shows the value as it changes.
+    expect(tester.widget<Text>(find.byKey(const ValueKey('sheetValue'))).data, uk.dealValue(252));
 
+    await closeDeclarations(tester);
     expect(find.text(uk.dealValue(252)), findsOneWidget);
+    expect(find.text('${uk.declaration('tierce')}, ${uk.declaration('fifty')}, ${uk.declaration('bella')}'),
+        findsOneWidget);
   });
 
   testWidgets('leaves who deals in a new round to the badge above the score', (tester) async {
@@ -848,15 +873,17 @@ void main() {
     testWidgets('takes the place of the declaration counters, keeping the keypad', (tester) async {
       SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_value_input': 'wheel'});
       await openRound(tester);
+      expect(find.text('⌫'), findsOneWidget);
 
+      await openDeclarations(tester);
       expect(find.byType(CupertinoPicker), findsOneWidget);
       expect(find.byKey(const ValueKey('tierce.+')), findsNothing);
-      expect(find.text('⌫'), findsOneWidget);
     });
 
     testWidgets('sets the value of the deal, raising it when spun up', (tester) async {
       SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_value_input': 'wheel'});
       await openRound(tester);
+      await openDeclarations(tester);
 
       final wheel = tester.widget<CupertinoPicker>(find.byType(CupertinoPicker)).scrollController!;
       expect(wheel.selectedItem, 0);
@@ -866,6 +893,7 @@ void main() {
 
       wheel.jumpToItem(GameRules.deberc.dealValues.indexOf(252));
       await tester.pumpAndSettle();
+      await closeDeclarations(tester);
       // The trump-taker is entered first and the rest of the 252 goes to the others.
       await tester.tap(find.text('1'));
       await tester.tap(find.text('0').last);
@@ -950,36 +978,43 @@ void main() {
     expect(find.text(uk.allPassed), findsNothing);
   });
 
-  testWidgets('stacks the trump choice beside the deal value', (tester) async {
+  testWidgets('lays the trump choice out side by side above the deal value, sized for a finger', (tester) async {
     await openRound(tester);
 
     final us = tester.getRect(find.byKey(const ValueKey('taker.0')));
     final them = tester.getRect(find.byKey(const ValueKey('taker.1')));
-    expect(them.top, greaterThan(us.bottom));
-    expect(them.left, us.left);
+    expect(them.top, us.top);
+    expect(them.left, greaterThan(us.right));
+    expect(us.height, greaterThanOrEqualTo(44));
 
-    final tierce = tester.getRect(find.byKey(const ValueKey('tierce.−')));
-    final fifty = tester.getRect(find.byKey(const ValueKey('fifty.+')));
-    final bella = tester.getRect(find.byKey(const ValueKey('bella')));
-    expect(tierce.left, greaterThan(us.right));
-    expect(fifty.top, tierce.top);
-    expect(bella.top, greaterThan(tierce.bottom));
-    expect(bella.left, lessThanOrEqualTo(tierce.left));
-    expect(bella.right, greaterThanOrEqualTo(fifty.right));
-    expect(tierce.top, closeTo(us.top, 2));
-    expect(bella.bottom, them.bottom);
+    final value = tester.getRect(find.byKey(const ValueKey('declarations')));
+    expect(value.top, greaterThan(us.bottom));
+    expect(value.height, greaterThanOrEqualTo(44));
     expect(find.text(uk.dealValue(162)), findsOneWidget);
   });
 
-  testWidgets('makes the value wheel as tall as the side buttons', (tester) async {
+  testWidgets('opens the declarations in a sheet with steppers the size of a finger', (tester) async {
+    await openRound(tester);
+    await openDeclarations(tester);
+
+    for (final key in ['tierce.−', 'tierce.+', 'fifty.+', 'bella']) {
+      final rect = tester.getRect(find.byKey(ValueKey(key)));
+      expect(rect.height, greaterThanOrEqualTo(44), reason: key);
+      expect(rect.width, greaterThanOrEqualTo(44), reason: key);
+    }
+    final tierce = tester.getRect(find.byKey(const ValueKey('tierce.+')));
+    final fifty = tester.getRect(find.byKey(const ValueKey('fifty.+')));
+    expect(fifty.top, greaterThan(tierce.bottom));
+  });
+
+  testWidgets('gives the value wheel a sheet of its own', (tester) async {
     SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_value_input': 'wheel'});
     await openRound(tester);
+    await openDeclarations(tester);
 
-    final us = tester.getRect(find.byKey(const ValueKey('taker.0')));
-    final them = tester.getRect(find.byKey(const ValueKey('taker.1')));
     final wheel = tester.getRect(find.byKey(const ValueKey('valueWheel')));
-    expect(wheel.top, us.top);
-    expect(wheel.bottom, them.bottom);
+    expect(wheel.height, greaterThanOrEqualTo(200));
+    expect(wheel.bottom, lessThan(780));
   });
 
   testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {
