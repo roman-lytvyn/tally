@@ -67,6 +67,26 @@ void main() {
     expect(row.right - them.right, edge);
   });
 
+  testWidgets('keeps the width of a large phone in a wide window, centred', (tester) async {
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const DebertsApp());
+    await tester.pumpAndSettle();
+
+    final screen = tester.getRect(find.byType(Scaffold).first);
+    // Less the thin edge drawn on each side.
+    expect(screen.width, closeTo(maxAppWidth, 2));
+    expect(screen.height, 1080);
+    expect(screen.center.dx, 960);
+  });
+
+  testWidgets('fills a phone screen from edge to edge', (tester) async {
+    await openApp(tester);
+
+    expect(tester.getRect(find.byType(Scaffold).first), const Rect.fromLTWH(0, 0, 360, 780));
+  });
+
   testWidgets('opens on the setup screen', (tester) async {
     await openApp(tester);
 
