@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
@@ -81,18 +82,20 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
-        child: LayoutBuilder(builder: (context, constraints) => Column(
+        child: Column(
           children: [
             _buildHeader(),
             // While a deal is entered the score shrinks to make room for the panel.
-            if (_entryOpen) _buildNumericScores(compact: true) else _buildScoreSection(),
+            _buildScoreSection(compact: _entryOpen),
             if (!isTraditional && !_entryOpen) _buildProgressBars(),
             if (widget.tally.held > 0) _buildHeld(),
-            Expanded(child: _buildRoundsList()),
-            // A panel taller than a small phone allows scrolls instead of overflowing.
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: constraints.maxHeight * 0.8),
-              child: SingleChildScrollView(child: EntryPanel(
+            // The panel takes what is left once the most recent deal is shown;
+            // a panel taller than that scrolls.
+            Expanded(child: LayoutBuilder(builder: (context, area) => Column(children: [
+              Expanded(child: _buildRoundsList()),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: math.max(area.maxHeight - _oneRound, area.maxHeight / 2)),
+                child: SingleChildScrollView(child: EntryPanel(
               key: ValueKey(_session),
               theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
               firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
@@ -104,9 +107,10 @@ class _GameScreenState extends State<GameScreen> {
               onSave: _saveEntry,
               onDelete: editing != null ? _deleteEntry : null,
             )),
-            ),
+              ),
+            ]))),
           ],
-        )),
+        ),
       ),
     );
   }
@@ -151,16 +155,19 @@ class _GameScreenState extends State<GameScreen> {
     ),
   );
 
-  Widget _buildScoreSection() {
-    if (isTraditional) return _buildTraditionalScores();
-    return _buildNumericScores();
-  }
+  /// The room the most recent deal takes in the list of deals.
+  static const double _oneRound = 72;
 
-  Widget _buildTraditionalScores() => Padding(
+  /// The score in the way picked in the settings; [compact] makes it small
+  /// enough to leave room for the entry panel.
+  Widget _buildScoreSection({bool compact = false}) =>
+      isTraditional ? _buildTraditionalScores(compact: compact) : _buildNumericScores(compact: compact);
+
+  Widget _buildTraditionalScores({bool compact = false}) => Padding(
     padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
     child: Column(
       children: List.generate(sides, (i) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.only(bottom: compact ? 4 : 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Expanded(child: Row(children: [
@@ -196,15 +203,13 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          TraditionalScore(value: scores[i], u: sides > 2 ? 22 : 30, color: t.teamColor(i)),
+          TraditionalScore(value: scores[i], u: compact ? (sides > 2 ? 16 : 20) : sides > 2 ? 22 : 30, color: t.teamColor(i)),
         ]),
       )),
     ),
   );
 
-  /// The scores in figures; [compact] makes them small enough to leave room
-  /// for the entry panel.
-  Widget _buildNumericScores({bool compact = false}) => Padding(
+  Widget _buildNumericScores({bool compact = false}) => compact ? _buildScoreLine() : Padding(
     padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
     child: Column(children: [
       // Every side gets an equal share of the row; a long name shrinks into it.
@@ -230,13 +235,47 @@ class _GameScreenState extends State<GameScreen> {
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         for (var i = 0; i < sides; i++) ...[
           if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(':', style: TextStyle(fontSize: compact ? 16 : 20, fontWeight: FontWeight.w700, color: t.tx3))),
-          Text('${scores[i]}', style: TextStyle(fontSize: compact ? (sides > 2 ? 28 : 34) : sides > 2 ? 40 : 56, fontWeight: FontWeight.w800,
+              child: Text(':', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: t.tx3))),
+          Text('${scores[i]}', style: TextStyle(fontSize: sides > 2 ? 40 : 56, fontWeight: FontWeight.w800,
               height: 1, letterSpacing: -2, color: _leads(i) ? t.teamColor(i) : t.tx)),
         ],
       ]),
     ]),
   );
+
+  /// The scores in figures on one line, each beside its side's name, to leave
+  /// the entry panel as much room as it can.
+  Widget _buildScoreLine() => Padding(
+    padding: const EdgeInsets.fromLTRB(18, 4, 18, 6),
+    child: Row(children: [
+      for (var i = 0; i < sides; i++) ...[
+        if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(':', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: t.tx3))),
+        Expanded(child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: i == 0 ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (i > 0) ...[_scoreFigure(i), const SizedBox(width: 10)],
+            Text(teamNames[i], maxLines: 1,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: t.teamColor(i))),
+            if (dealer == i) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
+                child: Text(strings.deals, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: t.teamColor(i))),
+              ),
+            ],
+            if (_baitsShown(i)) ...[const SizedBox(width: 4), _baitCount(i)],
+            if (i == 0) ...[const SizedBox(width: 10), _scoreFigure(i)],
+          ]),
+        )),
+      ],
+    ]),
+  );
+
+  Widget _scoreFigure(int i) => Text('${scores[i]}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800,
+      height: 1, letterSpacing: -1, color: _leads(i) ? t.teamColor(i) : t.tx));
 
   bool _baitsShown(int i) => widget.showBaits && widget.tally.baits.length > i && widget.tally.baits[i] > 0;
 
