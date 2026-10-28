@@ -107,13 +107,18 @@ class _EntryPanelState extends State<EntryPanel> {
     _contract = r?.contract ?? (widget.rules.hasContracts ? widget.rules.contracts.first.id : null);
     _doubling = r?.doubling ?? 1;
     _bid = r?.bid ?? (widget.rules.hasBids ? widget.rules.bids.first : null);
-    _startInput(_taker);
+    _startInput(_firstCounted(_taker));
     final scored = _scored;
     if (scored != null) {
-      _entered = [for (var k = 0; k < _sides - 1; k++) (_taker + k) % _sides];
+      _entered = [for (var k = 1; k < _sides; k++) (_taker + k) % _sides];
       _raws = List.generate(_sides, (i) => _entered.contains(i) ? '${scored.score[i]}' : null);
     }
   }
+
+  /// The side whose points are typed first when [taker] took the trump: the
+  /// one after it, as the taker usually wins the deal and the defenders, who
+  /// took fewer cards, count theirs. The taker is the side worked out.
+  int _firstCounted(int taker) => (taker + 1) % _sides;
 
   /// Starts entering the deal again from side [i] alone.
   void _startInput(int i) {
@@ -237,7 +242,7 @@ class _EntryPanelState extends State<EntryPanel> {
             ),
             const SizedBox(height: 8),
           ],
-          _takerRow(),
+          if (_wheel) _takerAndWheel() else _takerRow(),
           if (widget.rules.hasContracts) ...[
             const SizedBox(height: _gap),
             _choiceRow([
@@ -253,7 +258,10 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(height: _gap),
             _choiceRow([for (final d in _doublings) _doublingChoice(d)]),
           ],
-          if (_hasValue || _bid != null) ...[
+          if (_wheel && _bid != null) ...[
+            const SizedBox(height: _gap),
+            _bidRow(),
+          ] else if (!_wheel && (_hasValue || _bid != null)) ...[
             const SizedBox(height: _gap),
             _valueSection(),
           ],
@@ -347,12 +355,9 @@ class _EntryPanelState extends State<EntryPanel> {
     ]),
   );
 
-  /// Who took the trump, the sides next to each other, and the way to record
-  /// a redeal when the rules allow one.
-  Widget _takerRow() => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      SizedBox(
+  /// What the sides below are picked for, and the way to record a redeal
+  /// when the rules allow one.
+  Widget _takerHeader() => SizedBox(
         height: 30,
         child: Row(children: [
           Text(s.trumpTakenBy, style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
@@ -369,20 +374,57 @@ class _EntryPanelState extends State<EntryPanel> {
               ),
             )),
         ]),
-      ),
+      );
+
+  void _pickTaker(int i) => setState(() { _taker = i; _startInput(_firstCounted(i)); });
+
+  /// Who took the trump, the sides next to each other.
+  Widget _takerRow() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _takerHeader(),
       const SizedBox(height: 4),
       SizedBox(
         height: _rowHeight,
         child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (var i = 0; i < _sides; i++) ...[
             if (i > 0) const SizedBox(width: _gap),
-            Expanded(key: ValueKey('taker.$i'), child: _sideChip(i, _taker == i, '♠',
-                () => setState(() { _taker = i; _startInput(i); }))),
+            Expanded(key: ValueKey('taker.$i'), child: _sideChip(i, _taker == i, '♠', () => _pickTaker(i))),
           ],
         ]),
       ),
     ],
   );
+
+  /// Who took the trump, the sides one under another in a column wide enough
+  /// for long names, beside the wheel the value of the deal is picked on.
+  Widget _takerAndWheel() => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _takerHeader(),
+      for (var i = 0; i < _sides; i++) ...[
+        SizedBox(height: i == 0 ? 4 : _gap),
+        SizedBox(key: ValueKey('taker.$i'), height: _rowHeight,
+            child: _sideChip(i, _taker == i, '♠', () => _pickTaker(i))),
+      ],
+    ])),
+    const SizedBox(width: _gap),
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      SizedBox(height: 30, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
+          key: const ValueKey('dealValue'), maxLines: 1,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.acc))))),
+      const SizedBox(height: 4),
+      Container(
+        key: const ValueKey('valueWheel'),
+        height: _sides * _rowHeight + (_sides - 1) * _gap,
+        decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: _ValueWheel(
+          theme: t, values: widget.rules.dealValues, value: _gv,
+          onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv, widget.rules)),
+        ),
+      ),
+    ])),
+  ]);
 
   /// The value is picked on a wheel instead of counted up from declarations.
   bool get _wheel => widget.valueWheel && !widget.rules.hasContracts;
@@ -393,8 +435,8 @@ class _EntryPanelState extends State<EntryPanel> {
   /// The declarations the deal's contract allows, in the order the rules give them.
   List<DeclarationKind> get _allowed => [for (final k in widget.rules.declarations) if (_max(k) > 0) k];
 
-  /// The value of the deal with the bid it is played for, then what makes the
-  /// value up: the declarations, or the wheel.
+  /// The value of the deal with the bid it is played for, then the
+  /// declarations that make the value up.
   Widget _valueSection() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
@@ -411,31 +453,19 @@ class _EntryPanelState extends State<EntryPanel> {
         )
       else
         SizedBox(height: 30, child: _valueLabel()),
-      if (_wheel) ...[
-        const SizedBox(height: _gap),
-        Container(
-          key: const ValueKey('valueWheel'),
-          height: 132,
-          decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
-          clipBehavior: Clip.antiAlias,
-          child: _ValueWheel(
-            theme: t, values: widget.rules.dealValues, value: _gv,
-            onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv, widget.rules)),
-          ),
-        ),
-      ] else if (_allowed.isNotEmpty) ...[
+      if (_allowed.isNotEmpty) ...[
         const SizedBox(height: _gap),
         _declarationGrid(),
       ],
     ],
   );
 
-  /// What sets the value of the deal, and the value itself.
+  /// The declarations caption, and the value of the deal.
   Widget _valueLabel() => Row(children: [
     Expanded(child: FittedBox(
       fit: BoxFit.scaleDown,
       alignment: AlignmentDirectional.centerStart,
-      child: Text(_wheel ? s.gameValue : s.declarations, maxLines: 1,
+      child: Text(s.declarations, maxLines: 1,
           style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
     )),
     const SizedBox(width: 8),
