@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import '../main.dart' show maxAppWidth;
 import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
@@ -256,14 +255,7 @@ class _EntryPanelState extends State<EntryPanel> {
           ],
           if (_hasValue || _bid != null) ...[
             const SizedBox(height: _gap),
-            SizedBox(
-              height: _rowHeight,
-              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                if (_hasValue) Expanded(child: _valueBtn()),
-                if (_hasValue && _bid != null) const SizedBox(width: _gap),
-                if (_bid != null) Expanded(child: _bidRow()),
-              ]),
-            ),
+            _valueSection(),
           ],
           if (_keptBy != null && _debercBy == null) ...[
             const SizedBox(height: 6),
@@ -401,96 +393,132 @@ class _EntryPanelState extends State<EntryPanel> {
   /// The declarations the deal's contract allows, in the order the rules give them.
   List<DeclarationKind> get _allowed => [for (final k in widget.rules.declarations) if (_max(k) > 0) k];
 
-  /// The value of the deal and what was declared in it; tapping it opens the
-  /// declarations, or the wheel, in a sheet of their own.
-  Widget _valueBtn() {
-    final declared = [
-      for (final k in widget.rules.declarations)
-        if (_decl[k.id] > 0) _decl[k.id] > 1 ? '${s.declaration(k.id)} ×${_decl[k.id]}' : s.declaration(k.id),
-    ];
-    final on = declared.isNotEmpty;
-    final enabled = _wheel || _allowed.isNotEmpty;
-    return GestureDetector(
-      key: const ValueKey('declarations'),
-      onTap: enabled ? _openValue : null,
-      child: Container(
-        padding: const EdgeInsetsDirectional.only(start: 12, end: 6),
-        decoration: BoxDecoration(
-          color: on ? t.accDim : Colors.transparent,
-          border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(children: [
-          Expanded(child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(on ? declared.join(', ') : _wheel ? s.gameValue : s.declarations,
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, height: 1.2, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)),
-              const SizedBox(height: 2),
-              Text(s.dealValue(_gv), maxLines: 1,
-                  style: TextStyle(fontSize: 15, height: 1.2, fontWeight: FontWeight.w800, color: t.acc)),
+  /// The value of the deal with the bid it is played for, then what makes the
+  /// value up: the declarations, or the wheel.
+  Widget _valueSection() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (_bid != null)
+        SizedBox(
+          height: _rowHeight,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            if (_hasValue) ...[
+              Expanded(child: _valueLabel()),
+              const SizedBox(width: _gap),
             ],
-          )),
-          Icon(Icons.expand_less, size: 24, color: enabled ? t.tx2 : t.tx3),
-        ]),
-      ),
-    );
+            Expanded(child: _bidRow()),
+          ]),
+        )
+      else
+        SizedBox(height: 30, child: _valueLabel()),
+      if (_wheel) ...[
+        const SizedBox(height: _gap),
+        Container(
+          key: const ValueKey('valueWheel'),
+          height: 132,
+          decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
+          clipBehavior: Clip.antiAlias,
+          child: _ValueWheel(
+            theme: t, values: widget.rules.dealValues, value: _gv,
+            onChanged: (gv) => setState(() => _decl = Declarations.fromGv(gv, widget.rules)),
+          ),
+        ),
+      ] else if (_allowed.isNotEmpty) ...[
+        const SizedBox(height: _gap),
+        _declarationGrid(),
+      ],
+    ],
+  );
+
+  /// What sets the value of the deal, and the value itself.
+  Widget _valueLabel() => Row(children: [
+    Expanded(child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(_wheel ? s.gameValue : s.declarations, maxLines: 1,
+          style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
+    )),
+    const SizedBox(width: 8),
+    Text(s.dealValue(_gv), key: const ValueKey('dealValue'), maxLines: 1,
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.acc)),
+  ]);
+
+  /// The declarations the deal can have, two to a row, or three when there are
+  /// so many that two would push the keypad off a phone.
+  Widget _declarationGrid() {
+    final kinds = _allowed;
+    final perRow = kinds.length > 4 ? 3 : 2;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (var i = 0; i < kinds.length; i += perRow) ...[
+        if (i > 0) const SizedBox(height: _gap),
+        SizedBox(
+          // The border is drawn inside, so the cell is taller by its width.
+          height: _rowHeight + 3,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            for (var j = i; j < i + perRow; j++) ...[
+              if (j > i) const SizedBox(width: _gap),
+              Expanded(child: j < kinds.length ? _declaration(kinds[j]) : const SizedBox()),
+            ],
+          ]),
+        ),
+      ],
+    ]);
   }
 
-  /// Shows the declarations of the deal, or the wheel, with controls the
-  /// size of a finger; the panel follows every change.
-  void _openValue() => showModalBottomSheet<void>(
-    context: context,
-    backgroundColor: t.bg2,
-    isScrollControlled: true,
-    constraints: const BoxConstraints(maxWidth: maxAppWidth),
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (context) => Directionality(
-      textDirection: s.isRtl ? TextDirection.rtl : TextDirection.ltr,
-      child: StatefulBuilder(builder: (context, setSheet) {
-        void update(VoidCallback change) { setState(change); setSheet(() {}); }
-        return SafeArea(
+  /// A declaration: a tap adds one more, up to as many as the deal can have.
+  /// One that can be declared only once is taken back with another tap, the
+  /// others with the minus beside the count.
+  Widget _declaration(DeclarationKind k) {
+    final count = _decl[k.id];
+    final on = count > 0;
+    final once = _max(k) == 1;
+    final color = on ? t.acc : t.tx2;
+    void set(int to) => setState(() => _decl = _decl.withCount(k.id, to));
+    return Container(
+      decoration: BoxDecoration(
+        color: on ? t.accDim : Colors.transparent,
+        border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Expanded(child: GestureDetector(
+          key: ValueKey(once ? k.id : '${k.id}.+'),
+          behavior: HitTestBehavior.opaque,
+          onTap: once ? () => set(on ? 0 : 1) : count < _max(k) ? () => set(count + 1) : null,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Row(children: [
-                Expanded(child: Text(_wheel ? s.gameValue : s.declarations,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.tx))),
-                Text(s.dealValue(_gv), key: const ValueKey('sheetValue'),
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: t.acc)),
-              ]),
-              const SizedBox(height: 14),
-              if (_wheel)
-                Container(
-                  key: const ValueKey('valueWheel'),
-                  height: 220,
-                  decoration: BoxDecoration(color: t.nk, borderRadius: BorderRadius.circular(12)),
-                  clipBehavior: Clip.antiAlias,
-                  child: _ValueWheel(
-                    theme: t, values: widget.rules.dealValues, value: _gv,
-                    onChanged: (gv) => update(() => _decl = Declarations.fromGv(gv, widget.rules)),
-                  ),
-                )
+            padding: const EdgeInsetsDirectional.only(start: 12, end: 10),
+            child: Row(children: [
+              Expanded(child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(s.declaration(k.id), maxLines: 1,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: color)),
+              )),
+              const SizedBox(width: 6),
+              if (once)
+                Icon(on ? Icons.check_circle : Icons.circle_outlined, size: 22, color: on ? t.acc : t.tx3)
+              else if (on)
+                Text('$count', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color))
               else
-                Flexible(child: SingleChildScrollView(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final (i, k) in _allowed.indexed) ...[
-                      if (i > 0) const SizedBox(height: 8),
-                      SizedBox(height: 54, child: _max(k) == 1 ? _toggle(k, update) : _counter(k, update)),
-                    ],
-                  ],
-                ))),
-              const SizedBox(height: 16),
-              _ctaBtn(s.done, () => Navigator.of(context).pop()),
+                Icon(Icons.add, size: 22, color: t.tx3),
             ]),
           ),
-        );
-      }),
-    ),
-  );
+        )),
+        if (!once && on)
+          GestureDetector(
+            key: ValueKey('${k.id}.−'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () => set(count - 1),
+            child: Container(
+              width: 44,
+              decoration: BoxDecoration(border: BorderDirectional(start: BorderSide(color: t.accBdr))),
+              alignment: Alignment.center,
+              child: Text('−', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: t.tx)),
+            ),
+          ),
+      ]),
+    );
+  }
 
   /// The bid of the deal, stepped through the bids the game allows.
   Widget _bidRow() {
@@ -600,59 +628,6 @@ class _EntryPanelState extends State<EntryPanel> {
         alignment: Alignment.center,
         child: Text('${on ? '$mark ' : ''}${widget.teamNames[i]}', maxLines: 1, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: on ? t.teamColor(i) : t.tx2)),
-      ),
-    );
-  }
-
-  /// A declaration that can be declared more than once: its name, how many
-  /// times, and steppers on both sides of the count.
-  Widget _counter(DeclarationKind k, void Function(VoidCallback) update) {
-    final count = _decl[k.id];
-    final on = count > 0;
-    Widget step(String sign, int to, bool enabled) => GestureDetector(
-      key: ValueKey('${k.id}.$sign'),
-      behavior: HitTestBehavior.opaque,
-      onTap: enabled ? () => update(() => _decl = _decl.withCount(k.id, to)) : null,
-      child: SizedBox(width: 56, child: Center(child: Text(sign,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: enabled ? t.tx : t.tx3)))),
-    );
-    return Container(
-      padding: const EdgeInsetsDirectional.only(start: 14),
-      decoration: BoxDecoration(
-        color: on ? t.accDim : Colors.transparent,
-        border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Expanded(child: Align(alignment: AlignmentDirectional.centerStart, child: Text(s.declaration(k.id),
-            maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2)))),
-        step('−', count - 1, on),
-        SizedBox(width: 32, child: Center(child: Text('$count',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: on ? t.acc : t.tx2)))),
-        step('+', count + 1, count < _max(k)),
-      ]),
-    );
-  }
-
-  /// A declaration that is either declared or not.
-  Widget _toggle(DeclarationKind k, void Function(VoidCallback) update) {
-    final on = _decl[k.id] > 0;
-    return GestureDetector(
-      key: ValueKey(k.id),
-      onTap: () => update(() => _decl = _decl.withCount(k.id, on ? 0 : 1)),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: on ? t.accDim : Colors.transparent,
-          border: Border.all(color: on ? t.accBdr : t.bdr, width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(children: [
-          Expanded(child: Text(s.declaration(k.id), maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: on ? t.acc : t.tx2))),
-          Icon(on ? Icons.check_circle : Icons.circle_outlined, size: 26, color: on ? t.acc : t.tx3),
-        ]),
       ),
     );
   }
@@ -856,7 +831,7 @@ class _ValueWheelState extends State<_ValueWheel> {
       behavior: ScrollConfiguration.of(context).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
       child: CupertinoPicker.builder(
         scrollController: _controller,
-        itemExtent: 40,
+        itemExtent: 44,
         childCount: widget.values.length,
         selectionOverlay: Container(
           margin: const EdgeInsets.symmetric(horizontal: 6),

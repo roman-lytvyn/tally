@@ -309,7 +309,6 @@ class AppStrings {
   String get declarations    => _baloot
       ? _t('Проєкти', 'Projects', 'Projets', 'Проекти', 'Projekti', 'Projecten', 'المشاريع')
       : _t('Комбінації', 'Declarations', 'Annonces', 'Анонси', 'Zvanja', 'Roem', 'المشاريع');
-  String get done            => _t('Готово', 'Done', 'OK', 'Готово', 'Gotovo', 'Klaar', 'تم');
   String get trumpTakenBy    => _baloot
       ? _t('Купили:', 'Bought by:', 'Acheté par :', 'Купиха:', 'Kupili su:', 'Gekocht door:', 'المشتري:')
       : _t('Козир узяли:', 'Trump taken by:', 'Atout pris par :', 'Коз взеха:', 'Aduta su zvali:', 'Troef gemaakt door:', 'أخذ الحكم:');
