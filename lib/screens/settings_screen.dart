@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final AppTheme theme;
@@ -24,6 +25,7 @@ class SettingsScreen extends StatelessWidget {
   final void Function(FinishRule) onFinishRuleChanged;
   final void Function(Penalties) onPenaltiesChanged;
   final void Function(String) onLangChanged;
+  final VoidCallback onAbout;
   final VoidCallback onBack;
 
   const SettingsScreen({
@@ -35,7 +37,7 @@ class SettingsScreen extends StatelessWidget {
     required this.onValueInputChanged, required this.onDealerMustPlayChanged,
     required this.onTieRuleChanged, required this.onFinishRuleChanged,
     required this.onPenaltiesChanged,
-    required this.onLangChanged, required this.onBack,
+    required this.onLangChanged, required this.onAbout, required this.onBack,
   });
 
   AppTheme get t => theme;
@@ -210,6 +212,23 @@ class SettingsScreen extends StatelessWidget {
                     if (i > 0) _divider(),
                     _langRow(AppStrings.languageFlag(code), AppStrings.languageName(code), code),
                   ],
+                ]),
+                const SizedBox(height: 14),
+                _group([
+                  GestureDetector(
+                    key: const ValueKey('settings.about'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onAbout,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+                      child: Row(children: [
+                        Expanded(child: _title(strings.aboutTitle)),
+                        Text(kAppVersion, style: TextStyle(fontSize: 12, color: t.tx2)),
+                        const SizedBox(width: 6),
+                        Icon(Icons.chevron_right, size: 20, color: t.tx3),
+                      ]),
+                    ),
+                  ),
                 ]),
               ],
             ),

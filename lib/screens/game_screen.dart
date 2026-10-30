@@ -82,38 +82,67 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            // While a deal is entered the score shrinks to make room for the panel.
-            _buildScoreSection(compact: _entryOpen),
-            if (!isTraditional && !_entryOpen) _buildProgressBars(),
-            if (widget.tally.held > 0) _buildHeld(),
-            // The panel takes what is left once the most recent deal is shown;
-            // a panel taller than that scrolls.
-            Expanded(child: LayoutBuilder(builder: (context, area) => Column(children: [
+        // The popup lies over the game, which stays in place underneath.
+        child: Stack(children: [
+          Column(
+            children: [
+              _buildHeader(),
+              _buildScoreSection(),
+              if (!isTraditional) _buildProgressBars(),
+              if (widget.tally.held > 0) _buildHeld(),
               Expanded(child: _buildRoundsList()),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: math.max(area.maxHeight - _oneRound, area.maxHeight / 2)),
-                child: SingleChildScrollView(child: EntryPanel(
-              key: ValueKey(_session),
-              theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
-              firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
-              open: _entryOpen, valueWheel: widget.valueInput == 'wheel',
-              initial: editing != null ? rounds[editing] : null,
-              number: editing != null ? editing + 1 : null,
-              onOpen: () => _openEntry(),
-              onCancel: _closeEntry,
-              onSave: _saveEntry,
-              onDelete: editing != null ? _deleteEntry : null,
-            )),
-              ),
-            ]))),
-          ],
-        ),
+              _buildNewRound(),
+            ],
+          ),
+          if (_entryOpen) Positioned.fill(child: _buildEntryPopup(editing)),
+        ]),
       ),
     );
   }
+
+  Widget _buildNewRound() => Container(
+    decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
+    padding: const EdgeInsets.fromLTRB(18, 11, 18, 18),
+    child: GestureDetector(
+      onTap: _openEntry,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(gradient: t.ctaGradient, borderRadius: BorderRadius.circular(14)),
+        alignment: Alignment.center,
+        child: Text(strings.newRound,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
+      ),
+    ),
+  );
+
+  /// The narrowest the entry panel is laid out; its rows need this much.
+  static const double _entryMinWidth = 360;
+
+  /// The panel for entering a deal, at the bottom over a dimmed game. It takes
+  /// the height it needs, and on a screen too small for that it shrinks whole,
+  /// so it never scrolls.
+  Widget _buildEntryPopup(int? editing) => ColoredBox(
+    color: Colors.black54,
+    child: LayoutBuilder(builder: (context, area) => FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.bottomCenter,
+      child: SizedBox(
+        width: math.max(area.maxWidth, _entryMinWidth),
+        child: EntryPanel(
+          key: ValueKey(_session),
+          theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
+          firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
+          valueWheel: widget.valueInput == 'wheel',
+          initial: editing != null ? rounds[editing] : null,
+          number: editing != null ? editing + 1 : null,
+          onCancel: _closeEntry,
+          onSave: _saveEntry,
+          onDelete: editing != null ? _deleteEntry : null,
+        ),
+      ),
+    )),
+  );
 
   Widget _buildHeader() => Container(
     decoration: BoxDecoration(gradient: t.headerGradient),
@@ -155,19 +184,14 @@ class _GameScreenState extends State<GameScreen> {
     ),
   );
 
-  /// The room the most recent deal takes in the list of deals.
-  static const double _oneRound = 72;
+  /// The score in the way picked in the settings.
+  Widget _buildScoreSection() => isTraditional ? _buildTraditionalScores() : _buildNumericScores();
 
-  /// The score in the way picked in the settings; [compact] makes it small
-  /// enough to leave room for the entry panel.
-  Widget _buildScoreSection({bool compact = false}) =>
-      isTraditional ? _buildTraditionalScores(compact: compact) : _buildNumericScores(compact: compact);
-
-  Widget _buildTraditionalScores({bool compact = false}) => Padding(
+  Widget _buildTraditionalScores() => Padding(
     padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
     child: Column(
       children: List.generate(sides, (i) => Padding(
-        padding: EdgeInsets.only(bottom: compact ? 4 : 8),
+        padding: const EdgeInsets.only(bottom: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Expanded(child: Row(children: [
@@ -203,13 +227,13 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          TraditionalScore(value: scores[i], u: compact ? (sides > 2 ? 16 : 20) : sides > 2 ? 22 : 30, color: t.teamColor(i)),
+          TraditionalScore(value: scores[i], u: sides > 2 ? 22 : 30, color: t.teamColor(i)),
         ]),
       )),
     ),
   );
 
-  Widget _buildNumericScores({bool compact = false}) => compact ? _buildScoreLine() : Padding(
+  Widget _buildNumericScores() => Padding(
     padding: const EdgeInsets.fromLTRB(18, 6, 18, 0),
     child: Column(children: [
       // Every side gets an equal share of the row; a long name shrinks into it.
@@ -242,40 +266,6 @@ class _GameScreenState extends State<GameScreen> {
       ]),
     ]),
   );
-
-  /// The scores in figures on one line, each beside its side's name, to leave
-  /// the entry panel as much room as it can.
-  Widget _buildScoreLine() => Padding(
-    padding: const EdgeInsets.fromLTRB(18, 4, 18, 6),
-    child: Row(children: [
-      for (var i = 0; i < sides; i++) ...[
-        if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(':', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: t.tx3))),
-        Expanded(child: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: i == 0 ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (i > 0) ...[_scoreFigure(i), const SizedBox(width: 10)],
-            Text(teamNames[i], maxLines: 1,
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: t.teamColor(i))),
-            if (dealer == i) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
-                child: Text(strings.deals, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: t.teamColor(i))),
-              ),
-            ],
-            if (_baitsShown(i)) ...[const SizedBox(width: 4), _baitCount(i)],
-            if (i == 0) ...[const SizedBox(width: 10), _scoreFigure(i)],
-          ]),
-        )),
-      ],
-    ]),
-  );
-
-  Widget _scoreFigure(int i) => Text('${scores[i]}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800,
-      height: 1, letterSpacing: -1, color: _leads(i) ? t.teamColor(i) : t.tx));
 
   bool _baitsShown(int i) => widget.showBaits && widget.tally.baits.length > i && widget.tally.baits[i] > 0;
 

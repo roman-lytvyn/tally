@@ -17,13 +17,11 @@ class EntryPanel extends StatefulWidget {
   final int firstToBid;
   final bool dealerMustPlay;
   final TieRule tieRule;
-  final bool open;
   /// The value of the deal is picked on a scroll wheel instead of counted
   /// up from its declarations.
   final bool valueWheel;
   final Round? initial;
   final int? number;
-  final VoidCallback onOpen;
   final VoidCallback onCancel;
   final void Function(Round) onSave;
   final VoidCallback? onDelete;
@@ -31,9 +29,9 @@ class EntryPanel extends StatefulWidget {
   const EntryPanel({
     super.key, required this.theme, required this.strings, required this.rules,
     required this.teamNames, required this.dealer, required this.firstToBid,
-    required this.dealerMustPlay, required this.tieRule, required this.open,
+    required this.dealerMustPlay, required this.tieRule,
     this.valueWheel = false, this.initial, this.number,
-    required this.onOpen, required this.onCancel, required this.onSave, this.onDelete,
+    required this.onCancel, required this.onSave, this.onDelete,
   });
 
   @override
@@ -211,18 +209,14 @@ class _EntryPanelState extends State<EntryPanel> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.open) {
-      return Container(
-        decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
-        padding: const EdgeInsets.fromLTRB(18, 11, 18, 18),
-        child: _ctaBtn(s.newRound, widget.onOpen),
-      );
-    }
-
     final score = _score;
 
     return Container(
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdr))),
+      decoration: BoxDecoration(
+        color: t.bg,
+        border: Border(top: BorderSide(color: t.bdr)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+      ),
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -358,23 +352,37 @@ class _EntryPanelState extends State<EntryPanel> {
   /// What the sides below are picked for, and the way to record a redeal
   /// when the rules allow one.
   Widget _takerHeader() => SizedBox(
-        height: 30,
+        height: _headerHeight,
         child: Row(children: [
           Text(s.trumpTakenBy, style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
           const SizedBox(width: 10),
           if (!widget.dealerMustPlay)
-            Expanded(child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides, gv: widget.rules.cardPoints)),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.allPassed, maxLines: 1,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.tx2,
-                        decoration: TextDecoration.underline, decorationColor: t.tx3))),
-              ),
+            Expanded(child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: _redealBtn(),
             )),
         ]),
       );
+
+  Widget _redealBtn() => GestureDetector(
+    key: const ValueKey('redeal'),
+    onTap: () => widget.onSave(Round.redeal(dealer: _dealer, sides: _sides, gv: widget.rules.cardPoints)),
+    child: Container(
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: t.surf,
+        border: Border.all(color: t.bdr, width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.refresh, size: 16, color: t.tx2),
+        const SizedBox(width: 4),
+        Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.allPassed, maxLines: 1,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.tx)))),
+      ]),
+    ),
+  );
 
   void _pickTaker(int i) => setState(() { _taker = i; _startInput(_firstCounted(i)); });
 
@@ -409,7 +417,7 @@ class _EntryPanelState extends State<EntryPanel> {
     ])),
     const SizedBox(width: _gap),
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SizedBox(height: 30, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
+      SizedBox(height: _headerHeight, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
           key: const ValueKey('dealValue'), maxLines: 1,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.acc))))),
       const SizedBox(height: 4),
@@ -607,6 +615,7 @@ class _EntryPanelState extends State<EntryPanel> {
   );
 
   static const double _rowHeight = 46;
+  static const double _headerHeight = 40;
   static const double _gap = 6;
 
   /// A label followed by one chip per side, the [selected] one marked.
@@ -725,17 +734,6 @@ class _EntryPanelState extends State<EntryPanel> {
       }).toList(),
     );
   }
-
-  Widget _ctaBtn(String label, VoidCallback onTap) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(gradient: t.ctaGradient, borderRadius: BorderRadius.circular(14)),
-      alignment: Alignment.center,
-      child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
-    ),
-  );
 
   Widget _ghostBtn(String label, VoidCallback onTap) => GestureDetector(
     onTap: onTap,
