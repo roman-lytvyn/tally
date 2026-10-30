@@ -9,7 +9,9 @@ import 'package:deberc/rules_content.dart';
 import 'package:deberc/main.dart';
 import 'package:deberc/l10n.dart';
 import 'package:deberc/models.dart';
+import 'package:deberc/screens/about_screen.dart';
 import 'package:deberc/screens/settings_screen.dart';
+import 'package:deberc/widgets/entry_panel.dart';
 import 'package:deberc/widgets/traditional_score.dart';
 
 void main() {
@@ -149,6 +151,7 @@ void main() {
       await tapText(tester, uk.newRound);
       expect(find.byKey(const ValueKey('deberc')), findsNothing);
 
+      await tapText(tester, uk.cancel);
       await tapText(tester, uk.exitBtn);
       await tapText(tester, uk.settingsBtn);
       expect(find.text(uk.baitPenaltyTitle), findsNothing);
@@ -1039,19 +1042,41 @@ void main() {
     expect(find.text(uk.gameValue), findsNothing);
   });
 
-  testWidgets('keeps the most recent deal in sight above the entry panel', (tester) async {
-    await openRound(tester);
-    await tapKey(tester, 'taker.0');
-    await tester.pump();
-    await press(tester, '8');
-    await press(tester, '0');
-    await tapText(tester, uk.save);
-    await tapText(tester, uk.newRound);
+  for (final style in ['traditional', 'numeric']) {
+    testWidgets('leaves the $style score and the deals where they are when the popup opens', (tester) async {
+      SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', 'deberc_style': style});
+      await openRound(tester);
+      await tapKey(tester, 'taker.0');
+      await tester.pump();
+      await press(tester, '8');
+      await press(tester, '0');
+      await tapText(tester, uk.save);
 
-    expect(find.text('#1'), findsOneWidget);
-    final round = tester.getRect(find.text('#1'));
-    final panel = tester.getRect(find.byKey(const ValueKey('taker.0')));
-    expect(round.bottom, lessThan(panel.top));
+      final shown = find.byType(Text).evaluate().toList();
+      List<Rect> rects() => [
+        for (final e in shown)
+          (e.renderObject! as RenderBox).localToGlobal(Offset.zero) & (e.renderObject! as RenderBox).size,
+      ];
+      final before = rects();
+
+      await tapText(tester, uk.newRound);
+
+      expect(find.byType(EntryPanel), findsOneWidget);
+      expect(rects(), before);
+    });
+  }
+
+  testWidgets('opens the popup over the game and leaves it only through its own buttons', (tester) async {
+    await openRound(tester);
+
+    // The game underneath takes no taps while the popup is open.
+    await tester.tapAt(tester.getCenter(find.text(uk.exitBtn)));
+    await tester.pumpAndSettle();
+    expect(find.byType(EntryPanel), findsOneWidget);
+
+    await tapText(tester, uk.cancel);
+    expect(find.byType(EntryPanel), findsNothing);
+    expect(find.text(uk.newRound), findsOneWidget);
   });
 
   testWidgets('keeps the circles and sticks while a deal is entered', (tester) async {
@@ -1059,6 +1084,91 @@ void main() {
     await openRound(tester);
 
     expect(find.byType(TraditionalScore), findsNWidgets(2));
+  });
+
+  group('deal entry popup never scrolls', () {
+    const sizes = [Size(411, 830), Size(360, 640), Size(320, 480), Size(830, 411)];
+
+    /// Fails if the popup could scroll or reaches past the screen.
+    void expectFits(WidgetTester tester, Size size) {
+      expect(find.ancestor(of: find.byType(EntryPanel), matching: find.byType(Scrollable)), findsNothing);
+      expect(find.descendant(of: find.byType(EntryPanel), matching: find.byType(SingleChildScrollView)), findsNothing);
+      final panel = tester.getRect(find.byType(EntryPanel));
+      expect(panel.top, greaterThanOrEqualTo(0));
+      expect(panel.left, greaterThanOrEqualTo(0));
+      expect(panel.bottom, lessThanOrEqualTo(size.height + 0.01));
+      expect(panel.right, lessThanOrEqualTo(size.width + 0.01));
+    }
+
+    for (final rules in GameRules.all) {
+      for (final size in sizes) {
+        for (final wheel in [false, true]) {
+          testWidgets('${rules.id} at ${size.width}x${size.height}${wheel ? ' with the wheel' : ''}', (tester) async {
+            SharedPreferences.setMockInitialValues({'deberc_lang': 'uk', if (wheel) 'deberc_value_input': 'wheel'});
+            tester.view.physicalSize = size;
+            tester.view.devicePixelRatio = 1;
+            addTearDown(tester.view.reset);
+            await tester.pumpWidget(DebertsApp(rules: rules));
+            await tester.pumpAndSettle();
+            await tapText(tester, uk.newGame);
+            await tapText(tester, uk.newRound);
+            expectFits(tester, size);
+
+            // A chosen taker brings in more of the panel.
+            await tester.tap(find.byKey(const ValueKey('taker.0')));
+            await tester.pumpAndSettle();
+            expectFits(tester, size);
+            if (size == sizes.first) {
+              expect(tester.getSize(find.byType(EntryPanel)).width, size.width,
+                  reason: 'a phone this size shows the popup at full size');
+            }
+          });
+        }
+      }
+    }
+  });
+
+  testWidgets('shows everyone passed as a button of a finger size', (tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.settingsBtn);
+    await tapText(tester, uk.dealerMustPlay);
+    await tapText(tester, uk.backBtn);
+    await tapText(tester, uk.newGame);
+    await tapText(tester, uk.newRound);
+
+    final redeal = find.byKey(const ValueKey('redeal'));
+    expect(tester.getSize(redeal).height, greaterThanOrEqualTo(32));
+    expect(find.descendant(of: redeal, matching: find.byIcon(Icons.refresh)), findsOneWidget);
+    expect(find.descendant(of: redeal, matching: find.text(uk.allPassed)), findsOneWidget);
+
+    await tester.tap(redeal);
+    await tester.pumpAndSettle();
+    expect(find.byType(EntryPanel), findsNothing);
+    expect(find.text('#1'), findsOneWidget);
+  });
+
+  testWidgets('shows the version and the author on the about page, reached from the settings', (tester) async {
+    await openApp(tester);
+    await tapText(tester, uk.newGame);
+    await tapText(tester, '⚙');
+
+    final row = find.byKey(const ValueKey('settings.about'));
+    await tester.scrollUntilVisible(row, 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: row, matching: find.text(kAppVersion)), findsOneWidget);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+
+    expect(find.text(uk.aboutTitle), findsOneWidget);
+    expect(find.text(uk.appTitle), findsOneWidget);
+    expect(find.text(kAppVersion), findsOneWidget);
+    expect(find.text(uk.authorName), findsOneWidget);
+
+    // Back leads to the settings, and from them to the game they were opened from.
+    await tapText(tester, uk.backBtn);
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    await tapText(tester, uk.backBtn);
+    expect(find.text(uk.newRound), findsOneWidget);
   });
 
   testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {

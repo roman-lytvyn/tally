@@ -72,6 +72,15 @@ class AppStrings {
   String get settingsBtn     => _t('⚙ Налаштування', '⚙ Settings', '⚙ Réglages', '⚙ Настройки', '⚙ Postavke', '⚙ Instellingen', '⚙ الإعدادات');
   String get rulesBtn        => _t('📖 Правила', '📖 Rules', '📖 Règles', '📖 Правила', '📖 Pravila', '📖 Regels', '📖 القواعد');
   String get rulesTitle      => _t('Правила', 'Rules', 'Règles', 'Правила', 'Pravila', 'Regels', 'القواعد');
+
+  // About
+  String get aboutTitle      => _t('Про застосунок', 'About', 'À propos', 'За приложението', 'O aplikaciji', 'Over de app', 'حول التطبيق');
+  String get versionLabel    => _t('Версія', 'Version', 'Version', 'Версия', 'Verzija', 'Versie', 'الإصدار');
+  String get authorLabel     => _t('Автор', 'Author', 'Auteur', 'Автор', 'Autor', 'Auteur', 'المؤلف');
+  String get authorName      => _t('Роман Литвин', 'Roman Lytvyn', 'Roman Lytvyn', 'Роман Литвин', 'Roman Lytvyn', 'Roman Lytvyn', 'Roman Lytvyn');
+  String get contactLabel    => _t('Контакт', 'Contact', 'Contact', 'Контакт', 'Kontakt', 'Contact', 'التواصل');
+  String get websiteLabel    => _t('Сайт', 'Website', 'Site web', 'Уебсайт', 'Web stranica', 'Website', 'الموقع');
+
   String get ourTeamHint     => _t('Наша команда', 'Our team', 'Notre équipe', 'Нашият отбор', 'Naša ekipa', 'Ons team', 'فريقنا');
   String get otherTeamHint   => _t('Інша команда', 'Other team', 'L\'autre équipe', 'Другият отбор', 'Druga ekipa', 'Het andere team', 'الفريق الآخر');
   String get players         => _t('Гравці', 'Players', 'Joueurs', 'Играчи', 'Igrači', 'Spelers', 'اللاعبون');

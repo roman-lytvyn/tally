@@ -11,6 +11,7 @@ import 'screens/game_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/win_screen.dart';
 import 'screens/rules_screen.dart';
+import 'screens/about_screen.dart';
 
 /// The widest the app grows; a wider window shows its background on both sides.
 const maxAppWidth = 560.0;
@@ -28,7 +29,7 @@ const _penaltiesKey = 'deberc_penalties';
 /// The game this app is built for, chosen at build time with `--dart-define=GAME=<id>`.
 const _game = String.fromEnvironment('GAME', defaultValue: 'deberc');
 
-enum AppScreen { setup, game, settings, win, rules }
+enum AppScreen { setup, game, settings, win, rules, about }
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -362,7 +363,14 @@ class _AppRootState extends State<AppRoot> {
             _prefs?.setString(_valueKey, v);
           },
           onLangChanged: _setLang,
+          onAbout: () => setState(() => _screen = AppScreen.about),
           onBack: () => _goTo(_prevScreen),
+        );
+      case AppScreen.about:
+        return AboutScreen(
+          key: const ValueKey('about'),
+          theme: theme, strings: strings,
+          onBack: () => setState(() => _screen = AppScreen.settings),
         );
       case AppScreen.win:
         final t = tally(_game);

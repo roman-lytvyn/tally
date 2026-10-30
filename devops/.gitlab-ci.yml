@@ -137,8 +137,8 @@ test:
       else
         echo "No upload key configured, building with the debug key: not publishable to Play"
       fi
-    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
-    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - flutter build apk --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
+    - flutter build appbundle --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
     - mv build/app/outputs/flutter-apk/app-release.apk "$APP_FILE_NAME-$VERSION.apk"
     - mv build/app/outputs/bundle/release/app-release.aab "$APP_FILE_NAME-$VERSION.aab"
     - rm -f android/key.properties android/upload-keystore.jks
@@ -167,7 +167,7 @@ build:
     - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
     - apt-get update -qq
     - DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev > /dev/null
-    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - flutter build linux --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
     - sh devops/linux/build-deb.sh "$VERSION" "$APP_FILE_NAME-$VERSION.deb" "$APP"
 
 build-linux:
@@ -194,7 +194,7 @@ build-linux:
   script:
     - !reference [.use-app, script]
     - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
-    - flutter build web --release --wasm --no-web-resources-cdn --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME"
+    - flutter build web --release --wasm --no-web-resources-cdn --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
     - dart run devops/web/fallback_fonts.dart build/web/fonts
     # Debug symbols are of no use to a browser, and web/sw.js takes the place of
     # Flutter's own service worker.
@@ -291,7 +291,7 @@ build-windows:
     # is appended.
     - $MSIX_VERSION = (($VERSION.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
     - !reference [.use-app-windows, script]
-    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=GAME="$($app.APP_GAME)"
+    - flutter build windows --release --build-name="$VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=GAME="$($app.APP_GAME)" --dart-define=APP_VERSION="$VERSION"
     # A self-signed .msix, installable for smoke-testing the Windows build. The
     # Store-signed package is produced only when a release is published.
     # --install-certificate false keeps the test certificate out of the machine
@@ -562,7 +562,7 @@ publish-windows:
   script:
     - if (-not $env:VERSION) { exit 0 }
     - !reference [.use-app-windows, script]
-    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=GAME="$($app.APP_GAME)"
+    - flutter build windows --release --build-name="$env:VERSION" --build-number="$env:CI_PIPELINE_IID" --dart-define=GAME="$($app.APP_GAME)" --dart-define=APP_VERSION="$env:VERSION"
     # Always produce a downloadable package to attach to the release. When a
     # Store publisher identity is configured, build the variant the Store signs
     # (--store plus the identity reserved in Partner Center); otherwise a
