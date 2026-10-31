@@ -11,6 +11,7 @@ import 'package:deberc/l10n.dart';
 import 'package:deberc/models.dart';
 import 'package:deberc/screens/about_screen.dart';
 import 'package:deberc/screens/settings_screen.dart';
+import 'package:deberc/theme.dart';
 import 'package:deberc/widgets/entry_panel.dart';
 import 'package:deberc/widgets/traditional_score.dart';
 
@@ -1169,6 +1170,21 @@ void main() {
     expect(find.byType(SettingsScreen), findsOneWidget);
     await tapText(tester, uk.backBtn);
     expect(find.text(uk.newRound), findsOneWidget);
+  });
+
+  testWidgets('opens the website from the about page', (tester) async {
+    final opened = <Uri>[];
+    await tester.pumpWidget(MaterialApp(
+      home: AboutScreen(
+        theme: const AppTheme(true), strings: uk, onBack: () {},
+        openLink: (url) async => opened.add(url),
+      ),
+    ));
+
+    await tester.tap(find.byKey(const ValueKey('about.website')));
+    await tester.pump();
+
+    expect(opened, [Uri.parse('https://deberc.lytvyn.org')]);
   });
 
   testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {
