@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme.dart';
 import '../l10n.dart';
 
 /// The version the build was given; a local build has none.
 const kAppVersion = String.fromEnvironment('APP_VERSION', defaultValue: 'dev');
 
+const _kWebsite = 'deberc.lytvyn.org';
+
+Future<void> _openInBrowser(Uri url) => launchUrl(url, mode: LaunchMode.externalApplication);
+
 class AboutScreen extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
   final VoidCallback onBack;
+  final Future<void> Function(Uri url) openLink;
 
-  const AboutScreen({super.key, required this.theme, required this.strings, required this.onBack});
+  const AboutScreen({
+    super.key, required this.theme, required this.strings, required this.onBack,
+    this.openLink = _openInBrowser,
+  });
 
   AppTheme get t => theme;
 
@@ -67,7 +76,8 @@ class AboutScreen extends StatelessWidget {
                       Divider(height: 1, color: t.bdr, indent: 15),
                       _row(strings.contactLabel, 'litvin.roma@gmail.com'),
                       Divider(height: 1, color: t.bdr, indent: 15),
-                      _row(strings.websiteLabel, 'deberc.lytvyn.org'),
+                      _linkRow(strings.websiteLabel, _kWebsite, Uri.https(_kWebsite),
+                          key: const ValueKey('about.website')),
                     ]),
                   ),
                 ],
@@ -87,5 +97,33 @@ class AboutScreen extends StatelessWidget {
       const SizedBox(height: 2),
       SelectableText(value, key: key, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: t.tx)),
     ]),
+  );
+
+  /// A caption over a link; the whole row opens it in the browser.
+  Widget _linkRow(String label, String text, Uri url, {Key? key}) => Semantics(
+    link: true,
+    child: MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        key: key,
+        behavior: HitTestBehavior.opaque,
+        onTap: () => openLink(url),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          child: Row(children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label, style: TextStyle(fontSize: 12, color: t.tx2)),
+              const SizedBox(height: 2),
+              Text(text, style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w600, color: t.acc,
+                decoration: TextDecoration.underline, decorationColor: t.acc,
+              )),
+            ])),
+            const SizedBox(width: 10),
+            Icon(Icons.open_in_new, size: 18, color: t.acc),
+          ]),
+        ),
+      ),
+    ),
   );
 }
