@@ -9,7 +9,7 @@ of them are built from this one Flutter codebase. The apps keep the score at the
 table; they do not play the cards.
 
 They run on Android, Windows and Linux and in the browser, at
-[deberc.lytvyn.org](https://deberc.lytvyn.org), where each game has its own page,
+[tallycards.app](https://tallycards.app), where each game has its own page,
 its downloads and its rules.
 
 ---
@@ -145,7 +145,7 @@ published at that point.
 Creating a release for one of those tags publishes it. A release webhook starts the
 publish pipeline, which rebuilds that exact tag on each platform and attaches the
 files to the release for direct download. Once they are attached, the `website` job
-rebuilds [deberc.lytvyn.org](https://deberc.lytvyn.org) from the website project,
+rebuilds [tallycards.app](https://tallycards.app) from the website project,
 which then offers this release and goes live on its own. The website reads the
 release files with its CI job token, so this project's job token allowlist includes
 the website project. Once store credentials are configured, the publish pipeline
@@ -165,7 +165,7 @@ Every release carries these files for each app, named `<app>-<version>`:
 | `.deb` | Debian, Ubuntu and their derivatives (amd64): `sudo apt install ./<app>-<version>.deb` |
 | `-web.zip` | The browser version, to serve from any web server |
 
-- **Browser** — the app runs as WebAssembly at `deberc.lytvyn.org/<game>/play/`. Once opened, it also works offline and can be added to the home screen, and it loads nothing from other sites.
+- **Browser** — the app runs as WebAssembly at `tallycards.app/<game>/play/`. Once opened, it also works offline and can be added to the home screen, and it loads nothing from other sites.
 - **Windows and Linux** — the app opens in a fixed, phone-sized window centred on the screen.
 - **Windows signing** — the Windows files are not code-signed yet, so SmartScreen asks to confirm the first launch (More info → Run anyway).
 - **iOS** — not built yet: it can only be built on Apple hardware, which no runner provides.

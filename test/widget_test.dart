@@ -1184,7 +1184,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('about.website')));
     await tester.pump();
 
-    expect(opened, [Uri.parse('https://deberc.lytvyn.org')]);
+    expect(opened, [Uri.parse('https://tallycards.app')]);
   });
 
   testWidgets('offers the short game to 301 alongside 501 and 1001', (tester) async {
