@@ -6,7 +6,7 @@ import '../l10n.dart';
 /// The version the build was given; a local build has none.
 const kAppVersion = String.fromEnvironment('APP_VERSION', defaultValue: 'dev');
 
-const _kWebsite = 'deberc.lytvyn.org';
+const _kWebsite = 'tallycards.app';
 
 Future<void> _openInBrowser(Uri url) => launchUrl(url, mode: LaunchMode.externalApplication);
 
