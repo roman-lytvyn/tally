@@ -19,7 +19,7 @@ void main() {
     }
     File('${root.path}/devops/apps/other.env').writeAsStringSync(
       File('devops/apps/deberc.env').readAsStringSync()
-          .replaceAll('"com.deberc.deberc"', '"org.example.other"')
+          .replaceAll('"app.tallycards.deberc"', '"org.example.other"')
           .replaceAll('"deberc"', '"other"')
           .replaceAll('"Deberc"', '"Other"')
           .replaceAll('"Деберць"', '"Інша"')
@@ -45,7 +45,7 @@ void main() {
 
     expect(read('android/app/build.gradle.kts'), contains('applicationId = "org.example.other"'));
     // The code's own namespace stays, so the app's sources need no move.
-    expect(read('android/app/build.gradle.kts'), contains('namespace = "com.deberc.deberc"'));
+    expect(read('android/app/build.gradle.kts'), contains('namespace = "app.tallycards"'));
     expect(read('android/app/src/main/res/values/strings.xml'), contains('>Other<'));
     expect(read('android/app/src/main/res/values-uk/strings.xml'), contains('>Інша<'));
     expect(read('android/app/src/main/res/values-fr/strings.xml'), contains('>Other<'));

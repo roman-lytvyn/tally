@@ -376,7 +376,7 @@ publish:
     GIT_DEPTH: 0
   environment:
     name: google-play
-    url: https://play.google.com/store/apps/details?id=com.deberc.deberc
+    url: https://play.google.com/store/apps/details?id=app.tallycards.deberc
   before_script:
     - |
       if [ -z "$VERSION" ]; then
@@ -513,7 +513,7 @@ google-play:
     - publish
   environment:
     name: google-play
-    url: https://play.google.com/store/apps/details?id=com.deberc.deberc
+    url: https://play.google.com/store/apps/details?id=app.tallycards.deberc
   script:
     - apk add --no-cache build-base > /dev/null && gem install --silent fastlane
     - . "devops/apps/$APP.env"

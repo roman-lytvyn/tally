@@ -1,4 +1,4 @@
-package com.deberc.deberc
+package app.tallycards
 
 import io.flutter.embedding.android.FlutterActivity
 
