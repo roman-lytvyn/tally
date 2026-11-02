@@ -496,7 +496,7 @@ website:
   variables:
     APP_RELEASE: $VERSION
   trigger:
-    project: games/deberc-landing
+    project: games/tally-site
     branch: main
 
 # Runs only once Play credentials exist, so the rest of the pipeline works
