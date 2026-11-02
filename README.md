@@ -1,7 +1,7 @@
 # Tally — Card Game Score Keepers
 
-[![pipeline status](https://git.lytvyn.org/games/deberc/badges/main/pipeline.svg)](https://git.lytvyn.org/games/deberc/-/pipelines)
-[![latest release](https://git.lytvyn.org/games/deberc/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/deberc/-/releases)
+[![pipeline status](https://git.lytvyn.org/games/tally/badges/main/pipeline.svg)](https://git.lytvyn.org/games/tally/-/pipelines)
+[![latest release](https://git.lytvyn.org/games/tally/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/tally/-/releases)
 
 Tally is a family of seven score-keeping apps for trick-taking card games:
 Deberc, Belote, Bulgarian Belot, Bela, Klaverjas, Coinche and Baloot. Each game
@@ -102,3 +102,15 @@ A new game needs its entry in `lib/game_rules.dart`, its scoring in
 
 Every merge request and every merge into `main` is analysed, tested and built by
 `devops/.gitlab-ci.yml`.
+
+---
+
+## License
+
+The source code is published under the [Apache License 2.0](LICENSE). Anyone may
+use, change and redistribute it, including in commercial products, as long as
+they keep the copyright notice and pass on the attribution in [NOTICE](NOTICE)
+with every copy and every work built on it.
+
+The license covers the code only. The names Tally, Deberc and the other app
+names, and the apps' icons, are not licensed for use in other products.
