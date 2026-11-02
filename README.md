@@ -102,3 +102,15 @@ A new game needs its entry in `lib/game_rules.dart`, its scoring in
 
 Every merge request and every merge into `main` is analysed, tested and built by
 `devops/.gitlab-ci.yml`.
+
+---
+
+## License
+
+The source code is published under the [Apache License 2.0](LICENSE). Anyone may
+use, change and redistribute it, including in commercial products, as long as
+they keep the copyright notice and pass on the attribution in [NOTICE](NOTICE)
+with every copy and every work built on it.
+
+The license covers the code only. The names Tally, Deberc and the other app
+names, and the apps' icons, are not licensed for use in other products.
