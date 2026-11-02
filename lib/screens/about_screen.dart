@@ -74,7 +74,7 @@ class AboutScreen extends StatelessWidget {
                       Divider(height: 1, color: t.bdr, indent: 15),
                       _row(strings.authorLabel, strings.authorName),
                       Divider(height: 1, color: t.bdr, indent: 15),
-                      _row(strings.contactLabel, 'litvin.roma@gmail.com'),
+                      _row(strings.contactLabel, 'support@tallycards.app'),
                       Divider(height: 1, color: t.bdr, indent: 15),
                       _linkRow(strings.websiteLabel, _kWebsite, Uri.https(_kWebsite),
                           key: const ValueKey('about.website')),

@@ -54,7 +54,7 @@ Version: $version
 Section: games
 Priority: optional
 Architecture: amd64
-Maintainer: Roman Lytvyn <litvin.roma@gmail.com>
+Maintainer: Roman Lytvyn <support@tallycards.app>
 Depends: libgtk-3-0 | libgtk-3-0t64, libc6
 Installed-Size: $(du -sk "$root/opt" "$root/usr" | awk '{s += $1} END {print s}')
 Homepage: $APP_WEBSITE
