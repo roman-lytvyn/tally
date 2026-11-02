@@ -1,7 +1,7 @@
 # Tally — Card Game Score Keepers
 
-[![pipeline status](https://git.lytvyn.org/games/deberc/badges/main/pipeline.svg)](https://git.lytvyn.org/games/deberc/-/pipelines)
-[![latest release](https://git.lytvyn.org/games/deberc/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/deberc/-/releases)
+[![pipeline status](https://git.lytvyn.org/games/tally/badges/main/pipeline.svg)](https://git.lytvyn.org/games/tally/-/pipelines)
+[![latest release](https://git.lytvyn.org/games/tally/-/badges/release.svg?value_width=90)](https://git.lytvyn.org/games/tally/-/releases)
 
 Tally is a family of seven score-keeping apps for trick-taking card games:
 Deberc, Belote, Bulgarian Belot, Bela, Klaverjas, Coinche and Baloot. Each game
