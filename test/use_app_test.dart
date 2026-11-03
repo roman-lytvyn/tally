@@ -58,6 +58,13 @@ void main() {
     expect(read('windows/CMakeLists.txt'), allOf(contains('project(other '), isNot(contains('"deberc"'))));
     expect(read('windows/runner/main.cpp'), contains('L"other"'));
     expect(read('windows/runner/Runner.rc'), allOf(contains('"other.exe"'), isNot(contains('"deberc'))));
+    expect(read('ios/Runner/Info.plist'), allOf(contains('<string>Other</string>'), contains('<string>other</string>')));
+    for (final path in ['ios/Runner.xcodeproj/project.pbxproj', 'macos/Runner.xcodeproj/project.pbxproj']) {
+      expect(read(path), allOf(contains('org.example.other.RunnerTests;'), isNot(contains('app.tallycards.deberc'))));
+    }
+    expect(read('ios/Runner.xcodeproj/project.pbxproj'), contains('PRODUCT_BUNDLE_IDENTIFIER = org.example.other;'));
+    expect(read('macos/Runner/Configs/AppInfo.xcconfig'),
+        allOf(contains('PRODUCT_NAME = Other'), contains('PRODUCT_BUNDLE_IDENTIFIER = org.example.other')));
     expect(read('pubspec.yaml'), allOf(contains('display_name: Інша'), contains('identity_name: org.example.other')));
     expect(read('web/index.html'), allOf(contains('<title>Other</title>'), contains('-title" content="Other"')));
     expect(read('web/manifest.json'), allOf(contains('"name": "Other"'), contains('"short_name": "Other"')));
@@ -80,6 +87,8 @@ void main() {
     for (final app in ['belote', 'belot', 'bela', 'klaverjas', 'coinche', 'baloot']) {
       expect(File('devops/apps/$app/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
       expect(File('devops/apps/$app/web/icons/Icon-maskable-512.png').existsSync(), isTrue);
+      expect(File('devops/apps/$app/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png').existsSync(),
+          isTrue);
     }
   });
 

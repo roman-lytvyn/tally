@@ -76,8 +76,8 @@ test:
       junit: report.xml
 
 # ── Build ────────────────────────────────────────────────────────────────────
-# Android and Linux build here: Windows needs a Windows runner and iOS may only
-# be built on Apple hardware, and this cluster has neither.
+# Android and Linux build here: Windows needs a Windows runner and the iPhone
+# and Mac apps a macOS runner, and this cluster has neither.
 #
 # Every app of the family is built from the same code: each build job runs once
 # per app, switches the checkout to it and builds it for its own game. An app
@@ -307,6 +307,71 @@ build-windows:
       - "*-setup.exe"
       - "*-windows.zip"
 
+# The iPhone and Mac apps build on a self-hosted macOS runner tagged "macos",
+# as only Xcode on macOS builds them. That machine is not always on, so these
+# jobs run only while the APPLE_BUILDS CI/CD variable is "true"; switching it
+# off keeps pipelines from waiting for a runner that is not there.
+.apple-build:
+  tags:
+    - macos
+  before_script:
+    - flutter --version
+    - flutter pub get
+
+# The Mac app of the checked-out app, as a .zip that unpacks to the .app. Until
+# it is signed with an Apple Developer ID it is signed to run locally only, and
+# macOS asks to allow it in System Settings the first time it is opened.
+.macos-build:
+  extends: .apple-build
+  script:
+    - !reference [.use-app, script]
+    - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
+    - flutter build macos --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
+    - ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/*.app "$APP_FILE_NAME-$VERSION-macos.zip"
+
+# Checks that the iPhone app builds. Without an Apple Developer membership the
+# build cannot be signed, so it is not installable and nothing is kept.
+build-ios:
+  extends: .apple-build
+  stage: build
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $APPLE_BUILDS != "true"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - ios/**/*
+        - devops/**/*
+  variables:
+    APP: deberc
+  script:
+    - !reference [.use-app, script]
+    - VERSION=$(date +%Y.%m).${CI_PIPELINE_IID}
+    - flutter build ios --release --no-codesign --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
+
+# Checks that the Mac app builds and packs. One app is enough for the check;
+# a release builds every app of the family.
+build-macos:
+  extends: .macos-build
+  stage: build
+  rules:
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $APPLE_BUILDS != "true"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - macos/**/*
+        - devops/**/*
+  variables:
+    APP: deberc
+  artifacts:
+    paths:
+      - "*-macos.zip"
+
 # ── Tag ──────────────────────────────────────────────────────────────────────
 # Tags every build that passed, so a release is picked from a list of
 # known-good versions instead of typed by hand.
@@ -478,6 +543,45 @@ publish-web:
   artifacts:
     paths:
       - "*-web.zip"
+
+# The released tag is built for the Mac and the .zip attached to the release.
+# The website does not wait for it: the macOS runner may be off, and the other
+# platforms go live without the Mac app.
+publish-macos:
+  extends: [.macos-build, .each-app]
+  stage: deploy
+  rules:
+    - if: $APPLE_BUILDS != "true"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+  variables:
+    GIT_DEPTH: 0
+  needs:
+    - release-version
+  before_script:
+    - |
+      if [ -z "$VERSION" ]; then
+        echo "Nothing to publish"
+        exit 0
+      fi
+    - git checkout "$VERSION"
+    - flutter pub get
+  after_script:
+    - |
+      [ -z "$VERSION" ] && exit 0
+      . "devops/apps/$APP.env"
+      zip="$APP_FILE_NAME-$VERSION-macos.zip"
+      [ -f "$zip" ] || exit 0
+      url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$zip"
+      curl -sf -X POST -H "PRIVATE-TOKEN: $TAG_PUSH_TOKEN" \
+        --data-urlencode "name=$zip" --data-urlencode "url=$url" \
+        --data-urlencode "link_type=package" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$VERSION/assets/links" > /dev/null \
+        && echo "Attached $zip to release $VERSION" \
+        || echo "Could not attach $zip to release $VERSION"
+  artifacts:
+    paths:
+      - "*-macos.zip"
 
 # The website offers the files of the latest release and serves its web app,
 # so once they are attached it is rebuilt with this release and goes live with it.
