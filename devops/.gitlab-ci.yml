@@ -5,6 +5,9 @@ stages:
   - tag
   - deploy
 
+include:
+  - local: devops/apps/ci.yml
+
 variables:
   FLUTTER_IMAGE: ghcr.io/cirruslabs/flutter:stable
   GIT_DEPTH: 1
@@ -76,24 +79,9 @@ test:
       junit: report.xml
 
 # ── Build ────────────────────────────────────────────────────────────────────
-# Android and Linux build here: Windows needs a Windows runner and iOS may only
-# be built on Apple hardware, and this cluster has neither.
-#
-# Every app of the family is built from the same code: each build job runs once
-# per app, switches the checkout to it and builds it for its own game. An app
-# is described by devops/apps/<app>.env; adding one to the list below builds,
-# tags and releases it next to the others.
-
-.each-app:
-  parallel:
-    matrix:
-      - APP: [deberc, belote, belot, bela, klaverjas, coinche, baloot]
-
-# Switches the checkout to the app the job builds and loads its identity.
-.use-app:
-  script:
-    - dart run devops/apps/use_app.dart "$APP"
-    - . "devops/apps/$APP.env"
+# Android and Linux build here: Windows needs a Windows runner and the iPhone
+# and Mac apps a macOS runner, and this cluster has neither. The apps of the
+# family and the jobs' per-app switch are in devops/apps/ci.yml.
 
 .android-build:
   extends: [.flutter, .each-app]
@@ -478,6 +466,68 @@ publish-web:
   artifacts:
     paths:
       - "*-web.zip"
+
+# The iPhone and Mac apps build on a self-hosted macOS runner tagged "macos",
+# as only Xcode on macOS builds them. That machine is not always on, so before
+# building, apple-runner asks GitLab whether the runner has been in touch in
+# the last few minutes, and only then does apple start devops/apple/ci.yml as a
+# child pipeline; otherwise the Apple builds are skipped. Either way the rest
+# of the pipeline neither waits for the Apple builds nor fails because of them.
+# RUNNER_CHECK_TOKEN is a project access token with the read_api scope.
+.apple-rules:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true"
+      variables:
+        APPLE_MODE: release
+    - if: $RELEASE_DEPLOY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        APPLE_MODE: check
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - ios/**/*
+        - macos/**/*
+        - devops/**/*
+      variables:
+        APPLE_MODE: check
+
+apple-runner:
+  extends: .apple-rules
+  stage: deploy
+  image: alpine:3.20
+  allow_failure: true
+  needs:
+    - job: release-version
+      optional: true
+  variables:
+    # The runner counts as online when it asked for work this recently.
+    RUNNER_FRESH_SECONDS: 300
+  script:
+    - apk add --no-cache curl jq > /dev/null
+    - sh devops/apple/runner-online.sh && online=yes || online=""
+    - |
+      if [ -n "$online" ]; then
+        echo "Starting the iPhone and Mac builds ($APPLE_MODE)"
+        printf 'include:\n  - local: devops/apple/ci.yml\nvariables:\n  APPLE_MODE: "%s"\n  VERSION: "%s"\n' "$APPLE_MODE" "$VERSION" > apple.yml
+      else
+        echo "The macOS runner is off: skipping the iPhone and Mac builds"
+        cp devops/apple/skipped.yml apple.yml
+      fi
+  artifacts:
+    paths:
+      - apple.yml
+
+apple:
+  extends: .apple-rules
+  stage: deploy
+  allow_failure: true
+  needs:
+    - apple-runner
+  trigger:
+    include:
+      - artifact: apple.yml
+        job: apple-runner
 
 # The website offers the files of the latest release and serves its web app,
 # so once they are attached it is rebuilt with this release and goes live with it.

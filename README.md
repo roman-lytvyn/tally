@@ -28,7 +28,7 @@ The games, their rules and the downloads are described for players at
 | `lib/widgets/` | The round entry panel and the traditional score sheet |
 | `test/` | Unit and widget tests |
 | `web/` | The page and the offline service worker of the browser version |
-| `android/`, `ios/`, `linux/`, `windows/` | The platform projects |
+| `android/`, `ios/`, `macos/`, `linux/`, `windows/` | The platform projects |
 | `devops/apps/` | The description of every app in the family and its own files |
 | `devops/` | The pipeline and the packaging scripts for each platform |
 
@@ -48,6 +48,7 @@ and the dealer are always worked out again from them.
   - **Windows** — Visual Studio with the "Desktop development with C++" workload
   - **Linux** — the [Linux desktop dependencies](https://docs.flutter.dev/platform-integration/linux/setup) (clang, cmake, ninja, GTK 3)
   - **Android** — Android Studio or the Android SDK, and a device or emulator
+  - **iPhone and Mac** — a Mac with Xcode
 
 `flutter doctor` shows what is still missing.
 
@@ -67,6 +68,7 @@ flutter run --dart-define=GAME=belote      # another game
 flutter run -d chrome --dart-define=GAME=coinche
 flutter run -d windows
 flutter run -d linux
+flutter run -d macos
 ```
 
 `GAME` is one of `deberc`, `belote`, `belot`, `bela`, `klaverjas`, `coinche` and
@@ -87,7 +89,8 @@ repository.
 dart run devops/apps/use_app.dart belote
 ```
 
-writes that app's identity into the Android, Windows, Linux and web project files
+writes that app's identity into the Android, iOS, macOS, Windows, Linux and web
+project files
 and lays its own files over the checkout. The repository holds Deberc, so switching
 to Deberc changes nothing. Run it before building an installable app of another
 game, and use `git checkout .` to go back.
@@ -102,6 +105,16 @@ A new game needs its entry in `lib/game_rules.dart`, its scoring in
 
 Every merge request and every merge into `main` is analysed, tested and built by
 `devops/.gitlab-ci.yml`.
+
+The iPhone and Mac apps build on a macOS runner tagged `macos`. That machine is
+not always on, so each pipeline first asks GitLab whether the runner is online
+and skips the Apple builds when it is not; the Apple builds never fail or hold
+up the rest of the pipeline. The check reads the runner through the
+`RUNNER_CHECK_TOKEN` CI/CD variable, a project access token with the `read_api`
+scope. A release made while the runner is online carries a Mac app for each
+game. The apps are not signed by Apple yet, so the iPhone build is
+only checked and macOS asks to allow the Mac app in System Settings the first
+time it is opened.
 
 ---
 

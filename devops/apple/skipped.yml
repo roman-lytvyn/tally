@@ -1,0 +1,9 @@
+# The child pipeline started in place of devops/apple/ci.yml when the macOS
+# runner is off: a child pipeline needs at least one job. The rule lets the job
+# run in merge request pipelines too, which leave out jobs without rules.
+apple-skipped:
+  image: alpine:3.20
+  rules:
+    - when: always
+  script:
+    - echo "The macOS runner was off when this pipeline started, so the iPhone and Mac apps were not built"

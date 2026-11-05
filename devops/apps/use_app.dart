@@ -43,6 +43,13 @@ const places = <(String, String, String)>[
   ('windows/runner/main.cpp', r'(window\.Create\(L")([^"]*)(")', 'APP_FILE_NAME'),
   ('windows/runner/Runner.rc', r'(VALUE "(?:FileDescription|InternalName|ProductName)", ")([^"]*)(")', 'APP_FILE_NAME'),
   ('windows/runner/Runner.rc', r'(VALUE "OriginalFilename", ")([^"]*)(\.exe")', 'APP_FILE_NAME'),
+  ('ios/Runner/Info.plist', r'(<key>CFBundleDisplayName</key>\s*<string>)([^<]*)(<)', 'APP_NAME'),
+  ('ios/Runner/Info.plist', r'(<key>CFBundleName</key>\s*<string>)([^<]*)(<)', 'APP_FILE_NAME'),
+  // The tests' bundle id is the app's with .RunnerTests after it.
+  ('ios/Runner.xcodeproj/project.pbxproj', r'(PRODUCT_BUNDLE_IDENTIFIER = )([\w.]+?)((?:\.RunnerTests)?;)', 'APP_PACKAGE_ID'),
+  ('macos/Runner/Configs/AppInfo.xcconfig', r'(\nPRODUCT_NAME = )([^\r\n]*)()', 'APP_NAME'),
+  ('macos/Runner/Configs/AppInfo.xcconfig', r'(\nPRODUCT_BUNDLE_IDENTIFIER = )([^\r\n]*)()', 'APP_PACKAGE_ID'),
+  ('macos/Runner.xcodeproj/project.pbxproj', r'(PRODUCT_BUNDLE_IDENTIFIER = )([\w.]+?)((?:\.RunnerTests)?;)', 'APP_PACKAGE_ID'),
   ('pubspec.yaml', r'(\n  display_name: )([^\r\n]*)()', 'APP_TITLE'),
   ('pubspec.yaml', r'(\n  identity_name: )([^\r\n]*)()', 'APP_PACKAGE_ID'),
   ('web/index.html', r'(<title>)([^<]*)(<)', 'APP_NAME'),

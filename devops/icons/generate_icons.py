@@ -12,6 +12,8 @@ backdrop, keeping their soft shadow, and laid out the way each platform wants:
   foreground keeps the cards inside the circle every launcher mask leaves.
 - iOS: opaque icons on the backdrop colour, in every size the asset catalog
   lists.
+- macOS: a rounded square on the backdrop colour, in every size the
+  asset catalog lists.
 - Windows: a multi-size .ico for the executable and installer, and a large
   PNG the MSIX package builds its tiles from.
 - Linux: menu icons in the hicolor sizes the .deb installs.
@@ -140,6 +142,27 @@ def ios(cards: Image.Image, out: Path) -> None:
         fitted(cards, size, box=0.82, background=BACKDROP).save(folder / image["filename"], optimize=True)
 
 
+def macos(cards: Image.Image, out: Path) -> None:
+    catalog = "macos/Runner/Assets.xcassets/AppIcon.appiconset"
+    images = json.loads((ROOT / catalog / "Contents.json").read_text(encoding="utf-8"))["images"]
+    folder = out / catalog
+    folder.mkdir(parents=True, exist_ok=True)
+    for size in sorted({int(i["filename"].rsplit("_", 1)[1].split(".")[0]) for i in images}):
+        # macOS draws the icon as it is: a rounded square on the backdrop
+        # colour, inset the way Apple's icon grid lays out every app icon.
+        side = round(size * 824 / 1024)
+        tile = Image.new("L", (side * 4, side * 4), 0)
+        ImageDraw.Draw(tile).rounded_rectangle((0, 0, side * 4 - 1, side * 4 - 1), radius=round(side * 4 * 0.225),
+                                               fill=255)
+        mask = tile.resize((side, side), Image.Resampling.LANCZOS)
+        icon = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        offset = (size - side) // 2
+        icon.paste(Image.new("RGBA", (side, side), (*BACKDROP, 255)), (offset, offset), mask)
+        art = fitted(cards, side, box=0.82)
+        icon.alpha_composite(Image.composite(art, Image.new("RGBA", art.size, (0, 0, 0, 0)), mask), (offset, offset))
+        icon.save(folder / f"app_icon_{size}.png", optimize=True)
+
+
 def windows(cards: Image.Image, out: Path) -> None:
     resources = out / "windows/runner/resources"
     resources.mkdir(parents=True, exist_ok=True)
@@ -178,6 +201,7 @@ def main() -> None:
     cards = cut_out_cards(Image.open(Path(__file__).with_name(f"{app}_logo.jpg")))
     android(cards, out)
     ios(cards, out)
+    macos(cards, out)
     windows(cards, out)
     linux(cards, out)
     web(cards, out)
