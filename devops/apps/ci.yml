@@ -1,0 +1,15 @@
+# Every app of the family is built from the same code: each build job runs once
+# per app, switches the checkout to it and builds it for its own game. An app
+# is described by devops/apps/<app>.env; adding one to the list below builds,
+# tags and releases it next to the others.
+
+.each-app:
+  parallel:
+    matrix:
+      - APP: [deberc, belote, belot, bela, klaverjas, coinche, baloot]
+
+# Switches the checkout to the app the job builds and loads its identity.
+.use-app:
+  script:
+    - dart run devops/apps/use_app.dart "$APP"
+    - . "devops/apps/$APP.env"

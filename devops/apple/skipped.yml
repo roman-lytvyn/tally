@@ -1,0 +1,6 @@
+# The child pipeline started in place of devops/apple/ci.yml when the macOS
+# runner is off: a child pipeline needs at least one job.
+apple-skipped:
+  image: alpine:3.20
+  script:
+    - echo "The macOS runner was off when this pipeline started, so the iPhone and Mac apps were not built"

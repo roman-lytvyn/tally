@@ -1,0 +1,91 @@
+# The iPhone and Mac builds, run as a child pipeline that devops/.gitlab-ci.yml
+# starts only while the macOS runner is online. APPLE_MODE picks the jobs:
+# "check" builds one app to see it still builds, "release" builds every app at
+# the released VERSION and attaches it to the release.
+#
+# The macOS machine is not always on and can go away mid-build, so none of
+# these jobs can fail the pipeline.
+
+include:
+  - local: devops/apps/ci.yml
+
+stages:
+  - build
+
+.apple-build:
+  stage: build
+  tags:
+    - macos
+  allow_failure: true
+  timeout: 1h
+  before_script:
+    - flutter --version
+    - flutter pub get
+
+# The Mac app of the checked-out app, as a .zip that unpacks to the .app. Until
+# it is signed with an Apple Developer ID it is signed to run locally only, and
+# macOS asks to allow it in System Settings the first time it is opened.
+.macos-build:
+  extends: .apple-build
+  script:
+    - !reference [.use-app, script]
+    - VERSION=${VERSION:-$(date +%Y.%m).${CI_PIPELINE_IID}}
+    - flutter build macos --release --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
+    - ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/*.app "$APP_FILE_NAME-$VERSION-macos.zip"
+
+# Checks that the iPhone app builds. Without an Apple Developer membership the
+# build cannot be signed, so it is not installable and nothing is kept.
+build-ios:
+  extends: .apple-build
+  rules:
+    - if: $APPLE_MODE == "check"
+  variables:
+    APP: deberc
+  script:
+    - !reference [.use-app, script]
+    - VERSION=$(date +%Y.%m).${CI_PIPELINE_IID}
+    - flutter build ios --release --no-codesign --build-name="$VERSION" --build-number="$CI_PIPELINE_IID" --dart-define=GAME="$APP_GAME" --dart-define=APP_VERSION="$VERSION"
+
+# Checks that the Mac app builds and packs. One app is enough for the check;
+# a release builds every app of the family.
+build-macos:
+  extends: .macos-build
+  rules:
+    - if: $APPLE_MODE == "check"
+  variables:
+    APP: deberc
+  artifacts:
+    paths:
+      - "*-macos.zip"
+
+# The released tag is built for the Mac and the .zip attached to the release.
+publish-macos:
+  extends: [.macos-build, .each-app]
+  rules:
+    - if: $APPLE_MODE == "release"
+  variables:
+    GIT_DEPTH: 0
+  before_script:
+    - |
+      if [ -z "$VERSION" ]; then
+        echo "Nothing to publish"
+        exit 0
+      fi
+    - git checkout "$VERSION"
+    - flutter pub get
+  after_script:
+    - |
+      [ -z "$VERSION" ] && exit 0
+      . "devops/apps/$APP.env"
+      zip="$APP_FILE_NAME-$VERSION-macos.zip"
+      [ -f "$zip" ] || exit 0
+      url="$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/raw/$zip"
+      curl -sf -X POST -H "PRIVATE-TOKEN: $TAG_PUSH_TOKEN" \
+        --data-urlencode "name=$zip" --data-urlencode "url=$url" \
+        --data-urlencode "link_type=package" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$VERSION/assets/links" > /dev/null \
+        && echo "Attached $zip to release $VERSION" \
+        || echo "Could not attach $zip to release $VERSION"
+  artifacts:
+    paths:
+      - "*-macos.zip"

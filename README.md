@@ -106,9 +106,13 @@ A new game needs its entry in `lib/game_rules.dart`, its scoring in
 Every merge request and every merge into `main` is analysed, tested and built by
 `devops/.gitlab-ci.yml`.
 
-The iPhone and Mac apps build on a macOS runner tagged `macos`, and only while
-the `APPLE_BUILDS` CI/CD variable is `true`. Every release then carries a Mac
-app for each game. The apps are not signed by Apple yet, so the iPhone build is
+The iPhone and Mac apps build on a macOS runner tagged `macos`. That machine is
+not always on, so each pipeline first asks GitLab whether the runner is online
+and skips the Apple builds when it is not; the Apple builds never fail or hold
+up the rest of the pipeline. The check reads the runner through the
+`RUNNER_CHECK_TOKEN` CI/CD variable, a project access token with the `read_api`
+scope. A release made while the runner is online carries a Mac app for each
+game. The apps are not signed by Apple yet, so the iPhone build is
 only checked and macOS asks to allow the Mac app in System Settings the first
 time it is opened.
 
