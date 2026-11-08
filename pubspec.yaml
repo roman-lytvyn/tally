@@ -63,6 +63,8 @@ msix_config:
   # A large PNG, from which the package builds its tiles and Start menu icons.
   logo_path: windows\runner\resources\app_logo.png
   capabilities: ""
+  # The languages the app speaks, so the Store lists each of them.
+  languages: en-us, uk, fr, bg, hr, nl, ar
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
