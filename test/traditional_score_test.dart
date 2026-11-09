@@ -54,12 +54,43 @@ void main() {
     });
 
     test('crosses the small points out for a stick once they reach twenty', () {
-      final s = ScoreSheet.write([72, 8, 15]);
+      final s = ScoreSheet.write([72, 8, 9, 3]);
 
       expect(s.notes, [const SheetNote(2, crossed: true), const SheetNote(8, crossed: true),
-          const SheetNote(15, crossed: true), const SheetNote(5)]);
+          const SheetNote(9, crossed: true), const SheetNote(3, crossed: true), const SheetNote(2)]);
       expect(s.marks, [circle, sticks(40)]);
-      expect(s.value, 95);
+      expect(s.value, 92);
+    });
+
+    test('writes more than ten small points as a stick with the rest owed', () {
+      final s = ScoreSheet.write([12]);
+
+      expect(s.marks, [sticks(20)]);
+      expect(s.notes, [const SheetNote(-8)]);
+    });
+
+    test('writes ten small points as nine and one', () {
+      expect(ScoreSheet.write([10]).notes, [const SheetNote(9), const SheetNote(1)]);
+    });
+
+    test('never keeps small points in hand and owed at once', () {
+      final s = ScoreSheet.write([72, 12]);
+
+      expect(s.marks, [circle, sticks(40)]);
+      expect(s.notes, [const SheetNote(2, crossed: true), const SheetNote(-8, crossed: true), const SheetNote(-6)]);
+      expect(s.value, 84);
+    });
+
+    test('writes every small point as one digit', () {
+      final rnd = Random(11);
+      for (var game = 0; game < 300; game++) {
+        final s = ScoreSheet.write([for (var d = 0; d < 12; d++) rnd.nextInt(200) + 1]);
+        for (final n in s.notes) {
+          expect(n.value.abs(), inInclusiveRange(1, 9));
+        }
+        final open = s.notes.where((n) => !n.crossed);
+        expect(open.any((n) => n.value > 0) && open.any((n) => n.value < 0), isFalse);
+      }
     });
 
     test('writes sticks rather than a circle that would leave more small points', () {
