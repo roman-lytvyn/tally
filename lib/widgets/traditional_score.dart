@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 /// One mark on a score sheet: a circle worth 50 that its cross makes 100, or
@@ -173,7 +175,7 @@ class TraditionalScore extends StatelessWidget {
     final total = value;
     if (total <= 0) {
       return SizedBox(
-        height: u,
+        height: u * 1.8,
         child: Align(
           alignment: AlignmentDirectional.centerStart,
           child: Text(total == 0 ? '0' : '−${-total}', style: TextStyle(fontSize: u * 0.5,
@@ -184,70 +186,72 @@ class TraditionalScore extends StatelessWidget {
 
     final sheet = ScoreSheet.write(changes);
     final faded = color.withValues(alpha: 0.65);
+    final margin = u * 0.4;
+    final gap = u * 0.1;
+    final noteGap = u * 0.12;
+    final direction = Directionality.of(context);
 
-    Widget digits(Iterable<SheetNote> notes) => Row(
-      mainAxisSize: MainAxisSize.min,
-      spacing: u * 0.12,
-      children: [
-        for (final n in notes)
-          Text(n.label, style: TextStyle(
-            fontSize: u * 0.34, height: 1.0, fontWeight: FontWeight.w700,
-            color: n.crossed ? faded.withValues(alpha: 0.4) : faded,
-            decoration: n.crossed ? TextDecoration.lineThrough : null,
-            decorationColor: faded,
-            decorationThickness: 2,
-          )),
-      ],
+    TextStyle noteStyle(SheetNote n) => TextStyle(
+      fontSize: u * 0.34, height: 1.0, fontWeight: FontWeight.w700,
+      color: n.crossed ? faded.withValues(alpha: 0.4) : faded,
+      decoration: n.crossed ? TextDecoration.lineThrough : null,
+      decorationColor: faded,
+      decorationThickness: 2,
     );
+    double noteWidth(SheetNote n) => (TextPainter(
+      text: TextSpan(text: n.label, style: noteStyle(n)),
+      textDirection: direction,
+      maxLines: 1,
+    )..layout()).width;
 
-    // The small points written at one place: in hand at the top, owed at the
-    // bottom.
-    Widget? notesAt(int at) {
-      final here = [for (final n in sheet.notes) if (n.at == at) n];
-      if (here.isEmpty) return null;
-      return SizedBox(
-        height: u,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            digits(here.where((n) => n.value > 0)),
-            digits(here.where((n) => n.value < 0)),
-          ],
-        ),
-      );
+    // The marks keep their places whatever is written in the margins.
+    final children = <Widget>[];
+    final ends = <double>[0];
+    var x = 0.0;
+    for (final m in sheet.marks) {
+      if (x > 0) x += gap;
+      final w = m.isCircle ? u : _sticksWidth;
+      children.add(PositionedDirectional(
+        start: x, top: margin, width: w, height: u,
+        child: CustomPaint(painter: m.isCircle ? _Circle(color, crossed: m.isComplete) : _Sticks(color, m.value)),
+      ));
+      x += w;
+      ends.add(x);
     }
 
-    final children = <Widget>[];
-    for (var i = 0; i <= sheet.marks.length; i++) {
-      if (i > 0) {
-        final m = sheet.marks[i - 1];
-        children.add(m.isCircle ? _circle(m) : _sticks(m));
-      }
-      final notes = notesAt(i);
-      if (notes != null) children.add(notes);
+    // Small points go in the margins, from where their deal's marks ended:
+    // in hand above, owed below, each after whatever is already there.
+    var width = x;
+    final cursor = {true: 0.0, false: 0.0};
+    for (final n in sheet.notes) {
+      final owed = n.value < 0;
+      final start = max(ends[n.at], cursor[owed]!);
+      final w = noteWidth(n);
+      children.add(PositionedDirectional(
+        start: start,
+        top: owed ? margin + u : 0,
+        height: margin,
+        child: Align(
+          alignment: owed ? AlignmentDirectional.topStart : AlignmentDirectional.bottomStart,
+          child: Text(n.label, maxLines: 1, softWrap: false, style: noteStyle(n)),
+        ),
+      ));
+      cursor[owed] = start + w + noteGap;
+      if (start + w > width) width = start + w;
     }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: u * 0.1,
-        children: children,
+      child: SizedBox(
+        width: width,
+        height: u + margin * 2,
+        child: Stack(clipBehavior: Clip.none, children: children),
       ),
     );
   }
 
-  Widget _circle(SheetMark m) => SizedBox(
-    width: u, height: u,
-    child: CustomPaint(painter: _Circle(color, crossed: m.isComplete)),
-  );
-
-  Widget _sticks(SheetMark m) {
-    final count = (m.value ~/ 20).clamp(1, 3);
-    final w = count * u * 0.24 + u * 0.09;
-    return SizedBox(width: w, height: u, child: CustomPaint(painter: _Sticks(color, m.value)));
-  }
+  /// Room for a whole group, so the sticks never push what follows.
+  double get _sticksWidth => 3 * u * 0.24 + u * 0.09;
 }
 
 class _Circle extends CustomPainter {
