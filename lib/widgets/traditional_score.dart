@@ -194,9 +194,6 @@ class TraditionalScore extends StatelessWidget {
     TextStyle noteStyle(SheetNote n) => TextStyle(
       fontSize: u * 0.34, height: 1.0, fontWeight: FontWeight.w700,
       color: n.crossed ? faded.withValues(alpha: 0.4) : faded,
-      decoration: n.crossed ? TextDecoration.lineThrough : null,
-      decorationColor: faded,
-      decorationThickness: 2,
     );
     double noteWidth(SheetNote n) => (TextPainter(
       text: TextSpan(text: n.label, style: noteStyle(n)),
@@ -233,7 +230,10 @@ class TraditionalScore extends StatelessWidget {
         height: margin,
         child: Align(
           alignment: owed ? AlignmentDirectional.topStart : AlignmentDirectional.bottomStart,
-          child: Text(n.label, maxLines: 1, softWrap: false, style: noteStyle(n)),
+          child: CustomPaint(
+            foregroundPainter: n.crossed ? _Slash(faded, u * 0.05) : null,
+            child: Text(n.label, maxLines: 1, softWrap: false, style: noteStyle(n)),
+          ),
         ),
       ));
       cursor[owed] = start + w + noteGap;
@@ -301,4 +301,17 @@ class _Sticks extends CustomPainter {
     }
   }
   @override bool shouldRepaint(_Sticks old) => old.c != c || old.value != value;
+}
+
+/// Crosses out a small point with one stroke from bottom left to top right.
+class _Slash extends CustomPainter {
+  final Color c;
+  final double width;
+  _Slash(this.c, this.width);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = c..strokeWidth = width..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(-width, size.height + width), Offset(size.width + width, -width), p);
+  }
+  @override bool shouldRepaint(_Slash old) => old.c != c || old.width != width;
 }
