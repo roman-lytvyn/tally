@@ -193,13 +193,17 @@ class TraditionalScore extends StatelessWidget {
 
     TextStyle noteStyle(SheetNote n) => TextStyle(
       fontSize: u * 0.34, height: 1.0, fontWeight: FontWeight.w700,
+      fontFeatures: const [FontFeature.tabularFigures()],
       color: n.crossed ? faded.withValues(alpha: 0.4) : faded,
     );
-    double noteWidth(SheetNote n) => (TextPainter(
-      text: TextSpan(text: n.label, style: noteStyle(n)),
+    Size measure(String text) => (TextPainter(
+      text: TextSpan(text: text, style: noteStyle(const SheetNote(0, at: 0))),
       textDirection: direction,
       maxLines: 1,
-    )..layout()).width;
+    )..layout()).size;
+    // Every small point is crossed out by the same stroke, whatever its sign.
+    final digit = measure('0');
+    final stroke = Size(digit.width + u * 0.1, digit.height + u * 0.1);
 
     // The marks keep their places whatever is written in the margins.
     final children = <Widget>[];
@@ -223,7 +227,7 @@ class TraditionalScore extends StatelessWidget {
     for (final n in sheet.notes) {
       final owed = n.value < 0;
       final start = max(ends[n.at], cursor[owed]!);
-      final w = noteWidth(n);
+      final w = measure(n.label).width;
       children.add(PositionedDirectional(
         start: start,
         top: owed ? margin + u : 0,
@@ -231,7 +235,7 @@ class TraditionalScore extends StatelessWidget {
         child: Align(
           alignment: owed ? AlignmentDirectional.topStart : AlignmentDirectional.bottomStart,
           child: CustomPaint(
-            foregroundPainter: n.crossed ? _Slash(faded, u * 0.05) : null,
+            foregroundPainter: n.crossed ? _Slash(faded, u * 0.05, stroke) : null,
             child: Text(n.label, maxLines: 1, softWrap: false, style: noteStyle(n)),
           ),
         ),
@@ -303,15 +307,19 @@ class _Sticks extends CustomPainter {
   @override bool shouldRepaint(_Sticks old) => old.c != c || old.value != value;
 }
 
-/// Crosses out a small point with one stroke from bottom left to top right.
+/// Crosses out a small point with one stroke from bottom left to top right,
+/// [span] wide and high, through the middle of the point.
 class _Slash extends CustomPainter {
   final Color c;
   final double width;
-  _Slash(this.c, this.width);
+  final Size span;
+  _Slash(this.c, this.width, this.span);
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()..color = c..strokeWidth = width..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(-width, size.height + width), Offset(size.width + width, -width), p);
+    final mid = size.center(Offset.zero);
+    final d = Offset(span.width / 2, -span.height / 2);
+    canvas.drawLine(mid - d, mid + d, p);
   }
-  @override bool shouldRepaint(_Slash old) => old.c != c || old.width != width;
+  @override bool shouldRepaint(_Slash old) => old.c != c || old.width != width || old.span != span;
 }
