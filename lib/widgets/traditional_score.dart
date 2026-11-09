@@ -21,22 +21,27 @@ class SheetMark {
   String toString() => isCircle ? (isComplete ? '⊗' : '○') : '|$value';
 }
 
-/// Small points of one digit: those in hand written above the marks, those
-/// owed below them.
+/// Small points of one digit, written at the end of what the sheet held when
+/// they were written: after its first [at] marks, those in hand at the top,
+/// those owed at the bottom.
 class SheetNote {
   final int value;
+  final int at;
   final bool crossed;
 
-  const SheetNote(this.value, {this.crossed = false});
+  const SheetNote(this.value, {required this.at, this.crossed = false});
+
+  SheetNote get crossedOut => SheetNote(value, at: at, crossed: true);
 
   @override
-  bool operator ==(Object other) => other is SheetNote && other.value == value && other.crossed == crossed;
+  bool operator ==(Object other) =>
+      other is SheetNote && other.value == value && other.at == at && other.crossed == crossed;
 
   @override
-  int get hashCode => Object.hash(value, crossed);
+  int get hashCode => Object.hash(value, at, crossed);
 
   @override
-  String toString() => crossed ? '~$value~' : '$value';
+  String toString() => '${crossed ? '~$value~' : '$value'}@$at';
 
   String get label => value < 0 ? '−${-value}' : '$value';
 }
@@ -113,7 +118,7 @@ class ScoreSheet {
     final mixed = open.any((i) => notes[i].value > 0) && open.any((i) => notes[i].value < 0);
     if (!mixed && net < 20) return;
     for (final i in open) {
-      notes[i] = SheetNote(notes[i].value, crossed: true);
+      notes[i] = notes[i].crossedOut;
     }
     var rest = net;
     while (rest >= 20) {
@@ -122,17 +127,17 @@ class ScoreSheet {
     }
     if (rest > 0) notes.addAll(_digits(marks, rest));
     for (var owed = -rest; owed > 0; owed -= 9) {
-      notes.add(SheetNote(-(owed < 9 ? owed : 9)));
+      notes.add(SheetNote(-(owed < 9 ? owed : 9), at: marks.length));
     }
   }
 
   /// [points] under 20 as one-digit small points: up to nine as they are,
   /// ten as nine and one, more as a stick and what it lacks owed.
   static List<SheetNote> _digits(List<SheetMark> marks, int points) {
-    if (points <= 9) return [SheetNote(points)];
-    if (points == 10) return const [SheetNote(9), SheetNote(1)];
+    if (points <= 9) return [SheetNote(points, at: marks.length)];
+    if (points == 10) return [SheetNote(9, at: marks.length), SheetNote(1, at: marks.length)];
     _addStick(marks);
-    return [SheetNote(points - 20)];
+    return [SheetNote(points - 20, at: marks.length)];
   }
 
   static void _addStick(List<SheetMark> marks) {
@@ -163,64 +168,72 @@ class TraditionalScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final noteHeight = u * 0.4;
     // Nothing, or a score penalties have taken below nothing, has no marks to
     // write and is written as a number.
     final total = value;
     if (total <= 0) {
       return SizedBox(
-        height: u + noteHeight,
+        height: u,
         child: Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: SizedBox(
-            height: u,
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Text(total == 0 ? '0' : '−${-total}', style: TextStyle(fontSize: u * 0.5,
-                  color: total == 0 ? color.withValues(alpha: 0.3) : color, fontWeight: FontWeight.w700)),
-            ),
-          ),
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(total == 0 ? '0' : '−${-total}', style: TextStyle(fontSize: u * 0.5,
+              color: total == 0 ? color.withValues(alpha: 0.3) : color, fontWeight: FontWeight.w700)),
         ),
       );
     }
 
     final sheet = ScoreSheet.write(changes);
-    final gap = u * 0.1;
     final faded = color.withValues(alpha: 0.65);
 
-    Widget notes(bool owed) => SizedBox(
-      height: noteHeight,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: u * 0.2,
-        children: [
-          for (final n in sheet.notes)
-            if ((n.value < 0) == owed)
-              Text(n.label, style: TextStyle(
-                fontSize: u * 0.32, height: 1.1, fontWeight: FontWeight.w700,
-                color: n.crossed ? faded.withValues(alpha: 0.4) : faded,
-                decoration: n.crossed ? TextDecoration.lineThrough : null,
-                decorationColor: faded,
-                decorationThickness: 2,
-              )),
-        ],
-      ),
+    Widget digits(Iterable<SheetNote> notes) => Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: u * 0.12,
+      children: [
+        for (final n in notes)
+          Text(n.label, style: TextStyle(
+            fontSize: u * 0.34, height: 1.0, fontWeight: FontWeight.w700,
+            color: n.crossed ? faded.withValues(alpha: 0.4) : faded,
+            decoration: n.crossed ? TextDecoration.lineThrough : null,
+            decorationColor: faded,
+            decorationThickness: 2,
+          )),
+      ],
     );
+
+    // The small points written at one place: in hand at the top, owed at the
+    // bottom.
+    Widget? notesAt(int at) {
+      final here = [for (final n in sheet.notes) if (n.at == at) n];
+      if (here.isEmpty) return null;
+      return SizedBox(
+        height: u,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            digits(here.where((n) => n.value > 0)),
+            digits(here.where((n) => n.value < 0)),
+          ],
+        ),
+      );
+    }
+
+    final children = <Widget>[];
+    for (var i = 0; i <= sheet.marks.length; i++) {
+      if (i > 0) {
+        final m = sheet.marks[i - 1];
+        children.add(m.isCircle ? _circle(m) : _sticks(m));
+      }
+      final notes = notesAt(i);
+      if (notes != null) children.add(notes);
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          notes(false),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: gap,
-            children: [for (final m in sheet.marks) m.isCircle ? _circle(m) : _sticks(m)],
-          ),
-          if (sheet.notes.any((n) => n.value < 0)) notes(true),
-        ],
+        spacing: u * 0.1,
+        children: children,
       ),
     );
   }

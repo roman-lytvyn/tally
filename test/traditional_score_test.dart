@@ -15,21 +15,21 @@ void main() {
       final s = ScoreSheet.write([72]);
 
       expect(s.marks, [circle, sticks(20)]);
-      expect(s.notes, [const SheetNote(2)]);
+      expect(s.notes, [const SheetNote(2, at: 2)]);
     });
 
     test('crosses the circle and grows the sticks before writing anything new', () {
       final s = ScoreSheet.write([72, 110]);
 
       expect(s.marks, [crossed, sticks(80)]);
-      expect(s.notes, [const SheetNote(2)]);
+      expect(s.notes, [const SheetNote(2, at: 2)]);
     });
 
     test('closes the sticks at a hundred and starts a new group after them', () {
       final s = ScoreSheet.write([72, 110, 44]);
 
       expect(s.marks, [crossed, sticks(100), sticks(20)]);
-      expect(s.notes, [const SheetNote(2), const SheetNote(4)]);
+      expect(s.notes, [const SheetNote(2, at: 2), const SheetNote(4, at: 3)]);
       expect(s.value, 226);
     });
 
@@ -56,28 +56,36 @@ void main() {
     test('crosses the small points out for a stick once they reach twenty', () {
       final s = ScoreSheet.write([72, 8, 9, 3]);
 
-      expect(s.notes, [const SheetNote(2, crossed: true), const SheetNote(8, crossed: true),
-          const SheetNote(9, crossed: true), const SheetNote(3, crossed: true), const SheetNote(2)]);
+      expect(s.notes, [const SheetNote(2, at: 2, crossed: true), const SheetNote(8, at: 2, crossed: true),
+          const SheetNote(9, at: 2, crossed: true), const SheetNote(3, at: 2, crossed: true), const SheetNote(2, at: 2)]);
       expect(s.marks, [circle, sticks(40)]);
       expect(s.value, 92);
+    });
+
+    test('writes small points at the end of what the deal wrote', () {
+      final s = ScoreSheet.write([105, 156]);
+
+      expect(s.marks, [crossed, crossed, circle]);
+      expect(s.notes, [const SheetNote(5, at: 1), const SheetNote(6, at: 3)]);
     });
 
     test('writes more than ten small points as a stick with the rest owed', () {
       final s = ScoreSheet.write([12]);
 
       expect(s.marks, [sticks(20)]);
-      expect(s.notes, [const SheetNote(-8)]);
+      expect(s.notes, [const SheetNote(-8, at: 1)]);
     });
 
     test('writes ten small points as nine and one', () {
-      expect(ScoreSheet.write([10]).notes, [const SheetNote(9), const SheetNote(1)]);
+      expect(ScoreSheet.write([10]).notes, [const SheetNote(9, at: 0), const SheetNote(1, at: 0)]);
     });
 
     test('never keeps small points in hand and owed at once', () {
       final s = ScoreSheet.write([72, 12]);
 
       expect(s.marks, [circle, sticks(40)]);
-      expect(s.notes, [const SheetNote(2, crossed: true), const SheetNote(-8, crossed: true), const SheetNote(-6)]);
+      expect(s.notes, [const SheetNote(2, at: 2, crossed: true), const SheetNote(-8, at: 2, crossed: true),
+          const SheetNote(-6, at: 2)]);
       expect(s.value, 84);
     });
 
@@ -103,7 +111,7 @@ void main() {
       final s = ScoreSheet.write([72, 110, -100]);
 
       expect(s.marks, [sticks(80)]);
-      expect(s.notes, [const SheetNote(2)]);
+      expect(s.notes, [const SheetNote(2, at: 1)]);
     });
 
     test('always adds up to the real score', () {
