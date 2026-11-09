@@ -18,12 +18,15 @@ class Tally {
   /// The baits each side has counted so far: over the game, or the ones in a
   /// row when only those count.
   final List<int> baits;
+  /// How much each deal changed each side's total, in the order the deals
+  /// were played.
+  final List<List<int>> changes;
 
   const Tally({
     required this.earned, required this.totals, required this.winner,
     required this.dealer, this.held = 0,
     this.baitPenalties = const [], this.noTricksPenalties = const [], this.heldIn = const [],
-    this.baits = const [],
+    this.baits = const [], this.changes = const [],
   });
 }
 
@@ -192,6 +195,7 @@ Tally tally(GameState game) {
   final baitPenalties = <List<int>>[];
   final noTricksPenalties = <List<int>>[];
   final heldIn = <int>[];
+  final changes = <List<int>>[];
   final totals = List.filled(game.sides, 0);
   final baits = List.filled(game.sides, 0);
   final penalties = game.penalties;
@@ -205,6 +209,8 @@ Tally tally(GameState game) {
     baitPenalties.add(baitPenalty);
     noTricksPenalties.add(noTricksPenalty);
     heldIn.add(0);
+    final change = List.filled(game.sides, 0);
+    changes.add(change);
     if (r.isDeberc) {
       earned.add(e);
       winner = r.deberc;
@@ -237,7 +243,8 @@ Tally tally(GameState game) {
     }
     earned.add(e);
     for (var i = 0; i < totals.length; i++) {
-      totals[i] += e[i] - baitPenalty[i] - noTricksPenalty[i];
+      change[i] = e[i] - baitPenalty[i] - noTricksPenalty[i];
+      totals[i] += change[i];
     }
     // A gahwa decides the match on its own.
     if (r.doubling == kGahwa && r.isPlayed) {
@@ -260,5 +267,6 @@ Tally tally(GameState game) {
     noTricksPenalties: noTricksPenalties,
     heldIn: heldIn,
     baits: baits,
+    changes: changes,
   );
 }
