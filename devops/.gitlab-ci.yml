@@ -578,6 +578,7 @@ google-play:
         json_key:play-account.json \
         package_name:"$APP_PACKAGE_ID" \
         aab:"$APP_FILE_NAME-$VERSION.aab" \
+        skip_upload_apk:true \
         track:internal \
         release_status:draft \
         skip_upload_metadata:true \
