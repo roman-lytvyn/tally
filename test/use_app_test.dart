@@ -80,10 +80,14 @@ void main() {
         expect(profile[key], isNotEmpty, reason: '$id.env has no $key');
       }
     }
-    for (final key in ['APP_PACKAGE_ID', 'APP_WINDOWS_ID']) {
+    for (final key in ['APP_PACKAGE_ID', 'APP_WINDOWS_ID', 'APP_MS_STORE_ID', 'APP_MS_IDENTITY_NAME']) {
       expect({for (final p in apps.values) p[key]}, hasLength(apps.length), reason: '$key is shared');
     }
-    expect(apps.values.where((p) => p['APP_MS_STORE'] == 'true'), hasLength(1));
+    for (final MapEntry(key: id, value: profile) in apps.entries) {
+      expect(profile['APP_MS_STORE'], 'true', reason: '$id has no Store listing');
+      expect(profile['APP_MS_STORE_ID'], matches(RegExp(r'^9[0-9A-Z]{11}$')), reason: '$id has no Store ID');
+      expect(profile['APP_MS_IDENTITY_NAME'], startsWith('RomanLytvyn.'), reason: '$id has no Store identity');
+    }
     for (final app in ['belote', 'belot', 'bela', 'klaverjas', 'coinche', 'baloot']) {
       expect(File('devops/apps/$app/windows/runner/resources/app_icon.ico').existsSync(), isTrue);
       expect(File('devops/apps/$app/web/icons/Icon-maskable-512.png').existsSync(), isTrue);

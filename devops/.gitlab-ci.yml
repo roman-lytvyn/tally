@@ -588,9 +588,10 @@ google-play:
 
 # The tag is rebuilt on Windows the same way it is on Linux for Android: a tag
 # has no pipeline of its own, so the release pipeline checks the tag out and
-# builds it. The Store identity comes from Partner Center via CI/CD variables
-# and belongs to the app whose profile has APP_MS_STORE set; the other apps get
-# a self-signed package until they have a Store listing of their own.
+# builds it. Every app with APP_MS_STORE set carries the identity Partner Center
+# reserved for it in its own profile; the publisher shared by all of them comes
+# from the MSIX_PUBLISHER CI/CD variable. An app without a Store listing gets a
+# self-signed package.
 publish-windows:
   extends: .windows-build
   stage: deploy
@@ -629,9 +630,10 @@ publish-windows:
         "--version", $msixVersion
       )
       if ($env:MSIX_PUBLISHER -and $app.APP_MS_STORE -eq "true") {
-        $args += @("--store", "--publisher", $env:MSIX_PUBLISHER)
-        if ($env:MSIX_IDENTITY_NAME)         { $args += @("--identity-name", $env:MSIX_IDENTITY_NAME) }
+        $args += @("--store", "--publisher", $env:MSIX_PUBLISHER, "--identity-name", $app.APP_MS_IDENTITY_NAME)
         if ($env:MSIX_PUBLISHER_DISPLAY_NAME){ $args += @("--publisher-display-name", $env:MSIX_PUBLISHER_DISPLAY_NAME) }
+        # The Store accepts a package only under a name reserved for the app.
+        if ($app.APP_MS_STORE_NAME)          { $args += @("--display-name", $app.APP_MS_STORE_NAME) }
       } else {
         # --install-certificate false keeps the test certificate out of the
         # machine trust store and avoids the interactive prompt that hangs CI.
@@ -673,7 +675,7 @@ microsoft-store:
   extends: .windows-build
   stage: deploy
   rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true" && $MS_STORE_APP_ID
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $RELEASE_DEPLOY == "true" && $MS_STORE_SUBMIT == "true"
   needs:
     - release-version
     - publish-windows
@@ -691,4 +693,4 @@ microsoft-store:
     - msstore reconfigure --tenantId $env:MS_TENANT_ID --clientId $env:MS_CLIENT_ID --clientSecret $env:MS_CLIENT_SECRET --sellerId $env:MS_SELLER_ID
     # Uploads the package and creates a draft submission; a human still presses
     # "publish" in Partner Center, mirroring the Play draft on the Android side.
-    - msstore publish "$($app.APP_FILE_NAME)-$env:VERSION.msix" --appId $env:MS_STORE_APP_ID --noCommit
+    - msstore publish "$($app.APP_FILE_NAME)-$env:VERSION.msix" --appId $app.APP_MS_STORE_ID --noCommit
