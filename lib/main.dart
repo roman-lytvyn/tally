@@ -258,6 +258,24 @@ class _AppRootState extends State<AppRoot> {
       systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
+    // The system Back button goes where the screen's own back arrow goes; only
+    // the start screen leaves the app. The game screen handles it itself.
+    return PopScope(
+      canPop: _screen == AppScreen.setup,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        switch (_screen) {
+          case AppScreen.rules || AppScreen.win: _goTo(AppScreen.setup);
+          case AppScreen.settings: _goTo(_prevScreen);
+          case AppScreen.about: setState(() => _screen = AppScreen.settings);
+          case AppScreen.setup || AppScreen.game: break;
+        }
+      },
+      child: _framed(theme, strings),
+    );
+  }
+
+  Widget _framed(AppTheme theme, AppStrings strings) {
     // The name the system shows for the app follows the chosen language.
     return Title(
       title: strings.appTitle,

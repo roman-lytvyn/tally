@@ -79,7 +79,19 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final editing = _editing;
-    return Scaffold(
+    // The system Back button closes an open deal first, then leaves the game
+    // the way the exit button does.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_entryOpen) {
+          _closeEntry();
+        } else {
+          widget.onBack();
+        }
+      },
+      child: Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
         // The popup lies over the game, which stays in place underneath.
@@ -96,6 +108,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
           if (_entryOpen) Positioned.fill(child: _buildEntryPopup(editing)),
         ]),
+      ),
       ),
     );
   }
