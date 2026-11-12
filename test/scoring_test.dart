@@ -132,7 +132,18 @@ void main() {
       ]));
 
       expect(t.winner, 1);
-      expect(t.totals, [150, 12]);
+    });
+
+    test('credits the winner what it lacks to reach the game score', () {
+      final g = game(const [
+        Round(gv: 162, dealer: 0, taker: 0, score: [150, 12]),
+        Round(gv: 162, dealer: 1, taker: 0, score: [0, 0], deberc: 1),
+      ]);
+      final t = tally(g);
+
+      expect(t.totals, [150, g.scoreLimit]);
+      expect(t.earned.last, [0, g.scoreLimit - 12]);
+      expect(t.changes.last, [0, g.scoreLimit - 12]);
     });
 
     test('is neither bait nor a tie', () {
