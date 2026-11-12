@@ -1234,4 +1234,38 @@ void main() {
 
     expect(find.text('♠ Вони'), findsOneWidget);
   });
+
+  group('the system Back button', () {
+    Future<bool> back(WidgetTester tester) async {
+      final handled = await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      return handled;
+    }
+
+    testWidgets('returns from the settings to the start screen', (tester) async {
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      expect(find.text(uk.newGame), findsNothing);
+
+      expect(await back(tester), isTrue);
+      expect(find.text(uk.newGame), findsOneWidget);
+    });
+
+    testWidgets('closes an open deal first, then leaves the game', (tester) async {
+      await openRound(tester);
+
+      expect(await back(tester), isTrue);
+      expect(find.text(uk.newRound), findsOneWidget);
+      expect(find.text(uk.newGame), findsNothing);
+
+      expect(await back(tester), isTrue);
+      expect(find.text(uk.newGame), findsOneWidget);
+    });
+
+    testWidgets('leaves the app from the start screen', (tester) async {
+      await openApp(tester);
+
+      expect(await back(tester), isFalse);
+    });
+  });
 }
