@@ -146,8 +146,8 @@ List<int> scoreRound(Round r, {TieRule tieRule = TieRule.eachKeepsOwn}) {
   if (r.bid != null) return bidScore(r);
   if (Contract.of(r.contract)?.countedByOneSide ?? false) return countedScore(r);
   if (r.contract != null) return contractScore(r).earned;
-  // A deberc decides the game on its own and a thrown-in deal is not played;
-  // neither adds any points.
+  // A thrown-in deal is not played and adds no points; a deberc adds none of
+  // its own here, as the game total credits it.
   if (!r.isPlayed) return List.filled(r.score.length, 0);
   if (r.isBaited || (r.isTie && tieRule == TieRule.opponentsTakeAll)) {
     // The deal goes to the opponent who scored the most; opponents level on
@@ -211,9 +211,15 @@ Tally tally(GameState game) {
     heldIn.add(0);
     final change = List.filled(game.sides, 0);
     changes.add(change);
+    // A deberc wins the game at once: its side is credited whatever it still
+    // lacks to reach the score the game is played to.
     if (r.isDeberc) {
+      final w = r.deberc!;
+      e[w] = (game.scoreLimit - totals[w]).clamp(0, game.scoreLimit);
+      change[w] = e[w];
+      totals[w] += e[w];
       earned.add(e);
-      winner = r.deberc;
+      winner = w;
       break;
     }
     // Held points wait for a deal that is actually won.
