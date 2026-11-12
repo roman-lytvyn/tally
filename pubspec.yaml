@@ -62,6 +62,9 @@ msix_config:
   msix_version: 1.0.0.0
   # A large PNG, from which the package builds its tiles and Start menu icons.
   logo_path: windows\runner\resources\app_logo.png
+  # The logo is already square with its own margin; trimming that margin
+  # leaves the cards taller than wide, and the square tiles then squash them.
+  trim_logo: false
   capabilities: ""
   # The languages the app speaks, so the Store lists each of them.
   languages: en-us, uk, fr, bg, hr, nl, ar
