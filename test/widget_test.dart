@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1266,6 +1267,32 @@ void main() {
       await openApp(tester);
 
       expect(await back(tester), isFalse);
+    });
+  });
+
+  group('the screen orientation', () {
+    /// The orientations the app last asked the system for.
+    Future<List<dynamic>?> requested(WidgetTester tester, Size size, double ratio) async {
+      List<dynamic>? last;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'SystemChrome.setPreferredOrientations') last = call.arguments as List<dynamic>;
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = ratio;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const DebertsApp());
+      await tester.pumpAndSettle();
+      return last;
+    }
+
+    testWidgets('stays portrait on a phone', (tester) async {
+      expect(await requested(tester, const Size(1080, 2340), 3), ['DeviceOrientation.portraitUp']);
+    });
+
+    testWidgets('follows the device on a tablet', (tester) async {
+      expect(await requested(tester, const Size(2560, 1600), 2), isEmpty);
     });
   });
 }

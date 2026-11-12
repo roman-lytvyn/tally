@@ -33,7 +33,6 @@ enum AppScreen { setup, game, settings, win, rules, about }
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(DebertsApp(rules: GameRules.of(_game)));
 }
 
@@ -239,8 +238,21 @@ class _AppRootState extends State<AppRoot> {
     if (_rounds.isNotEmpty) _removeRound(_rounds.length - 1);
   }
 
+  /// Whether the screen is held in portrait only, as last requested.
+  bool? _portraitOnly;
+
+  /// Keeps a phone in portrait, which its screens are laid out for, and lets
+  /// a large screen such as a tablet or an unfolded phone turn freely.
+  void _fitOrientation(BuildContext context) {
+    final portraitOnly = MediaQuery.sizeOf(context).shortestSide < 600;
+    if (portraitOnly == _portraitOnly) return;
+    _portraitOnly = portraitOnly;
+    SystemChrome.setPreferredOrientations(portraitOnly ? [DeviceOrientation.portraitUp] : []);
+  }
+
   @override
   Widget build(BuildContext context) {
+    _fitOrientation(context);
     if (!_ready) return Container(color: const Color(0xFF111118));
 
     final isDark = switch (_themeMode) {
