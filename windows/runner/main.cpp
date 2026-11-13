@@ -28,6 +28,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   Win32Window::Point origin(10, 10);
   // A phone-sized window, the shape the app is laid out for.
   Win32Window::Size size(420, 860);
+  // The app replaces this title with the name of its game in its language as
+  // soon as it starts.
   if (!window.Create(L"deberc", origin, size)) {
     return EXIT_FAILURE;
   }

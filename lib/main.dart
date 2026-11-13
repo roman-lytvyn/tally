@@ -12,6 +12,7 @@ import 'screens/settings_screen.dart';
 import 'screens/win_screen.dart';
 import 'screens/rules_screen.dart';
 import 'screens/about_screen.dart';
+import 'window_title.dart';
 
 /// The widest the app grows; a wider window shows its background on both sides.
 const maxAppWidth = 560.0;
@@ -288,30 +289,34 @@ class _AppRootState extends State<AppRoot> {
   }
 
   Widget _framed(AppTheme theme, AppStrings strings) {
-    // The name the system shows for the app follows the chosen language.
-    return Title(
+    // The name the system shows for the app, and the title of its desktop
+    // window, follow the chosen language.
+    return WindowTitle(
       title: strings.appTitle,
-      color: theme.acc,
-      // Arabic reads right to left, whatever the device language is.
-      child: Directionality(
-        textDirection: strings.isRtl ? TextDirection.rtl : TextDirection.ltr,
-        // On a wide screen the app keeps the width of a large phone, centred
-        // on its own background and edged like its cards.
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: theme.bg, gradient: theme.setupGradient),
-          child: LayoutBuilder(builder: (context, box) {
-            final edge = box.maxWidth > maxAppWidth ? BorderSide(color: theme.bdr) : BorderSide.none;
-            return Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: maxAppWidth),
-                decoration: BoxDecoration(border: Border(left: edge, right: edge)),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: _buildScreen(theme, strings),
+      child: Title(
+        title: strings.appTitle,
+        color: theme.acc,
+        // Arabic reads right to left, whatever the device language is.
+        child: Directionality(
+          textDirection: strings.isRtl ? TextDirection.rtl : TextDirection.ltr,
+          // On a wide screen the app keeps the width of a large phone, centred
+          // on its own background and edged like its cards.
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: theme.bg, gradient: theme.setupGradient),
+            child: LayoutBuilder(builder: (context, box) {
+              final edge = box.maxWidth > maxAppWidth ? BorderSide(color: theme.bdr) : BorderSide.none;
+              return Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: maxAppWidth),
+                  decoration: BoxDecoration(border: Border(left: edge, right: edge)),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: _buildScreen(theme, strings),
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );
