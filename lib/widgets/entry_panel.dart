@@ -384,7 +384,16 @@ class _EntryPanelState extends State<EntryPanel> {
     ),
   );
 
-  void _pickTaker(int i) => setState(() { _taker = i; _startInput(_firstCounted(i)); });
+  /// Whether no points have been typed for any side yet.
+  bool get _nothingTyped => _entered.every((i) => (_raws[i] ?? '').isEmpty);
+
+  /// Marks side [i] as the one that took the trump. Points already typed stay,
+  /// since what each side took does not depend on who played; before anything
+  /// is typed, entry moves to the side that counts first for the new taker.
+  void _pickTaker(int i) => setState(() {
+    _taker = i;
+    if (_nothingTyped) _startInput(_firstCounted(i));
+  });
 
   /// Who took the trump, the sides next to each other.
   Widget _takerRow() => Column(

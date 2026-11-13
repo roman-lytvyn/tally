@@ -767,6 +767,29 @@ void main() {
     expect(shownFor(0, '100'), findsOneWidget);
   });
 
+  testWidgets('keeps the typed points when another side is picked as the trump-taker', (tester) async {
+    await openRound(tester);
+    // The second team took the trump, so the points start on the first team.
+    await press(tester, '6');
+    await press(tester, '2');
+    await tester.pump();
+
+    await tapKey(tester, 'taker.0');
+    await tester.pump();
+
+    expect(find.text('♠ Ми'), findsOneWidget);
+    expect(shownFor(0, '62'), findsOneWidget);
+    expect(shownFor(1, '100'), findsOneWidget);
+    // Typing goes on in the same place.
+    await press(tester, '⌫');
+    await tester.pump();
+    expect(shownFor(0, '6'), findsOneWidget);
+    // The first team took the trump with fewer points, so it fell.
+    await press(tester, '2');
+    await tester.pump();
+    expect(find.text(uk.baitMsg('Вони', 162)), findsOneWidget);
+  });
+
   testWidgets('warns about bait as soon as the defenders are entered with more points', (tester) async {
     await openRound(tester);
 
