@@ -10,6 +10,10 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  GtkWindow* window;
+  GtkHeaderBar* header_bar;
+  // Lets the app set the window title, which follows its chosen language.
+  FlMethodChannel* window_channel;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
@@ -17,6 +21,29 @@ G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
+}
+
+// Handles the app's calls on the window channel.
+static void window_method_cb(FlMethodChannel* channel, FlMethodCall* call,
+                             gpointer user_data) {
+  MyApplication* self = MY_APPLICATION(user_data);
+  if (g_strcmp0(fl_method_call_get_name(call), "setTitle") != 0) {
+    fl_method_call_respond_not_implemented(call, nullptr);
+    return;
+  }
+  FlValue* args = fl_method_call_get_args(call);
+  if (fl_value_get_type(args) != FL_VALUE_TYPE_STRING) {
+    fl_method_call_respond_error(call, "bad-arguments",
+                                 "setTitle takes the title as a string",
+                                 nullptr, nullptr);
+    return;
+  }
+  const gchar* title = fl_value_get_string(args);
+  if (self->header_bar != nullptr) {
+    gtk_header_bar_set_title(self->header_bar, title);
+  }
+  gtk_window_set_title(self->window, title);
+  fl_method_call_respond_success(call, nullptr, nullptr);
 }
 
 // Implements GApplication::activate.
@@ -42,12 +69,17 @@ static void my_application_activate(GApplication* application) {
     }
   }
 #endif
+  // The app replaces this title with the name of its game in its language as
+  // soon as it starts.
+  self->window = window;
+  self->header_bar = nullptr;
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
     gtk_header_bar_set_title(header_bar, "Деберць");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
+    self->header_bar = header_bar;
   } else {
     gtk_window_set_title(window, "Деберць");
   }
@@ -79,6 +111,13 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  self->window_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      "tally/window", FL_METHOD_CODEC(codec));
+  fl_method_channel_set_method_call_handler(self->window_channel,
+                                            window_method_cb, self, nullptr);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
@@ -126,6 +165,7 @@ static void my_application_shutdown(GApplication* application) {
 static void my_application_dispose(GObject* object) {
   MyApplication* self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
+  g_clear_object(&self->window_channel);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 

@@ -1,8 +1,28 @@
 #include "flutter_window.h"
 
+#include <flutter/standard_method_codec.h>
+
 #include <optional>
+#include <string>
 
 #include "flutter/generated_plugin_registrant.h"
+
+namespace {
+
+// Converts a UTF-8 string to the UTF-16 the Win32 API takes.
+std::wstring Utf16FromUtf8(const std::string& utf8) {
+  if (utf8.empty()) {
+    return std::wstring();
+  }
+  int length = ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(),
+                                     static_cast<int>(utf8.size()), nullptr, 0);
+  std::wstring utf16(length, L'\0');
+  ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), static_cast<int>(utf8.size()),
+                        utf16.data(), length);
+  return utf16;
+}
+
+}  // namespace
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -25,6 +45,28 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+
+  window_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(), "tally/window",
+          &flutter::StandardMethodCodec::GetInstance());
+  window_channel_->SetMethodCallHandler(
+      [this](const flutter::MethodCall<flutter::EncodableValue>& call,
+             std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+                 result) {
+        if (call.method_name() != "setTitle") {
+          result->NotImplemented();
+          return;
+        }
+        const auto* title = std::get_if<std::string>(call.arguments());
+        if (!title) {
+          result->Error("bad-arguments", "setTitle takes the title as a string");
+          return;
+        }
+        ::SetWindowTextW(GetHandle(), Utf16FromUtf8(*title).c_str());
+        result->Success();
+      });
+
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
@@ -40,6 +82,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  window_channel_ = nullptr;
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
