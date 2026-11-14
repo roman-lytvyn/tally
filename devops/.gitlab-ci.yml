@@ -705,6 +705,9 @@ microsoft-store:
     - release-version
     - publish-windows
   before_script: []
+  variables:
+    MSSTORE_CLI_URL: https://github.com/microsoft/msstore-cli/releases/download/v0.4.4/MSStoreCLI-win-x64.zip
+    MSSTORE_CLI_SHA256: D288A324541DC68244A683EB5B6445E9239BB47D1E6ACF5CCA4D1476017F1447
   environment:
     name: microsoft-store
     url: https://apps.microsoft.com/detail/deberc
@@ -714,7 +717,14 @@ microsoft-store:
     - . devops\apps\profile.ps1
     - $app = Read-AppProfile $env:APP
     - if ($app.APP_MS_STORE -ne "true") { Write-Host "$($app.APP_NAME) has no Store listing yet"; exit 0 }
-    - dotnet tool install --global MSStore.CLI 2>$null; $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+    # Microsoft Store Developer CLI from its official release, checksum-pinned.
+    - $cliDir = Join-Path $env:TEMP "msstore-cli-$env:CI_JOB_ID"
+    - New-Item -ItemType Directory -Force $cliDir | Out-Null
+    - '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
+    - Invoke-WebRequest -UseBasicParsing $env:MSSTORE_CLI_URL -OutFile "$cliDir\cli.zip"
+    - if ((Get-FileHash "$cliDir\cli.zip" -Algorithm SHA256).Hash -ne $env:MSSTORE_CLI_SHA256) { throw "Microsoft Store CLI checksum mismatch" }
+    - Expand-Archive "$cliDir\cli.zip" -DestinationPath $cliDir -Force
+    - $env:PATH = "$cliDir;$env:PATH"
     - msstore reconfigure --tenantId $env:MS_TENANT_ID --clientId $env:MS_CLIENT_ID --clientSecret $env:MS_CLIENT_SECRET --sellerId $env:MS_SELLER_ID
     # Creates a submission from the last published one, swaps in the new
     # package and submits it for certification.
