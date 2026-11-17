@@ -790,6 +790,38 @@ void main() {
     expect(find.text(uk.baitMsg('Вони', 162)), findsOneWidget);
   });
 
+  testWidgets('keeps the typed points when moving between the teams\' scores', (tester) async {
+    await openRound(tester);
+    await press(tester, '6');
+    await press(tester, '2');
+    await tester.pump();
+    expect(shownFor(0, '62'), findsOneWidget);
+    expect(shownFor(1, '100'), findsOneWidget);
+
+    // The other team's score is picked: both keep their points.
+    await tapKey(tester, 'score.1');
+    await tester.pump();
+    expect(shownFor(0, '62'), findsOneWidget);
+    expect(shownFor(1, '100'), findsOneWidget);
+
+    // A digit replaces the shown number, the next ones add to it.
+    await press(tester, '9');
+    await press(tester, '0');
+    await tester.pump();
+    expect(shownFor(1, '90'), findsOneWidget);
+    expect(shownFor(0, '72'), findsOneWidget);
+
+    // Back to the first team: still nothing is lost, and backspace edits.
+    await tapKey(tester, 'score.0');
+    await tester.pump();
+    expect(shownFor(0, '72'), findsOneWidget);
+    expect(shownFor(1, '90'), findsOneWidget);
+    await press(tester, '⌫');
+    await tester.pump();
+    expect(shownFor(0, '7'), findsOneWidget);
+    expect(shownFor(1, '155'), findsOneWidget);
+  });
+
   testWidgets('warns about bait as soon as the defenders are entered with more points', (tester) async {
     await openRound(tester);
 
