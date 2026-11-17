@@ -118,27 +118,44 @@ class _EntryPanelState extends State<EntryPanel> {
   /// took fewer cards, count theirs. The taker is the side worked out.
   int _firstCounted(int taker) => (taker + 1) % _sides;
 
+  /// Whether the next digit replaces the number the active side shows rather
+  /// than adding to it.
+  bool _replaceOnType = false;
+
   /// Starts entering the deal again from side [i] alone.
   void _startInput(int i) {
     _raws = List.filled(_sides, null)..[i] = '';
     _entered = [i];
     _activeInput = i;
+    _replaceOnType = false;
   }
 
-  /// Moves the input to side [i]; when that would leave no side to work out,
-  /// the side typed longest ago becomes the worked-out one.
+  /// Moves the input to side [i], which starts from the points it shows, so
+  /// the deal stays as it was. When that would leave no side to work out, a
+  /// side with nothing typed, or else the one typed longest ago, becomes the
+  /// worked-out one and keeps showing the same points.
   void _selectInput(int i) {
     if (!_entered.contains(i)) {
+      final shown = _score[i];
       _entered.add(i);
-      _raws[i] = '';
-      if (_entered.length > _sides - 1) _raws[_entered.removeAt(0)] = null;
+      _raws[i] = shown == null ? '' : '$shown';
+      if (_entered.length > _sides - 1) {
+        final empty = _entered.where((e) => e != i && _raws[e]!.isEmpty);
+        final dropped = empty.isNotEmpty ? empty.first : _entered.first;
+        _entered.remove(dropped);
+        _raws[dropped] = null;
+      }
+      _replaceOnType = _raws[i]!.isNotEmpty;
     }
     _activeInput = i;
   }
 
   void _tap(String k) {
+    final replace = _replaceOnType;
+    _replaceOnType = false;
     final raw = _raws[_activeInput] ?? '';
     if (k == '⌫') { setState(() => _raws[_activeInput] = raw.isEmpty ? '' : raw.substring(0, raw.length - 1)); return; }
+    if (replace) { setState(() => _raws[_activeInput] = k); return; }
     if (raw.length >= 3) return;
     setState(() => _raws[_activeInput] = raw + k);
   }
