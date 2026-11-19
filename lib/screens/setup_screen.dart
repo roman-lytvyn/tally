@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
+import '../layout.dart';
 import '../models.dart';
+import '../widgets/welcome_panel.dart';
 
 class SetupScreen extends StatelessWidget {
   final AppTheme theme;
@@ -35,11 +37,29 @@ class SetupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // In landscape the form keeps its place on the right and the left half
+    // presents the app, so the form leaves out the logo.
+    final wide = isWideLayout(MediaQuery.sizeOf(context));
     return Scaffold(
       backgroundColor: t.bg,
       body: Container(
         decoration: BoxDecoration(gradient: t.setupGradient),
-        child: SafeArea(
+        child: wide
+            ? Row(children: [
+                Expanded(child: WelcomePanel(theme: t, strings: strings)),
+                Container(width: 1, color: t.bdr),
+                Expanded(child: Center(child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: _form(showLogo: false),
+                ))),
+              ])
+            : _form(showLogo: true),
+      ),
+    );
+  }
+
+  Widget _form({required bool showLogo}) {
+    return SafeArea(
           // Scrolls on short screens while the buttons stay pinned to the
           // bottom whenever everything fits.
           child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
@@ -51,7 +71,7 @@ class SetupScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // logo
+                if (showLogo) ...[
                 Column(children: [
                   Text(strings.appTitle, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w800,
                       letterSpacing: -1, color: t.tx)),
@@ -67,6 +87,8 @@ class SetupScreen extends StatelessWidget {
                   )),
                 ]),
                 const SizedBox(height: 24),
+
+                ],
 
                 // how many play
                 if (rules.playerCounts.length > 1) ...[
@@ -136,8 +158,6 @@ class SetupScreen extends StatelessWidget {
             ),
             ),
           )),
-        ),
-      ),
     );
   }
 

@@ -6,6 +6,7 @@ import 'theme.dart';
 import 'models.dart';
 import 'scoring.dart';
 import 'l10n.dart';
+import 'layout.dart';
 import 'screens/setup_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/settings_screen.dart';
@@ -26,6 +27,7 @@ const _dealerMustPlayKey = 'deberc_dealer_must_play';
 const _tieRuleKey = 'deberc_tie_rule';
 const _finishRuleKey = 'deberc_finish_rule';
 const _penaltiesKey = 'deberc_penalties';
+const _landscapeKey = 'deberc_landscape';
 
 /// The game this app is built for, chosen at build time with `--dart-define=GAME=<id>`.
 const _game = String.fromEnvironment('GAME', defaultValue: 'deberc');
@@ -58,6 +60,7 @@ class AppRoot extends StatefulWidget {
 
 class _AppRootState extends State<AppRoot> {
   String _themeMode = 'system';
+  bool _landscapeAllowed = true;
   String _scoreStyle = 'traditional';
   String _valueInput = 'counters';
   String _lang = 'uk';
@@ -120,6 +123,7 @@ class _AppRootState extends State<AppRoot> {
     // Until a theme is chosen the app follows the device.
     final theme = prefs.getString(_themeKey) ?? 'system';
     final style = prefs.getString(_styleKey) ?? 'traditional';
+    final landscape = prefs.getBool(_landscapeKey) ?? true;
     final valueIn = prefs.getString(_valueKey) ?? 'counters';
     final dealerMustPlay = prefs.getBool(_dealerMustPlayKey) ?? true;
     final tieRule = TieRule.values.asNameMap()[prefs.getString(_tieRuleKey)] ??
@@ -152,6 +156,7 @@ class _AppRootState extends State<AppRoot> {
     if (!mounted) return;
     setState(() {
       _prefs       = prefs;
+      _landscapeAllowed = landscape;
       _themeMode   = ['dark', 'light', 'system'].contains(theme) ? theme : 'system';
       _scoreStyle  = style == 'normal' || !rules.hasCirclesAndSticks ? 'normal' : 'traditional';
       _valueInput  = valueIn == 'wheel' && !rules.hasContracts ? 'wheel' : 'counters';
@@ -242,10 +247,12 @@ class _AppRootState extends State<AppRoot> {
   /// Whether the screen is held in portrait only, as last requested.
   bool? _portraitOnly;
 
-  /// Keeps a phone in portrait, which its screens are laid out for, and lets
-  /// a large screen such as a tablet or an unfolded phone turn freely.
+  /// Keeps a small phone in portrait. A screen whose longer side is large
+  /// enough for two columns (a big phone, a tablet, an unfolded phone) turns
+  /// freely unless the user switched landscape off in the settings.
   void _fitOrientation(BuildContext context) {
-    final portraitOnly = MediaQuery.sizeOf(context).shortestSide < 600;
+    final size = MediaQuery.sizeOf(context);
+    final portraitOnly = size.shortestSide < 600 && !(_landscapeAllowed && canTurnToLandscape(size));
     if (portraitOnly == _portraitOnly) return;
     _portraitOnly = portraitOnly;
     SystemChrome.setPreferredOrientations(portraitOnly ? [DeviceOrientation.portraitUp] : []);
@@ -304,10 +311,15 @@ class _AppRootState extends State<AppRoot> {
           child: DecoratedBox(
             decoration: BoxDecoration(color: theme.bg, gradient: theme.setupGradient),
             child: LayoutBuilder(builder: (context, box) {
-              final edge = box.maxWidth > maxAppWidth ? BorderSide(color: theme.bdr) : BorderSide.none;
+              // The start, game and settings screens use two columns when the
+              // window is wide and short; the others stay phone-sized.
+              final split = isWideLayout(Size(box.maxWidth, box.maxHeight)) &&
+                  (_screen == AppScreen.setup || _screen == AppScreen.game || _screen == AppScreen.settings);
+              final limit = split ? maxWideAppWidth : maxAppWidth;
+              final edge = box.maxWidth > limit ? BorderSide(color: theme.bdr) : BorderSide.none;
               return Center(
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: maxAppWidth),
+                  constraints: BoxConstraints(maxWidth: limit),
                   decoration: BoxDecoration(border: Border(left: edge, right: edge)),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
@@ -367,6 +379,11 @@ class _AppRootState extends State<AppRoot> {
           theme: theme, strings: strings, rules: widget.rules,
           scoreStyle: _scoreStyle, valueInput: _valueInput, lang: _lang,
           themeMode: _themeMode,
+          landscapeAllowed: _landscapeAllowed,
+          onLandscapeChanged: (v) {
+            setState(() => _landscapeAllowed = v);
+            _prefs?.setBool(_landscapeKey, v);
+          },
           dealerMustPlay: _newDealerMustPlay, tieRule: _newTieRule, finishRule: _newFinishRule,
           penalties: _newPenalties,
           onPenaltiesChanged: (v) {

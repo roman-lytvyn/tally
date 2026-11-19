@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:deberc/rules_content.dart';
 import 'package:deberc/main.dart';
 import 'package:deberc/l10n.dart';
+import 'package:deberc/layout.dart';
 import 'package:deberc/models.dart';
 import 'package:deberc/screens/about_screen.dart';
 import 'package:deberc/screens/settings_screen.dart';
@@ -90,8 +91,8 @@ void main() {
     expect(row.right - them.right, edge);
   });
 
-  testWidgets('keeps the width of a large phone in a wide window, centred', (tester) async {
-    tester.view.physicalSize = const Size(1920, 1080);
+  testWidgets('keeps the width of a large phone in a tall window, centred', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(const DebertsApp());
@@ -100,8 +101,23 @@ void main() {
     final screen = tester.getRect(find.byType(Scaffold).first);
     // Less the thin edge drawn on each side.
     expect(screen.width, closeTo(maxAppWidth, 2));
-    expect(screen.height, 1080);
+    expect(screen.height, 1920);
+    expect(screen.center.dx, 540);
+  });
+
+  testWidgets('spreads the start screen over two columns in a wide window, capped and centred', (tester) async {
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const DebertsApp());
+    await tester.pumpAndSettle();
+
+    final screen = tester.getRect(find.byType(Scaffold).first);
+    expect(screen.width, closeTo(maxWideAppWidth, 2));
     expect(screen.center.dx, 960);
+    expect(find.byKey(const ValueKey('welcome.tagline')), findsOneWidget);
+    // The form keeps its place on the right and drops the logo it shares with the left.
+    expect(find.text(uk.appTitle), findsOneWidget);
   });
 
   testWidgets('fills a phone screen from edge to edge', (tester) async {
@@ -1144,7 +1160,7 @@ void main() {
   });
 
   group('deal entry popup never scrolls', () {
-    const sizes = [Size(411, 830), Size(360, 640), Size(320, 480), Size(830, 411)];
+    const sizes = [Size(411, 830), Size(360, 640), Size(320, 480)];
 
     /// Fails if the popup could scroll or reaches past the screen.
     void expectFits(WidgetTester tester, Size size) {
@@ -1325,6 +1341,38 @@ void main() {
     });
   });
 
+  group('landscape game screen', () {
+    const sizes = [Size(932, 430), Size(830, 411), Size(1280, 800)];
+
+    for (final rules in GameRules.all) {
+      for (final size in sizes) {
+        testWidgets('${rules.id} at ${size.width}x${size.height} keeps the score left and the entry right', (tester) async {
+          SharedPreferences.setMockInitialValues({'deberc_lang': 'uk'});
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+          await tester.pumpWidget(DebertsApp(rules: rules));
+          await tester.pumpAndSettle();
+          await tapText(tester, uk.newGame);
+
+          // The entry is there from the start and there is no button to open it.
+          expect(find.byType(EntryPanel), findsOneWidget);
+          expect(find.text(uk.newRound), findsNothing);
+          expect(find.ancestor(of: find.byType(EntryPanel), matching: find.byType(Scrollable)), findsNothing);
+          final panel = tester.getRect(find.byType(EntryPanel));
+          expect(panel.top, greaterThanOrEqualTo(0));
+          expect(panel.bottom, lessThanOrEqualTo(size.height + 0.01));
+          expect(panel.right, lessThanOrEqualTo(size.width + 0.01));
+          expect(panel.left, greaterThan(size.width / 2 - 1));
+
+          await tester.tap(find.byKey(const ValueKey('taker.0')));
+          await tester.pumpAndSettle();
+          expect(tester.getRect(find.byType(EntryPanel)).bottom, lessThanOrEqualTo(size.height + 0.01));
+        });
+      }
+    }
+  });
+
   group('the screen orientation', () {
     /// The orientations the app last asked the system for.
     Future<List<dynamic>?> requested(WidgetTester tester, Size size, double ratio) async {
@@ -1344,6 +1392,15 @@ void main() {
 
     testWidgets('stays portrait on a phone', (tester) async {
       expect(await requested(tester, const Size(1080, 2340), 3), ['DeviceOrientation.portraitUp']);
+    });
+
+    testWidgets('follows the device on a large phone', (tester) async {
+      expect(await requested(tester, const Size(1290, 2796), 3), isEmpty);
+    });
+
+    testWidgets('stays portrait on a large phone once landscape is switched off', (tester) async {
+      SharedPreferences.setMockInitialValues({'deberc_landscape': false});
+      expect(await requested(tester, const Size(1290, 2796), 3), ['DeviceOrientation.portraitUp']);
     });
 
     testWidgets('follows the device on a tablet', (tester) async {

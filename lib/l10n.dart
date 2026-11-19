@@ -292,6 +292,45 @@ class AppStrings {
       'Les règles valent pour les nouvelles parties ; une partie en cours garde les siennes',
       'Правилата важат за новите игри; започнатата игра запазва своите', 'Pravila vrijede za nove igre; započeta igra zadržava svoja', 'De regels gelden voor nieuwe spellen; een lopend spel houdt zijn eigen regels', 'تنطبق القواعد على الألعاب الجديدة؛ اللعبة الجارية تحتفظ بقواعدها');
   String get language        => _t('Мова', 'Language', 'Langue', 'Език', 'Jezik', 'Taal', 'اللغة');
+  /// The setting that lets the screen turn to landscape.
+  String get landscapeLabel  => _t('Альбомна орієнтація', 'Landscape mode', 'Mode paysage', 'Хоризонтален режим', 'Vodoravni način', 'Liggende weergave', 'الوضع الأفقي');
+  String get landscapeDesc   => _t('Дозволити повертати екран горизонтально', 'Allow the screen to turn sideways',
+      "Autoriser la rotation de l'écran en paysage", 'Позволи завъртане на екрана хоризонтално',
+      'Dopusti okretanje zaslona u vodoravni položaj', 'Sta toe dat het scherm kantelt naar liggend', 'السماح بتدوير الشاشة أفقيًا');
+
+  // The presentation beside the start screen in landscape
+  String get welcomeTagline  => _t('Карти на столі, рахунок у телефоні.', 'Cards on the table, score on the phone.',
+      'Les cartes sur la table, le score dans le téléphone.', 'Картите на масата, резултатът в телефона.',
+      'Karte na stolu, rezultat u telefonu.', 'Kaarten op tafel, de stand in je telefoon.', 'الأوراق على الطاولة، والنتيجة في الهاتف.');
+  String get welcomeDesc     => _t(
+      'Замінює олівець і папір: пам’ятає, хто роздає, рахує очки й записує рахунок так, як на аркуші.',
+      'Takes the place of pencil and paper: it remembers who deals, counts the points and writes the score the way a score sheet does.',
+      'Remplace le crayon et le papier : il retient qui distribue, compte les points et note le score comme sur une feuille de marque.',
+      'Заменя молива и хартията: помни кой раздава, пресмята точките и записва резултата като на лист.',
+      'Zamjenjuje olovku i papir: pamti tko dijeli, zbraja bodove i bilježi rezultat kao na listu.',
+      'Neemt de plaats in van potlood en papier: onthoudt wie er deelt, telt de punten en schrijft de stand op zoals op een scoreblad.',
+      'يحلّ محل القلم والورقة: يتذكّر من يوزّع، ويحسب النقاط، ويدوّن النتيجة كما في ورقة الحساب.');
+  /// The points of the presentation: a title and a line under it each.
+  List<(String, String)> get welcomeFeatures => [
+    (_t('Знає, хто роздає', 'Knows who deals', 'Sait qui distribue', 'Знае кой раздава', 'Zna tko dijeli', 'Weet wie er deelt', 'يعرف من يوزّع'),
+     _t('Значок роздачі сам переходить далі після кожної роздачі.', 'The dealer badge moves on by itself after every deal.',
+        'Le badge du donneur passe tout seul après chaque donne.', 'Значката за раздаващия се мести сам след всяка раздача.',
+        'Oznaka djelitelja sama se pomiče nakon svakog dijeljenja.', 'De gever-badge schuift na elk spel vanzelf door.',
+        'تنتقل شارة الموزّع تلقائيًا بعد كل جولة.')),
+    (_t('Рахує за вас', 'Counts for you', 'Compte pour vous', 'Смята вместо вас', 'Broji umjesto vas', 'Rekent voor je', 'يحسب عنك'),
+     _t('Введіть очки однієї сторони — решту роздачі застосунок порахує сам.', 'Enter one side’s points and the app works out the rest of the deal.',
+        'Saisissez les points d’un camp : l’appli calcule le reste de la donne.', 'Въведете точките на един отбор — приложението пресмята останалото.',
+        'Unesite bodove jedne strane, a aplikacija izračuna ostatak dijeljenja.', 'Voer de punten van één kant in en de app rekent de rest van het spel uit.',
+        'أدخل نقاط جهة واحدة ويحسب التطبيق بقية الجولة.')),
+    (_t('Уся гра в історії', 'The whole game in view', 'Toute la partie sous les yeux', 'Цялата игра пред очите ви', 'Cijela igra pred očima', 'Het hele spel in beeld', 'اللعبة كلها أمامك'),
+     _t('Торкніться будь-якої роздачі, щоб виправити чи видалити її.', 'Tap any deal to correct or delete it.',
+        'Touchez une donne pour la corriger ou la supprimer.', 'Докоснете раздача, за да я поправите или изтриете.',
+        'Dodirnite dijeljenje da ga ispravite ili izbrišete.', 'Tik op een spel om het te corrigeren of te verwijderen.',
+        'المس أي جولة لتصحيحها أو حذفها.')),
+    (_t('Без реклами й акаунтів', 'No ads, no accounts', 'Sans pub, sans compte', 'Без реклами и акаунти', 'Bez oglasa i računa', 'Geen advertenties, geen account', 'بلا إعلانات ولا حسابات'),
+     _t('Працює без інтернету, сім мов.', 'Works offline, in seven languages.', 'Fonctionne hors ligne, en sept langues.',
+        'Работи без интернет, на седем езика.', 'Radi bez interneta, na sedam jezika.', 'Werkt offline, in zeven talen.', 'يعمل بلا إنترنت وبسبع لغات.')),
+  ];
   String get activeLang      => _t('Активна мова', 'Active language', 'Langue active', 'Активен език', 'Aktivni jezik', 'Actieve taal', 'اللغة الحالية');
   /// The name of the language [code] in that language itself.
   static String languageName(String code) => switch (code) {
