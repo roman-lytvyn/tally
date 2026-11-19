@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
 import '../models.dart';
+import '../layout.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -25,6 +26,10 @@ class SettingsScreen extends StatelessWidget {
   final void Function(FinishRule) onFinishRuleChanged;
   final void Function(Penalties) onPenaltiesChanged;
   final void Function(String) onLangChanged;
+  /// Whether the screen may be turned to landscape; the option is offered only
+  /// where [onLandscapeChanged] is given and the screen is big enough to turn.
+  final bool landscapeAllowed;
+  final void Function(bool)? onLandscapeChanged;
   final VoidCallback onAbout;
   final VoidCallback onBack;
 
@@ -38,12 +43,17 @@ class SettingsScreen extends StatelessWidget {
     required this.onTieRuleChanged, required this.onFinishRuleChanged,
     required this.onPenaltiesChanged,
     required this.onLangChanged, required this.onAbout, required this.onBack,
+    this.landscapeAllowed = true, this.onLandscapeChanged,
   });
 
   AppTheme get t => theme;
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final wide = isWideLayout(size);
+    final hasRules = !rules.hasFixedTableRules;
+    final showLandscape = onLandscapeChanged != null && canTurnToLandscape(size);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -78,158 +88,16 @@ class SettingsScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(18),
               children: [
-                _groupLabel(strings.appearance),
-                _group([
-                  Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(strings.themeLabel,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        Expanded(child: _themeOpt('☀️', strings.themeLight, 'light')),
-                        const SizedBox(width: 6),
-                        Expanded(child: _themeOpt('🌙', strings.themeDark, 'dark')),
-                      ]),
-                    ]),
-                  ),
-                ]),
-                // A game scored in game points has neither circles nor a
-                // deal value to enter.
-                if (rules.hasCirclesAndSticks || !rules.hasContracts) ...[
-                const SizedBox(height: 14),
-                _groupLabel(strings.scoreDisplay),
-                _group([
-                  if (rules.hasCirclesAndSticks) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(strings.displayStyle,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                      const SizedBox(height: 2),
-                      Text(strings.displayStyleDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        Expanded(child: _styleOpt('⊗ ○ |', strings.circlesSticks, 'traditional')),
-                        const SizedBox(width: 6),
-                        Expanded(child: _styleOpt('123', strings.regularNums, 'normal')),
-                      ]),
-                    ]),
-                  ),
-                  ],
-                  if (rules.hasCirclesAndSticks && !rules.hasContracts) _divider(),
-                  if (!rules.hasContracts) Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(strings.gameValue,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                      const SizedBox(height: 2),
-                      Text(strings.gameValueDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        Expanded(child: _option('+ −', strings.valueCounters, valueInput == 'counters',
-                            () => onValueInputChanged('counters'))),
-                        const SizedBox(width: 6),
-                        Expanded(child: _option('⇅', strings.valueWheel, valueInput == 'wheel',
-                            () => onValueInputChanged('wheel'))),
-                      ]),
-                    ]),
-                  ),
-                ]),
-                ],
-                if (!rules.hasFixedTableRules) ...[
-                const SizedBox(height: 14),
-                _groupLabel(strings.rules),
-                _group([
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onDealerMustPlayChanged(!dealerMustPlay),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 9, 8, 9),
-                      child: Row(children: [
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(strings.dealerMustPlay,
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                          const SizedBox(height: 2),
-                          Text(strings.dealerMustPlayDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
-                        ])),
-                        Switch(value: dealerMustPlay, onChanged: onDealerMustPlayChanged, activeThumbColor: t.acc),
-                      ]),
-                    ),
-                  ),
-                  _divider(),
-                  Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(strings.tieRuleTitle,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        for (final rule in TieRule.values) ...[
-                          if (rule != TieRule.values.first) const SizedBox(width: 6),
-                          Expanded(child: _option(_tieRuleIcon(rule), strings.tieRuleName(rule),
-                              tieRule == rule, () => onTieRuleChanged(rule))),
-                        ],
-                      ]),
-                      const SizedBox(height: 8),
-                      Text(strings.tieRuleDesc(tieRule), style: TextStyle(fontSize: 12, color: t.tx2)),
-                    ]),
-                  ),
-                  _divider(),
-                  Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(strings.finishRuleTitle,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        for (final rule in FinishRule.values) ...[
-                          if (rule != FinishRule.values.first) const SizedBox(width: 6),
-                          Expanded(child: _option(_finishRuleIcon(rule), strings.finishRuleName(rule),
-                              finishRule == rule, () => onFinishRuleChanged(rule))),
-                        ],
-                      ]),
-                      const SizedBox(height: 8),
-                      Text(strings.finishRuleDesc(finishRule), style: TextStyle(fontSize: 12, color: t.tx2)),
-                    ]),
-                  ),
-                  if (rules.hasPenalties) ...[
-                    _divider(),
-                    _baitPenalty(),
-                    _divider(),
-                    _noTricksPenalty(),
-                  ],
-                ]),
-                Padding(
-                  padding: const EdgeInsets.only(top: 6, left: 2),
-                  child: Text(strings.rulesForNewGames, style: TextStyle(fontSize: 11, color: t.tx3)),
-                ),
-                ],
-                const SizedBox(height: 14),
-                _groupLabel(strings.language),
-                _group([
-                  for (final (i, code) in kLanguages.indexed) ...[
-                    if (i > 0) _divider(),
-                    _langRow(AppStrings.languageFlag(code), AppStrings.languageName(code), code),
-                  ],
-                ]),
-                const SizedBox(height: 14),
-                _group([
-                  GestureDetector(
-                    key: const ValueKey('settings.about'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onAbout,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
-                      child: Row(children: [
-                        Expanded(child: _title(strings.aboutTitle)),
-                        Text(kAppVersion, style: TextStyle(fontSize: 12, color: t.tx2)),
-                        const SizedBox(width: 6),
-                        Icon(Icons.chevron_right, size: 20, color: t.tx3),
-                      ]),
-                    ),
-                  ),
-                ]),
+                if (wide)
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: _stack([_appearanceBlock(showLandscape), _scoreBlock(), if (!hasRules) _languageBlock()]))),
+                    const SizedBox(width: 18),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: _stack([_rulesBlock(), if (hasRules) _languageBlock(), _aboutBlock()]))),
+                  ])
+                else
+                  ..._stack([_appearanceBlock(showLandscape), _scoreBlock(), _rulesBlock(), _languageBlock(), _aboutBlock()]),
               ],
             ),
           ),
@@ -237,6 +105,197 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  /// Joins the sections that have anything to show, one gap apart.
+  List<Widget> _stack(List<List<Widget>> blocks) => [
+    for (final b in blocks.where((b) => b.isNotEmpty).indexed) ...[
+      if (b.$1 > 0) const SizedBox(height: 14),
+      ...b.$2,
+    ],
+  ];
+
+  List<Widget> _appearanceBlock(bool showLandscape) => [
+    _groupLabel(strings.appearance),
+    _group([
+      Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(strings.themeLabel,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: _themeOpt('☀️', strings.themeLight, 'light')),
+            const SizedBox(width: 6),
+            Expanded(child: _themeOpt('🌙', strings.themeDark, 'dark')),
+          ]),
+        ]),
+      ),
+      if (showLandscape) ...[
+        _divider(),
+        GestureDetector(
+          key: const ValueKey('settings.landscape'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onLandscapeChanged!(!landscapeAllowed),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 9, 8, 9),
+            child: Row(children: [
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _title(strings.landscapeLabel),
+                const SizedBox(height: 2),
+                _desc(strings.landscapeDesc),
+              ])),
+              Switch(value: landscapeAllowed, onChanged: onLandscapeChanged, activeThumbColor: t.acc),
+            ]),
+          ),
+        ),
+      ],
+    ]),
+  ];
+
+  List<Widget> _scoreBlock() => [
+    // A game scored in game points has neither circles nor a
+    // deal value to enter.
+    if (rules.hasCirclesAndSticks || !rules.hasContracts) ...[
+    _groupLabel(strings.scoreDisplay),
+    _group([
+      if (rules.hasCirclesAndSticks) ...[
+      Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(strings.displayStyle,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+          const SizedBox(height: 2),
+          Text(strings.displayStyleDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: _styleOpt('⊗ ○ |', strings.circlesSticks, 'traditional')),
+            const SizedBox(width: 6),
+            Expanded(child: _styleOpt('123', strings.regularNums, 'normal')),
+          ]),
+        ]),
+      ),
+      ],
+      if (rules.hasCirclesAndSticks && !rules.hasContracts) _divider(),
+      if (!rules.hasContracts) Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(strings.gameValue,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+          const SizedBox(height: 2),
+          Text(strings.gameValueDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: _option('+ −', strings.valueCounters, valueInput == 'counters',
+                () => onValueInputChanged('counters'))),
+            const SizedBox(width: 6),
+            Expanded(child: _option('⇅', strings.valueWheel, valueInput == 'wheel',
+                () => onValueInputChanged('wheel'))),
+          ]),
+        ]),
+      ),
+    ]),
+    ],
+  ];
+
+  List<Widget> _rulesBlock() => [
+    if (!rules.hasFixedTableRules) ...[
+    _groupLabel(strings.rules),
+    _group([
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => onDealerMustPlayChanged(!dealerMustPlay),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(15, 9, 8, 9),
+          child: Row(children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(strings.dealerMustPlay,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+              const SizedBox(height: 2),
+              Text(strings.dealerMustPlayDesc, style: TextStyle(fontSize: 12, color: t.tx2)),
+            ])),
+            Switch(value: dealerMustPlay, onChanged: onDealerMustPlayChanged, activeThumbColor: t.acc),
+          ]),
+        ),
+      ),
+      _divider(),
+      Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(strings.tieRuleTitle,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+          const SizedBox(height: 10),
+          Row(children: [
+            for (final rule in TieRule.values) ...[
+              if (rule != TieRule.values.first) const SizedBox(width: 6),
+              Expanded(child: _option(_tieRuleIcon(rule), strings.tieRuleName(rule),
+                  tieRule == rule, () => onTieRuleChanged(rule))),
+            ],
+          ]),
+          const SizedBox(height: 8),
+          Text(strings.tieRuleDesc(tieRule), style: TextStyle(fontSize: 12, color: t.tx2)),
+        ]),
+      ),
+      _divider(),
+      Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(strings.finishRuleTitle,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: t.tx)),
+          const SizedBox(height: 10),
+          Row(children: [
+            for (final rule in FinishRule.values) ...[
+              if (rule != FinishRule.values.first) const SizedBox(width: 6),
+              Expanded(child: _option(_finishRuleIcon(rule), strings.finishRuleName(rule),
+                  finishRule == rule, () => onFinishRuleChanged(rule))),
+            ],
+          ]),
+          const SizedBox(height: 8),
+          Text(strings.finishRuleDesc(finishRule), style: TextStyle(fontSize: 12, color: t.tx2)),
+        ]),
+      ),
+      if (rules.hasPenalties) ...[
+        _divider(),
+        _baitPenalty(),
+        _divider(),
+        _noTricksPenalty(),
+      ],
+    ]),
+    Padding(
+      padding: const EdgeInsets.only(top: 6, left: 2),
+      child: Text(strings.rulesForNewGames, style: TextStyle(fontSize: 11, color: t.tx3)),
+    ),
+    ],
+  ];
+
+  List<Widget> _languageBlock() => [
+    _groupLabel(strings.language),
+    _group([
+      for (final (i, code) in kLanguages.indexed) ...[
+        if (i > 0) _divider(),
+        _langRow(AppStrings.languageFlag(code), AppStrings.languageName(code), code),
+      ],
+    ]),
+  ];
+
+  List<Widget> _aboutBlock() => [
+    _group([
+      GestureDetector(
+        key: const ValueKey('settings.about'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onAbout,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+          child: Row(children: [
+            Expanded(child: _title(strings.aboutTitle)),
+            Text(kAppVersion, style: TextStyle(fontSize: 12, color: t.tx2)),
+            const SizedBox(width: 6),
+            Icon(Icons.chevron_right, size: 20, color: t.tx3),
+          ]),
+        ),
+      ),
+    ]),
+  ];
+
 
   Widget _groupLabel(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6, left: 2),

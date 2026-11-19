@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
+import '../layout.dart';
 import '../models.dart';
 import '../scoring.dart';
 import '../widgets/entry_panel.dart';
@@ -58,7 +59,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _openEntry([int? index]) => setState(() { _entryOpen = true; _editing = index; _session++; });
 
-  void _closeEntry() => setState(() { _entryOpen = false; _editing = null; });
+  void _closeEntry() => setState(() { _entryOpen = false; _editing = null; _session++; });
 
   void _saveEntry(Round r) {
     final index = _editing;
@@ -79,13 +80,15 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final editing = _editing;
+    // In landscape the entry panel is a permanent column on the right.
+    final wide = isWideLayout(MediaQuery.sizeOf(context));
     // The system Back button closes an open deal first, then leaves the game
     // the way the exit button does.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (_entryOpen) {
+        if (wide ? editing != null : _entryOpen) {
           _closeEntry();
         } else {
           widget.onBack();
@@ -95,20 +98,82 @@ class _GameScreenState extends State<GameScreen> {
       backgroundColor: t.bg,
       body: SafeArea(
         // The popup lies over the game, which stays in place underneath.
-        child: Stack(children: [
-          Column(
-            children: [
-              _buildHeader(),
-              _buildScoreSection(),
-              if (!isTraditional) _buildProgressBars(),
-              if (widget.tally.held > 0) _buildHeld(),
-              Expanded(child: _buildRoundsList()),
-              _buildNewRound(),
-            ],
-          ),
-          if (_entryOpen) Positioned.fill(child: _buildEntryPopup(editing)),
-        ]),
+        child: wide
+            ? Row(children: [
+                Expanded(child: _buildScoreColumn(newRoundButton: false)),
+                Container(width: 1, color: t.bdr),
+                _buildDockedEntry(editing),
+              ])
+            : Stack(children: [
+                _buildScoreColumn(newRoundButton: true),
+                if (_entryOpen) Positioned.fill(child: _buildEntryPopup(editing)),
+              ]),
       ),
+      ),
+    );
+  }
+
+  Widget _buildScoreColumn({required bool newRoundButton}) => LayoutBuilder(builder: (context, box) {
+    // On a tall landscape window the score block is drawn larger, so the
+    // column is filled rather than left with gaps around small figures.
+    final grow = newRoundButton ? 1.0 : ((box.maxHeight - 430) / 370 * 0.8 + 1).clamp(1.0, isTraditional ? 1.4 : 1.8);
+    return Column(
+      children: [
+        _buildHeader(),
+        _enlarged(grow, Column(children: [
+          _buildScoreSection(),
+          if (!isTraditional) _buildProgressBars(),
+          if (widget.tally.held > 0) _buildHeld(),
+        ])),
+        Expanded(child: _buildRoundsList()),
+        if (newRoundButton) _buildNewRound(),
+      ],
+    );
+  });
+
+  /// [child] drawn [factor] times larger across the full width.
+  Widget _enlarged(double factor, Widget child) {
+    if (factor <= 1.01) return child;
+    return LayoutBuilder(builder: (context, box) => SizedBox(
+      width: box.maxWidth,
+      child: FittedBox(
+        fit: BoxFit.fitWidth,
+        alignment: Alignment.topCenter,
+        child: SizedBox(width: box.maxWidth / factor, child: child),
+      ),
+    ));
+  }
+
+  /// The permanent entry column of the landscape layout. Like the popup it
+  /// shrinks whole on a short screen rather than scrolling.
+  Widget _buildDockedEntry(int? editing) {
+    final width = (math.min(MediaQuery.sizeOf(context).width, maxWideAppWidth) * 0.44).clamp(_entryMinWidth, 560.0);
+    return SizedBox(
+      width: width,
+      child: ColoredBox(
+        color: t.bg,
+        child: SizedBox.expand(
+          // The panel is laid out at a fixed width and scaled to the column,
+          // larger on a roomy window and smaller on a short one.
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox(
+              width: _entryMinWidth + 40,
+              child: EntryPanel(
+                key: ValueKey(_session),
+                docked: true,
+                theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
+                firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
+                valueWheel: widget.valueInput == 'wheel',
+                initial: editing != null ? rounds[editing] : null,
+                number: editing != null ? editing + 1 : null,
+                onCancel: _closeEntry,
+                onSave: _saveEntry,
+                onDelete: editing != null ? _deleteEntry : null,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

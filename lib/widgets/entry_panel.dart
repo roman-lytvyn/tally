@@ -25,12 +25,15 @@ class EntryPanel extends StatefulWidget {
   final VoidCallback onCancel;
   final void Function(Round) onSave;
   final VoidCallback? onDelete;
+  /// Sits in its own column beside the score instead of rising over it, so
+  /// it has no rounded top edge.
+  final bool docked;
 
   const EntryPanel({
     super.key, required this.theme, required this.strings, required this.rules,
     required this.teamNames, required this.dealer, required this.firstToBid,
     required this.dealerMustPlay, required this.tieRule,
-    this.valueWheel = false, this.initial, this.number,
+    this.valueWheel = false, this.initial, this.number, this.docked = false,
     required this.onCancel, required this.onSave, this.onDelete,
   });
 
@@ -231,10 +234,10 @@ class _EntryPanelState extends State<EntryPanel> {
     return Container(
       decoration: BoxDecoration(
         color: t.bg,
-        border: Border(top: BorderSide(color: t.bdr)),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+        border: widget.docked ? null : Border(top: BorderSide(color: t.bdr)),
+        borderRadius: widget.docked ? null : const BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+      padding: EdgeInsets.fromLTRB(18, widget.docked ? 12 : 10, 18, widget.docked ? 12 : 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
