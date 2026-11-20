@@ -85,6 +85,13 @@ test:
 
 .android-build:
   extends: [.flutter, .each-app]
+  # A build that fails because Gradle could not download a dependency is run
+  # again before the pipeline is given up on.
+  retry:
+    max: 2
+    when:
+      - script_failure
+      - runner_system_failure
   variables:
     # Every app of the matrix builds in its own job at the same time. Asking the
     # cluster for the memory a build really uses lets the scheduler spread these
