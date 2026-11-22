@@ -164,11 +164,11 @@ class _GameScreenState extends State<GameScreen> {
             fit: BoxFit.scaleDown,
             alignment: Alignment.topCenter,
             child: SizedBox(
-              width: math.max(area.maxWidth, _entryMinWidth),
+              width: math.max(area.maxWidth, short ? _entryTwoPaneWidth : _entryMinWidth),
               child: EntryPanel(
                 key: ValueKey(_session),
                 docked: true,
-                sideBySide: short && area.maxWidth >= 560,
+                sideBySide: short,
                 theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
                 firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
                 valueWheel: widget.valueInput == 'wheel',
@@ -203,6 +203,9 @@ class _GameScreenState extends State<GameScreen> {
 
   /// The narrowest the entry panel is laid out; its rows need this much.
   static const double _entryMinWidth = 360;
+
+  /// The narrowest the two-pane entry panel is laid out; each pane needs about half.
+  static const double _entryTwoPaneWidth = 690;
 
   /// Below this window height the docked entry panel is laid out in two panes.
   static const double _shortHeight = 560;

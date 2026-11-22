@@ -1385,7 +1385,7 @@ void main() {
   });
 
   group('landscape game screen', () {
-    const sizes = [Size(932, 430), Size(830, 411), Size(1280, 800)];
+    const sizes = [Size(932, 430), Size(914, 411), Size(830, 411), Size(1280, 800)];
 
     for (final rules in GameRules.all) {
       for (final size in sizes) {
@@ -1407,6 +1407,11 @@ void main() {
           expect(panel.bottom, lessThanOrEqualTo(size.height + 0.01));
           expect(panel.right, lessThanOrEqualTo(size.width + 0.01));
           expect(panel.left, greaterThan(size.width * 0.35));
+          // On a short window the keypad sits beside the form and nothing is scaled down.
+          if (size.height < 560) {
+            expect(tester.widget<EntryPanel>(find.byType(EntryPanel)).sideBySide, isTrue);
+            expect(find.descendant(of: find.byType(EntryPanel), matching: find.byType(FittedBox)).evaluate().isNotEmpty ? tester.getSize(find.byType(EntryPanel)).width : 0, greaterThan(size.width * 0.5));
+          }
 
           await tester.tap(find.byKey(const ValueKey('taker.0')));
           await tester.pumpAndSettle();
