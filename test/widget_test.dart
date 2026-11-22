@@ -91,7 +91,7 @@ void main() {
     expect(row.right - them.right, edge);
   });
 
-  testWidgets('keeps the width of a large phone in a tall window, centred', (tester) async {
+  testWidgets('scales the phone layout up to fill a tall portrait window', (tester) async {
     tester.view.physicalSize = const Size(1080, 1920);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -99,8 +99,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final screen = tester.getRect(find.byType(Scaffold).first);
-    // Less the thin edge drawn on each side.
-    expect(screen.width, closeTo(maxAppWidth, 2));
+    // The phone-sized layout is enlarged to the full width.
+    expect(screen.width, closeTo(maxAppWidth * bigScreenScale(const Size(1080, 1920)), 2));
     expect(screen.height, 1920);
     expect(screen.center.dx, 540);
   });

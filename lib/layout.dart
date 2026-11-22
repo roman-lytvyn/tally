@@ -22,6 +22,12 @@ bool canTurnToLandscape(Size size) => size.longestSide >= kLandscapeLongestSide;
 /// How much to enlarge the whole app on a screen far bigger than the layouts
 /// are designed for. 1 on phones and ordinary tablets.
 double bigScreenScale(Size size) {
-  final fit = math.min(size.width / maxWideAppWidth, size.height / 780);
+  final fit = isWideLayout(size)
+      ? math.min(size.width / maxWideAppWidth, size.height / 780)
+      : math.min(size.width / _portraitDesignWidth, size.height / _portraitDesignHeight);
   return fit.clamp(1.0, 2.2);
 }
+
+/// The phone-sized layout is designed for about this window.
+const _portraitDesignWidth = 560.0;
+const _portraitDesignHeight = 860.0;
