@@ -65,7 +65,7 @@ class SetupScreen extends StatelessWidget {
   }
 
   Widget _form({required bool showLogo, bool compact = false, bool showLinks = true}) {
-    final gap = compact ? 7.0 : 20.0;
+    final gap = compact ? 12.0 : 20.0;
     final fields = <Widget>[
       if (showLogo) ...[
         Column(children: [
@@ -213,7 +213,7 @@ class SetupScreen extends StatelessWidget {
   );
 
   Widget _label(String text, [bool compact = false]) => Padding(
-    padding: EdgeInsets.only(bottom: compact ? 4 : 8),
+    padding: EdgeInsets.only(bottom: compact ? 6 : 8),
     child: Text(text.toUpperCase(),
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1, color: t.tx2)),
   );
@@ -226,7 +226,7 @@ class SetupScreen extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: compact ? 5 : 11),
+        padding: EdgeInsets.symmetric(vertical: compact ? 9 : 11),
         decoration: BoxDecoration(
           color: active ? dim : Colors.transparent,
           border: Border.all(color: active ? color : t.bdr, width: 1.5),
@@ -242,7 +242,7 @@ class SetupScreen extends StatelessWidget {
   Widget _ctaBtn(String label, VoidCallback onTap, {bool compact = false}) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: EdgeInsets.symmetric(vertical: compact ? 11 : 17),
+      padding: EdgeInsets.symmetric(vertical: compact ? 14 : 17),
       decoration: BoxDecoration(gradient: t.ctaGradient, borderRadius: BorderRadius.circular(15)),
       alignment: Alignment.center,
       child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
@@ -307,7 +307,7 @@ class _TeamInputState extends State<_TeamInput> {
     final t = widget.theme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      padding: EdgeInsets.symmetric(horizontal: widget.compact ? 10 : 15, vertical: widget.compact ? 0 : 5),
+      padding: EdgeInsets.symmetric(horizontal: widget.compact ? 12 : 15, vertical: widget.compact ? 3 : 5),
       decoration: BoxDecoration(
         color: t.surf,
         border: Border.all(color: _focused ? t.accBdr : t.bdr, width: 1.5),

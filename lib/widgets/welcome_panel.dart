@@ -4,7 +4,8 @@ import '../theme.dart';
 import 'traditional_score.dart';
 
 /// The presentation beside the start screen in landscape: the name of the
-/// game, what the app does for the players, and a sample of its score sheet.
+/// game, what the app does for the players, a sample of its score sheet, and
+/// the footer last.
 class WelcomePanel extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
@@ -19,11 +20,9 @@ class WelcomePanel extends StatelessWidget {
   /// The sample sheet needs this much height on top of the rest to be shown.
   static const double _sheetMinHeight = 620;
 
-  /// Below this height the feature list is left out and the type shrinks, so
-  /// the panel fits a phone held sideways without scrolling.
+  /// Below this height the type shrinks, so the panel fits a phone held
+  /// sideways without scrolling.
   static const double _compactHeight = 520;
-
-  static const _glyphs = ['↻', '+', '✎', '✦'];
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +66,6 @@ class WelcomePanel extends StatelessWidget {
                       if (footer != null) ...[
                         SizedBox(height: compact ? 8 : 18),
                         footer!,
-                      ],
-                      if (!compact) ...[
-                      const SizedBox(height: 22),
-                      for (final (i, f) in strings.welcomeFeatures.indexed) ...[
-                        if (i > 0) const SizedBox(height: 14),
-                        _feature(_glyphs[i % _glyphs.length], f.$1, f.$2),
-                      ],
                       ],
                     ],
                   ),
@@ -125,22 +117,4 @@ class WelcomePanel extends StatelessWidget {
       ]),
     );
   }
-
-  Widget _feature(String glyph, String title, String text) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        width: 36, height: 36,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: t.accDim, border: Border.all(color: t.accBdr), borderRadius: BorderRadius.circular(11)),
-        child: Text(glyph, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: t.acc)),
-      ),
-      const SizedBox(width: 14),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.tx)),
-        const SizedBox(height: 2),
-        Text(text, style: TextStyle(fontSize: 13, height: 1.35, color: t.tx2)),
-      ])),
-    ],
-  );
 }
