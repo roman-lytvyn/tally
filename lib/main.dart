@@ -311,10 +311,11 @@ class _AppRootState extends State<AppRoot> {
           child: DecoratedBox(
             decoration: BoxDecoration(color: theme.bg, gradient: theme.setupGradient),
             child: LayoutBuilder(builder: (context, box) {
-              // The start, game and settings screens use two columns when the
+              // The start, game, settings and rules screens use two columns when the
               // window is wide and short; the others stay phone-sized.
               final split = isWideLayout(Size(box.maxWidth, box.maxHeight)) &&
-                  (_screen == AppScreen.setup || _screen == AppScreen.game || _screen == AppScreen.settings);
+                  (_screen == AppScreen.setup || _screen == AppScreen.game || _screen == AppScreen.settings ||
+                      _screen == AppScreen.rules);
               final limit = split ? maxWideAppWidth : maxAppWidth;
               final edge = box.maxWidth > limit ? BorderSide(color: theme.bdr) : BorderSide.none;
               return Center(
