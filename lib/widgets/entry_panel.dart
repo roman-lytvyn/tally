@@ -28,12 +28,14 @@ class EntryPanel extends StatefulWidget {
   /// Sits in its own column beside the score instead of rising over it, so
   /// it has no rounded top edge.
   final bool docked;
+  /// Lays the keypad and buttons beside the form instead of below it.
+  final bool sideBySide;
 
   const EntryPanel({
     super.key, required this.theme, required this.strings, required this.rules,
     required this.teamNames, required this.dealer, required this.firstToBid,
     required this.dealerMustPlay, required this.tieRule,
-    this.valueWheel = false, this.initial, this.number, this.docked = false,
+    this.valueWheel = false, this.initial, this.number, this.docked = false, this.sideBySide = false,
     required this.onCancel, required this.onSave, this.onDelete,
   });
 
@@ -231,17 +233,7 @@ class _EntryPanelState extends State<EntryPanel> {
   Widget build(BuildContext context) {
     final score = _score;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: t.bg,
-        border: widget.docked ? null : Border(top: BorderSide(color: t.bdr)),
-        borderRadius: widget.docked ? null : const BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      padding: EdgeInsets.fromLTRB(18, widget.docked ? 12 : 10, 18, widget.docked ? 12 : 18),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    final upper = <Widget>[
           // An earlier round names itself and who dealt in it; for a new one the
           // badge above the score already shows who deals.
           if (widget.number != null) ...[
@@ -331,7 +323,8 @@ class _EntryPanelState extends State<EntryPanel> {
             _hint('=', s.recordedMsg(scoreRound(_round)), t.acc, t.accDim),
           ],
           ],
-          const SizedBox(height: 8),
+    ];
+    final lower = <Widget>[
           // The keypad stays in place while a deberc is recorded, so the
           // Deberc key beside 0 can switch it off again.
           _buildNumpad(),
@@ -352,8 +345,27 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(width: 6),
             Expanded(child: _saveBtn()),
           ]),
-        ],
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        color: t.bg,
+        border: widget.docked ? null : Border(top: BorderSide(color: t.bdr)),
+        borderRadius: widget.docked ? null : const BorderRadius.vertical(top: Radius.circular(18)),
       ),
+      padding: EdgeInsets.fromLTRB(18, widget.docked ? 12 : 10, 18, widget.docked ? 12 : 18),
+      // On a short wide window the keypad sits beside the form, so the panel
+      // fits the height at its natural size.
+      child: widget.sideBySide
+          ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: upper)),
+              const SizedBox(width: 16),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: lower)),
+            ])
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [...upper, const SizedBox(height: 8), ...lower],
+            ),
     );
   }
 

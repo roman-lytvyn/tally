@@ -9,7 +9,10 @@ class WelcomePanel extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
 
-  const WelcomePanel({super.key, required this.theme, required this.strings});
+  /// Shown under the text, e.g. links to other screens.
+  final Widget? footer;
+
+  const WelcomePanel({super.key, required this.theme, required this.strings, this.footer});
 
   AppTheme get t => theme;
 
@@ -60,6 +63,10 @@ class WelcomePanel extends StatelessWidget {
                       if (box.maxHeight >= _sheetMinHeight) ...[
                         const SizedBox(height: 22),
                         _sheet(),
+                      ],
+                      if (footer != null) ...[
+                        SizedBox(height: compact ? 8 : 18),
+                        footer!,
                       ],
                       if (!compact) ...[
                       const SizedBox(height: 22),

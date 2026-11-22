@@ -46,10 +46,10 @@ class SetupScreen extends StatelessWidget {
         decoration: BoxDecoration(gradient: t.setupGradient),
         child: wide
             ? Row(children: [
-                Expanded(child: WelcomePanel(theme: t, strings: strings)),
+                Expanded(flex: 38, child: WelcomePanel(theme: t, strings: strings, footer: Wrap(children: _links()))),
                 Container(width: 1, color: t.bdr),
-                Expanded(child: Center(child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
+                Expanded(flex: 62, child: Center(child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
                   child: _form(showLogo: false, compact: true),
                 ))),
               ])
@@ -128,16 +128,7 @@ class SetupScreen extends StatelessWidget {
       ]),
     ];
 
-    final links = [
-      TextButton(
-        onPressed: onRules,
-        child: Text(strings.rulesBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-      ),
-      TextButton(
-        onPressed: onSettings,
-        child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-      ),
-    ];
+    final links = _links();
 
     if (compact) {
       // The fields scroll if the screen is very short, but the buttons stay
@@ -158,7 +149,6 @@ class SetupScreen extends StatelessWidget {
                   Expanded(child: _ghostBtn(strings.continuePrev, onContinue, compact: true)),
                 ],
               ]),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: links),
             ]),
           ),
         ]),
@@ -195,6 +185,18 @@ class SetupScreen extends StatelessWidget {
       )),
     );
   }
+
+  /// The Rules and Settings links.
+  List<Widget> _links() => [
+    TextButton(
+      onPressed: onRules,
+      child: Text(strings.rulesBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
+    ),
+    TextButton(
+      onPressed: onSettings,
+      child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
+    ),
+  ];
 
   Widget _nameInput(int i, bool compact) => _TeamInput(
     key: ValueKey('name.$players.$i'), theme: t, index: i, value: teamNames[i],

@@ -147,7 +147,12 @@ class _GameScreenState extends State<GameScreen> {
   /// The permanent entry column of the landscape layout. Like the popup it
   /// shrinks whole on a short screen rather than scrolling.
   Widget _buildDockedEntry(int? editing) {
-    final width = (math.min(MediaQuery.sizeOf(context).width, maxWideAppWidth) * 0.44).clamp(_entryMinWidth, 560.0);
+    // On a short window the panel is laid out in two panes and gets more width.
+    final short = MediaQuery.sizeOf(context).height < _shortHeight;
+    final screenWidth = math.min(MediaQuery.sizeOf(context).width, maxWideAppWidth);
+    final width = short
+        ? (screenWidth * 0.6).clamp(_entryMinWidth, 760.0)
+        : (screenWidth * 0.44).clamp(_entryMinWidth, 560.0);
     return SizedBox(
       width: width,
       child: ColoredBox(
@@ -163,6 +168,7 @@ class _GameScreenState extends State<GameScreen> {
               child: EntryPanel(
                 key: ValueKey(_session),
                 docked: true,
+                sideBySide: short && area.maxWidth >= 560,
                 theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
                 firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
                 valueWheel: widget.valueInput == 'wheel',
@@ -197,6 +203,9 @@ class _GameScreenState extends State<GameScreen> {
 
   /// The narrowest the entry panel is laid out; its rows need this much.
   static const double _entryMinWidth = 360;
+
+  /// Below this window height the docked entry panel is laid out in two panes.
+  static const double _shortHeight = 560;
 
   /// The panel for entering a deal, at the bottom over a dimmed game. It takes
   /// the height it needs, and on a screen too small for that it shrinks whole,

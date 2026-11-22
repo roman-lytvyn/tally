@@ -1406,7 +1406,7 @@ void main() {
           expect(panel.top, greaterThanOrEqualTo(0));
           expect(panel.bottom, lessThanOrEqualTo(size.height + 0.01));
           expect(panel.right, lessThanOrEqualTo(size.width + 0.01));
-          expect(panel.left, greaterThan(size.width / 2 - 1));
+          expect(panel.left, greaterThan(size.width * 0.35));
 
           await tester.tap(find.byKey(const ValueKey('taker.0')));
           await tester.pumpAndSettle();
