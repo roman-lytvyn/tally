@@ -173,7 +173,8 @@ class _GameScreenState extends State<GameScreen> {
               // laid out as tall as the column is after scaling to fit.
               height: short
                   ? area.maxHeight * math.max(area.maxWidth, _entryTwoPaneWidth) / area.maxWidth
-                  : null,
+                  : math.max(area.maxHeight * math.max(area.maxWidth, _entryMinWidth) / area.maxWidth,
+                      _entryMinHeight),
               child: EntryPanel(
                 key: ValueKey(_session),
                 docked: true,
@@ -212,6 +213,9 @@ class _GameScreenState extends State<GameScreen> {
 
   /// The narrowest the entry panel is laid out; its rows need this much.
   static const double _entryMinWidth = 360;
+
+  /// The least height the docked panel is laid out at before it shrinks whole.
+  static const double _entryMinHeight = 600;
 
   /// The narrowest the two-pane entry panel is laid out; each pane needs about half.
   static const double _entryTwoPaneWidth = 690;
@@ -308,7 +312,7 @@ class _GameScreenState extends State<GameScreen> {
                 duration: const Duration(milliseconds: 200),
                 opacity: dealer == i ? 1.0 : 0.0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 1),
                   decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
                   child: Text(strings.deals, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
                       color: t.teamColor(i), letterSpacing: 0.5)),
@@ -352,7 +356,7 @@ class _GameScreenState extends State<GameScreen> {
             duration: const Duration(milliseconds: 200),
             opacity: dealer == i ? 1.0 : 0.0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 1),
               decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
               child: Text(strings.deals, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: t.teamColor(i))),
             ),

@@ -46,15 +46,17 @@ class SetupScreen extends StatelessWidget {
     final wide = isWideLayout(size);
     // A short window gets the tight form; a tall one keeps the roomy form.
     final short = size.height < _shortHeight;
+    // From a large tablet up the two columns share the width equally.
+    final halves = size.width >= 1024 && !short;
     return Scaffold(
       backgroundColor: t.bg,
       body: Container(
         decoration: BoxDecoration(gradient: t.setupGradient),
         child: wide
             ? Row(children: [
-                Expanded(flex: 38, child: WelcomePanel(theme: t, strings: strings, footer: Wrap(children: _links()))),
+                Expanded(flex: halves ? 50 : 38, child: WelcomePanel(theme: t, strings: strings, footer: Wrap(children: _links()))),
                 Container(width: 1, color: t.bdr),
-                Expanded(flex: 62, child: Center(child: ConstrainedBox(
+                Expanded(flex: halves ? 50 : 62, child: Center(child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
                   child: _form(showLogo: false, compact: short, showLinks: false),
                 ))),

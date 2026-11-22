@@ -328,7 +328,7 @@ class _EntryPanelState extends State<EntryPanel> {
     final lower = <Widget>[
           // The keypad stays in place while a deberc is recorded, so the
           // Deberc key beside 0 can switch it off again.
-          _fillIf(_buildNumpad()),
+          _fillNumpad ? Expanded(child: _buildNumpad()) : _buildNumpad(),
           const SizedBox(height: 8),
           // actions
           Row(children: [
@@ -372,7 +372,7 @@ class _EntryPanelState extends State<EntryPanel> {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: lower)),
             ])
           : Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: widget.docked ? MainAxisSize.max : MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [...upper, const SizedBox(height: 8), ...lower],
             ),
@@ -754,6 +754,9 @@ class _EntryPanelState extends State<EntryPanel> {
     );
   }
 
+  /// The docked panel gives its keypad the height the column leaves free.
+  bool get _fillNumpad => widget.sideBySide || widget.docked;
+
   /// In the two-pane layout [child] grows to the height the pane leaves free.
   Widget _fillIf(Widget child) => widget.sideBySide ? Expanded(child: child) : child;
 
@@ -780,7 +783,7 @@ class _EntryPanelState extends State<EntryPanel> {
         ),
       );
     }
-    if (widget.sideBySide) {
+    if (_fillNumpad) {
       return Column(children: [
         for (var r = 0; r < 4; r++) ...[
           if (r > 0) const SizedBox(height: _gap),

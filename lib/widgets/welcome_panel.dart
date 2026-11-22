@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../l10n.dart';
 import '../theme.dart';
-import 'traditional_score.dart';
 
 /// The presentation beside the start screen in landscape: the name of the
-/// game, what the app does for the players, a sample of its score sheet, and
-/// the footer last.
+/// game, what the app does for the players, and the footer last.
 class WelcomePanel extends StatelessWidget {
   final AppTheme theme;
   final AppStrings strings;
@@ -16,9 +14,6 @@ class WelcomePanel extends StatelessWidget {
   const WelcomePanel({super.key, required this.theme, required this.strings, this.footer});
 
   AppTheme get t => theme;
-
-  /// The sample sheet needs this much height on top of the rest to be shown.
-  static const double _sheetMinHeight = 620;
 
   /// Below this height the type shrinks, so the panel fits a phone held
   /// sideways without scrolling.
@@ -59,10 +54,6 @@ class WelcomePanel extends StatelessWidget {
                       SizedBox(height: compact ? 6 : 10),
                       Text(strings.welcomeDesc,
                           style: TextStyle(fontSize: compact ? 13 : 15, height: 1.4, color: t.tx2)),
-                      if (box.maxHeight >= _sheetMinHeight) ...[
-                        const SizedBox(height: 22),
-                        _sheet(),
-                      ],
                       if (footer != null) ...[
                         SizedBox(height: compact ? 8 : 18),
                         footer!,
@@ -93,28 +84,4 @@ class WelcomePanel extends StatelessWidget {
       ],
     )),
   ]);
-
-  /// A small score sheet of two sides, written the way the app writes it.
-  Widget _sheet() {
-    final names = strings.defaultNames(2);
-    const sample = [[62, 20, 81, 40], [100, 0, 91, 20]];
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      decoration: BoxDecoration(
-        color: t.surf, border: Border.all(color: t.bdr),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        for (var i = 0; i < 2; i++) ...[
-          if (i > 0) Container(width: 1, height: 96, color: t.bdr, margin: const EdgeInsets.symmetric(horizontal: 14)),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(names[i], maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: t.teamColor(i))),
-            const SizedBox(height: 4),
-            TraditionalScore(changes: sample[i], u: 24, color: t.teamColor(i)),
-          ])),
-        ],
-      ]),
-    );
-  }
 }

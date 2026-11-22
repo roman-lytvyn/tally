@@ -113,7 +113,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final screen = tester.getRect(find.byType(Scaffold).first);
-    expect(screen.width, closeTo(maxWideAppWidth, 2));
+    // A screen this large draws everything bigger, so the capped width is scaled too.
+    expect(screen.width, closeTo(maxWideAppWidth * bigScreenScale(const Size(1920, 1080)), 4));
     expect(screen.center.dx, 960);
     expect(find.byKey(const ValueKey('welcome.tagline')), findsOneWidget);
     // The form keeps its place on the right and drops the logo it shares with the left.
