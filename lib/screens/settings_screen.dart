@@ -52,7 +52,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final wide = isWideLayout(size);
-    final hasRules = !rules.hasFixedTableRules;
     final showLandscape = onLandscapeChanged != null && canTurnToLandscape(size);
     return Scaffold(
       backgroundColor: t.bg,
@@ -91,10 +90,10 @@ class SettingsScreen extends StatelessWidget {
                 if (wide)
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: _stack([_appearanceBlock(showLandscape), _scoreBlock(), if (!hasRules) _languageBlock()]))),
+                        children: _stack([_appearanceBlock(showLandscape), _scoreBlock(), _languageBlock()]))),
                     const SizedBox(width: 18),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: _stack([_rulesBlock(), if (hasRules) _languageBlock(), _aboutBlock()]))),
+                        children: _stack([_rulesBlock(), _aboutBlock()]))),
                   ])
                 else
                   ..._stack([_appearanceBlock(showLandscape), _scoreBlock(), _rulesBlock(), _languageBlock(), _aboutBlock()]),
