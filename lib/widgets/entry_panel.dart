@@ -393,8 +393,11 @@ class _EntryPanelState extends State<EntryPanel> {
 
   /// What the sides below are picked for, and the way to record a redeal
   /// when the rules allow one.
+  double get _takerHeaderHeight => widget.dealerMustPlay ? 20 : _headerHeight;
+
+  // Without the redeal button the label alone sets the height, so it sits at the top edge.
   Widget _takerHeader() => SizedBox(
-        height: _headerHeight,
+        height: _takerHeaderHeight,
         child: Row(children: [
           Text(s.trumpTakenBy, style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
           const SizedBox(width: 10),
@@ -468,7 +471,7 @@ class _EntryPanelState extends State<EntryPanel> {
     ])),
     const SizedBox(width: _gap),
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SizedBox(height: _headerHeight, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
+      SizedBox(height: _takerHeaderHeight, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
           key: const ValueKey('dealValue'), maxLines: 1,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.acc))))),
       const SizedBox(height: 4),

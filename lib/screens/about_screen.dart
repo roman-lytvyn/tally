@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme.dart';
 import '../l10n.dart';
+import '../layout.dart';
+import '../widgets/welcome_panel.dart';
 
 /// The version the build was given; a local build has none.
 const kAppVersion = String.fromEnvironment('APP_VERSION', defaultValue: 'dev');
@@ -25,6 +27,8 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final wide = isWideLayout(size);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -56,38 +60,50 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: SafeArea(
-              top: false,
-              child: ListView(
-                padding: const EdgeInsets.all(18),
-                children: [
-                  Text(strings.appTitle, textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: t.tx)),
-                  const SizedBox(height: 18),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: t.surf, border: Border.all(color: t.bdr),
-                      borderRadius: BorderRadius.circular(14),
+            // A wide window shows the presentation of the start screen beside the details.
+            child: wide
+                ? Row(children: [
+                    Expanded(flex: size.width >= 1024 ? 50 : 38, child: WelcomePanel(theme: t, strings: strings)),
+                    VerticalDivider(width: 1, color: t.bdr),
+                    Expanded(flex: size.width >= 1024 ? 50 : 62, child: Center(child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: Padding(padding: const EdgeInsets.all(18), child: _details()),
+                    ))),
+                  ])
+                : SafeArea(
+                    top: false,
+                    child: ListView(
+                      padding: const EdgeInsets.all(18),
+                      children: [
+                        Text(strings.appTitle, textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: t.tx)),
+                        const SizedBox(height: 18),
+                        _details(),
+                      ],
                     ),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      _row(strings.versionLabel, kAppVersion, key: const ValueKey('about.version')),
-                      Divider(height: 1, color: t.bdr, indent: 15),
-                      _row(strings.authorLabel, strings.authorName),
-                      Divider(height: 1, color: t.bdr, indent: 15),
-                      _row(strings.contactLabel, 'support@tallycards.app'),
-                      Divider(height: 1, color: t.bdr, indent: 15),
-                      _linkRow(strings.websiteLabel, _kWebsite, Uri.https(_kWebsite),
-                          key: const ValueKey('about.website')),
-                    ]),
                   ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _details() => Container(
+    decoration: BoxDecoration(
+      color: t.surf, border: Border.all(color: t.bdr),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _row(strings.versionLabel, kAppVersion, key: const ValueKey('about.version')),
+      Divider(height: 1, color: t.bdr, indent: 15),
+      _row(strings.authorLabel, strings.authorName),
+      Divider(height: 1, color: t.bdr, indent: 15),
+      _row(strings.contactLabel, 'support@tallycards.app'),
+      Divider(height: 1, color: t.bdr, indent: 15),
+      _linkRow(strings.websiteLabel, _kWebsite, Uri.https(_kWebsite),
+          key: const ValueKey('about.website')),
+    ]),
+  );
 
   /// A caption over a value that can be selected and copied.
   Widget _row(String label, String value, {Key? key}) => Padding(

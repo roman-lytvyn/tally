@@ -315,7 +315,7 @@ class _AppRootState extends State<AppRoot> {
               // window is wide and short; the others stay phone-sized.
               final split = isWideLayout(Size(box.maxWidth, box.maxHeight)) &&
                   (_screen == AppScreen.setup || _screen == AppScreen.game || _screen == AppScreen.settings ||
-                      _screen == AppScreen.rules);
+                      _screen == AppScreen.rules || _screen == AppScreen.about);
               final limit = split ? maxWideAppWidth : maxAppWidth;
               // On a very large screen everything is drawn bigger instead of
               // leaving the space empty: the layout runs at a smaller virtual
