@@ -99,10 +99,14 @@ class _GameScreenState extends State<GameScreen> {
       body: SafeArea(
         // The popup lies over the game, which stays in place underneath.
         child: wide
-            ? Row(children: [
-                Expanded(child: _buildScoreColumn(newRoundButton: false)),
-                Container(width: 1, color: t.bdr),
-                _buildDockedEntry(editing),
+            ? Column(children: [
+                // The top bar spans both columns.
+                _buildHeader(),
+                Expanded(child: Row(children: [
+                  Expanded(child: _buildScoreColumn(newRoundButton: false)),
+                  Container(width: 1, color: t.bdr),
+                  _buildDockedEntry(editing),
+                ])),
               ])
             : Stack(children: [
                 _buildScoreColumn(newRoundButton: true),
@@ -116,10 +120,10 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildScoreColumn({required bool newRoundButton}) => LayoutBuilder(builder: (context, box) {
     // On a tall landscape window the score block is drawn slightly larger, but
     // never so much that its type outgrows the entry panel beside it.
-    final grow = newRoundButton ? 1.0 : ((box.maxHeight - 430) / 370 * 0.8 + 1).clamp(1.0, 1.15);
+    final grow = newRoundButton ? 1.0 : ((box.maxHeight + 64 - 430) / 370 * 0.8 + 1).clamp(1.0, 1.15);
     return Column(
       children: [
-        _buildHeader(),
+        if (newRoundButton) _buildHeader(),
         _enlarged(grow, Column(children: [
           _buildScoreSection(),
           if (!isTraditional) _buildProgressBars(),
@@ -242,7 +246,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildHeader() => Container(
     decoration: BoxDecoration(gradient: t.headerGradient),
-    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+    padding: EdgeInsets.fromLTRB(14, _shortWindow ? 4 : 10, 14, _shortWindow ? 4 : 10),
     child: Row(children: [
       _iconBtn(strings.exitBtn, widget.onBack),
       Expanded(child: Text(strings.appTitle.toUpperCase(), textAlign: TextAlign.center,
@@ -266,13 +270,17 @@ class _GameScreenState extends State<GameScreen> {
   );
 
   /// The height of the buttons on the top bar, the size of a fingertip.
-  static const double _buttonHeight = 44;
+  static const double _tallButtonHeight = 44;
+
+  /// A short window gets a slimmer top bar, which leaves the entry panel more height.
+  bool get _shortWindow => MediaQuery.sizeOf(context).height < _shortHeight && isWideLayout(MediaQuery.sizeOf(context));
+  double get _buttonHeight => _shortWindow ? 36 : _tallButtonHeight;
 
   Widget _iconBtn(String label, VoidCallback onTap) => GestureDetector(
     onTap: onTap,
     child: Container(
       height: _buttonHeight,
-      constraints: const BoxConstraints(minWidth: _buttonHeight),
+      constraints: BoxConstraints(minWidth: _buttonHeight),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       alignment: Alignment.center,
       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(12)),
