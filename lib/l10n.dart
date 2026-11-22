@@ -310,27 +310,6 @@ class AppStrings {
       'Zamjenjuje olovku i papir: pamti tko dijeli, zbraja bodove i bilježi rezultat kao na listu.',
       'Neemt de plaats in van potlood en papier: onthoudt wie er deelt, telt de punten en schrijft de stand op zoals op een scoreblad.',
       'يحلّ محل القلم والورقة: يتذكّر من يوزّع، ويحسب النقاط، ويدوّن النتيجة كما في ورقة الحساب.');
-  /// The points of the presentation: a title and a line under it each.
-  List<(String, String)> get welcomeFeatures => [
-    (_t('Знає, хто роздає', 'Knows who deals', 'Sait qui distribue', 'Знае кой раздава', 'Zna tko dijeli', 'Weet wie er deelt', 'يعرف من يوزّع'),
-     _t('Значок роздачі сам переходить далі після кожної роздачі.', 'The dealer badge moves on by itself after every deal.',
-        'Le badge du donneur passe tout seul après chaque donne.', 'Значката за раздаващия се мести сам след всяка раздача.',
-        'Oznaka djelitelja sama se pomiče nakon svakog dijeljenja.', 'De gever-badge schuift na elk spel vanzelf door.',
-        'تنتقل شارة الموزّع تلقائيًا بعد كل جولة.')),
-    (_t('Рахує за вас', 'Counts for you', 'Compte pour vous', 'Смята вместо вас', 'Broji umjesto vas', 'Rekent voor je', 'يحسب عنك'),
-     _t('Введіть очки однієї сторони — решту роздачі застосунок порахує сам.', 'Enter one side’s points and the app works out the rest of the deal.',
-        'Saisissez les points d’un camp : l’appli calcule le reste de la donne.', 'Въведете точките на един отбор — приложението пресмята останалото.',
-        'Unesite bodove jedne strane, a aplikacija izračuna ostatak dijeljenja.', 'Voer de punten van één kant in en de app rekent de rest van het spel uit.',
-        'أدخل نقاط جهة واحدة ويحسب التطبيق بقية الجولة.')),
-    (_t('Уся гра в історії', 'The whole game in view', 'Toute la partie sous les yeux', 'Цялата игра пред очите ви', 'Cijela igra pred očima', 'Het hele spel in beeld', 'اللعبة كلها أمامك'),
-     _t('Торкніться будь-якої роздачі, щоб виправити чи видалити її.', 'Tap any deal to correct or delete it.',
-        'Touchez une donne pour la corriger ou la supprimer.', 'Докоснете раздача, за да я поправите или изтриете.',
-        'Dodirnite dijeljenje da ga ispravite ili izbrišete.', 'Tik op een spel om het te corrigeren of te verwijderen.',
-        'المس أي جولة لتصحيحها أو حذفها.')),
-    (_t('Без реклами й акаунтів', 'No ads, no accounts', 'Sans pub, sans compte', 'Без реклами и акаунти', 'Bez oglasa i računa', 'Geen advertenties, geen account', 'بلا إعلانات ولا حسابات'),
-     _t('Працює без інтернету, сім мов.', 'Works offline, in seven languages.', 'Fonctionne hors ligne, en sept langues.',
-        'Работи без интернет, на седем езика.', 'Radi bez interneta, na sedam jezika.', 'Werkt offline, in zeven talen.', 'يعمل بلا إنترنت وبسبع لغات.')),
-  ];
   String get activeLang      => _t('Активна мова', 'Active language', 'Langue active', 'Активен език', 'Aktivni jezik', 'Actieve taal', 'اللغة الحالية');
   /// The name of the language [code] in that language itself.
   static String languageName(String code) => switch (code) {
