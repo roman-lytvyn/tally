@@ -63,9 +63,9 @@ class AboutScreen extends StatelessWidget {
             // A wide window shows the presentation of the start screen beside the details.
             child: wide
                 ? Row(children: [
-                    Expanded(flex: size.width >= 1024 ? 50 : 38, child: WelcomePanel(theme: t, strings: strings)),
+                    Expanded(flex: size.width >= 960 ? 50 : 38, child: WelcomePanel(theme: t, strings: strings)),
                     VerticalDivider(width: 1, color: t.bdr),
-                    Expanded(flex: size.width >= 1024 ? 50 : 62, child: Center(child: ConstrainedBox(
+                    Expanded(flex: size.width >= 960 ? 50 : 62, child: Center(child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 520),
                       child: Padding(padding: const EdgeInsets.all(18), child: _details()),
                     ))),

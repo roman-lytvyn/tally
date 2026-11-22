@@ -47,7 +47,7 @@ class SetupScreen extends StatelessWidget {
     // A short window gets the tight form; a tall one keeps the roomy form.
     final short = size.height < _shortHeight;
     // From a large tablet up the two columns share the width equally.
-    final halves = size.width >= 1024 && !short;
+    final halves = size.width >= 960 && !short;
     return Scaffold(
       backgroundColor: t.bg,
       body: Container(
