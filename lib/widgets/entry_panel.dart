@@ -283,10 +283,11 @@ class _EntryPanelState extends State<EntryPanel> {
           ] else ...[
           const SizedBox(height: 8),
           // score input row
-          Container(
+          _fillIf(Container(
             decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(13)),
             padding: const EdgeInsets.symmetric(horizontal: _scoreGap, vertical: 9),
             child: Row(
+              crossAxisAlignment: widget.sideBySide ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
               children: [
                 for (var i = 0; i < _sides; i++) ...[
                   // The colon keeps the highlighted side as far away as the row's edges do.
@@ -298,7 +299,7 @@ class _EntryPanelState extends State<EntryPanel> {
                 ],
               ],
             ),
-          ),
+          )),
           if (_yaytsia) ...[
             const SizedBox(height: 6),
             _hint('🥚', s.eggsMsg(widget.tieRule, _hanging, _names(_round.opponents)), t.egg, t.eggDim),
@@ -327,7 +328,7 @@ class _EntryPanelState extends State<EntryPanel> {
     final lower = <Widget>[
           // The keypad stays in place while a deberc is recorded, so the
           // Deberc key beside 0 can switch it off again.
-          _buildNumpad(),
+          _fillIf(_buildNumpad()),
           const SizedBox(height: 8),
           // actions
           Row(children: [
@@ -356,8 +357,17 @@ class _EntryPanelState extends State<EntryPanel> {
       // On a short wide window the keypad sits beside the form, so the panel
       // fits the height at its natural size.
       child: widget.sideBySide
-          ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: upper)),
+          ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              // The form takes the full height: the score box grows into what
+              // the rows above it leave free, and scrolls only if they do not fit.
+              Expanded(child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: box.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: upper),
+                  ),
+                ),
+              ))),
               const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: lower)),
             ])
@@ -744,35 +754,52 @@ class _EntryPanelState extends State<EntryPanel> {
     );
   }
 
+  /// In the two-pane layout [child] grows to the height the pane leaves free.
+  Widget _fillIf(Widget child) => widget.sideBySide ? Expanded(child: child) : child;
+
   Widget _buildNumpad() {
     const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
     // Points are not typed while a deberc is recorded.
     final typing = _debercBy == null;
+    Widget key(String k) {
+      if (k.isEmpty) return widget.rules.hasDebercWin ? _debercKey() : const SizedBox();
+      final isDel = k == '⌫';
+      return GestureDetector(
+        onTap: typing ? () => _tap(k) : null,
+        child: Opacity(
+          opacity: typing ? 1 : 0.35,
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDel ? t.nkDel : t.nk,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Text(k, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600,
+                color: isDel ? t.danger : t.tx)),
+          ),
+        ),
+      );
+    }
+    if (widget.sideBySide) {
+      return Column(children: [
+        for (var r = 0; r < 4; r++) ...[
+          if (r > 0) const SizedBox(height: _gap),
+          Expanded(child: Row(children: [
+            for (var c = 0; c < 3; c++) ...[
+              if (c > 0) const SizedBox(width: _gap),
+              Expanded(child: key(keys[r * 3 + c])),
+            ],
+          ])),
+        ],
+      ]);
+    }
     return GridView(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, mainAxisSpacing: _gap, crossAxisSpacing: _gap, mainAxisExtent: _rowHeight),
       shrinkWrap: true,
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
-      children: keys.map((k) {
-        if (k.isEmpty) return widget.rules.hasDebercWin ? _debercKey() : const SizedBox();
-        final isDel = k == '⌫';
-        return GestureDetector(
-          onTap: typing ? () => _tap(k) : null,
-          child: Opacity(
-            opacity: typing ? 1 : 0.35,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDel ? t.nkDel : t.nk,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: Text(k, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600,
-                  color: isDel ? t.danger : t.tx)),
-            ),
-          ),
-        );
-      }).toList(),
+      children: keys.map(key).toList(),
     );
   }
 

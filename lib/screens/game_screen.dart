@@ -165,6 +165,11 @@ class _GameScreenState extends State<GameScreen> {
             alignment: Alignment.topCenter,
             child: SizedBox(
               width: math.max(area.maxWidth, short ? _entryTwoPaneWidth : _entryMinWidth),
+              // A short window gets the panel's full height at any scale: it is
+              // laid out as tall as the column is after scaling to fit.
+              height: short
+                  ? area.maxHeight * math.max(area.maxWidth, _entryTwoPaneWidth) / area.maxWidth
+                  : null,
               child: EntryPanel(
                 key: ValueKey(_session),
                 docked: true,
