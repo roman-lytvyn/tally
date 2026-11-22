@@ -151,7 +151,7 @@ class _GameScreenState extends State<GameScreen> {
     final short = MediaQuery.sizeOf(context).height < _shortHeight;
     final screenWidth = math.min(MediaQuery.sizeOf(context).width, maxWideAppWidth);
     final width = short
-        ? (screenWidth * 0.6).clamp(_entryMinWidth, 760.0)
+        ? (screenWidth * 0.66).clamp(_entryMinWidth, 800.0)
         : (screenWidth * 0.44).clamp(_entryMinWidth, 560.0);
     return SizedBox(
       width: width,

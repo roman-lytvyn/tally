@@ -1406,7 +1406,7 @@ void main() {
           expect(panel.top, greaterThanOrEqualTo(0));
           expect(panel.bottom, lessThanOrEqualTo(size.height + 0.01));
           expect(panel.right, lessThanOrEqualTo(size.width + 0.01));
-          expect(panel.left, greaterThan(size.width * 0.35));
+          expect(panel.left, greaterThan(size.width * 0.3));
           // On a short window the keypad sits beside the form and nothing is scaled down.
           if (size.height < 560) {
             expect(tester.widget<EntryPanel>(find.byType(EntryPanel)).sideBySide, isTrue);
