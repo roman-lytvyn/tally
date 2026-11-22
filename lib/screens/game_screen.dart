@@ -114,9 +114,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildScoreColumn({required bool newRoundButton}) => LayoutBuilder(builder: (context, box) {
-    // On a tall landscape window the score block is drawn larger, so the
-    // column is filled rather than left with gaps around small figures.
-    final grow = newRoundButton ? 1.0 : ((box.maxHeight - 430) / 370 * 0.8 + 1).clamp(1.0, isTraditional ? 1.4 : 1.8);
+    // On a tall landscape window the score block is drawn slightly larger, but
+    // never so much that its type outgrows the entry panel beside it.
+    final grow = newRoundButton ? 1.0 : ((box.maxHeight - 430) / 370 * 0.8 + 1).clamp(1.0, 1.15);
     return Column(
       children: [
         _buildHeader(),
@@ -153,12 +153,13 @@ class _GameScreenState extends State<GameScreen> {
       child: ColoredBox(
         color: t.bg,
         child: SizedBox.expand(
-          // The panel is laid out at a fixed width and scaled to the column,
-          // larger on a roomy window and smaller on a short one.
-          child: FittedBox(
-            fit: BoxFit.contain,
+          // The panel is laid out at the column width, so it fills the column
+          // at its natural type size, and shrinks whole only on a short screen.
+          child: LayoutBuilder(builder: (context, area) => FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topCenter,
             child: SizedBox(
-              width: _entryMinWidth + 40,
+              width: math.max(area.maxWidth, _entryMinWidth),
               child: EntryPanel(
                 key: ValueKey(_session),
                 docked: true,
@@ -172,7 +173,7 @@ class _GameScreenState extends State<GameScreen> {
                 onDelete: editing != null ? _deleteEntry : null,
               ),
             ),
-          ),
+          )),
         ),
       ),
     );

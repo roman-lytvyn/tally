@@ -1341,6 +1341,49 @@ void main() {
     });
   });
 
+  group('landscape layout', () {
+    const sizes = [Size(932, 430), Size(830, 411), Size(1280, 800)];
+
+    Future<void> open(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const DebertsApp());
+      await tester.pumpAndSettle();
+    }
+
+    for (final size in sizes) {
+      testWidgets('start screen at ${size.width}x${size.height} shows the start button without scrolling', (tester) async {
+        await open(tester, size);
+
+        final button = tester.getRect(find.text(uk.newGame));
+        expect(button.top, greaterThanOrEqualTo(0));
+        expect(button.bottom, lessThanOrEqualTo(size.height + 0.01));
+      });
+
+      testWidgets('rules at ${size.width}x${size.height} use two columns', (tester) async {
+        await open(tester, size);
+        await tapText(tester, uk.rulesBtn);
+
+        final titles = [for (final s in rulesContent(uk.lang, uk.game)) s.title.toUpperCase()];
+        final lefts = <double>{
+          for (final title in titles)
+            if (find.text(title).evaluate().isNotEmpty) tester.getRect(find.text(title)).left.roundToDouble(),
+        };
+        expect(lefts.length, 2);
+      });
+
+      testWidgets('settings at ${size.width}x${size.height} keep the language in the left column', (tester) async {
+        await open(tester, size);
+        await tapText(tester, uk.settingsBtn);
+
+        final language = tester.getRect(find.text(uk.language.toUpperCase()));
+        final appearance = tester.getRect(find.text(uk.appearance.toUpperCase()));
+        expect((language.left - appearance.left).abs(), lessThan(1));
+      });
+    }
+  });
+
   group('landscape game screen', () {
     const sizes = [Size(932, 430), Size(830, 411), Size(1280, 800)];
 
