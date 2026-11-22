@@ -16,6 +16,10 @@ class WelcomePanel extends StatelessWidget {
   /// The sample sheet needs this much height on top of the rest to be shown.
   static const double _sheetMinHeight = 620;
 
+  /// Below this height the feature list is left out and the type shrinks, so
+  /// the panel fits a phone held sideways without scrolling.
+  static const double _compactHeight = 520;
+
   static const _glyphs = ['↻', '+', '✎', '✦'];
 
   @override
@@ -32,33 +36,37 @@ class WelcomePanel extends StatelessWidget {
         ),
       )),
       SafeArea(
-        child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
+        child: LayoutBuilder(builder: (context, box) {
+          final compact = box.maxHeight < _compactHeight;
+          return SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: box.maxHeight),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 460),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(36, 28, 36, 28),
+                  padding: EdgeInsets.fromLTRB(36, compact ? 12 : 28, 36, compact ? 12 : 28),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _brand(),
-                      const SizedBox(height: 18),
+                      _brand(compact),
+                      SizedBox(height: compact ? 10 : 18),
                       Text(strings.welcomeTagline, key: const ValueKey('welcome.tagline'),
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, height: 1.2, color: t.acc)),
-                      const SizedBox(height: 10),
+                          style: TextStyle(fontSize: compact ? 20 : 24, fontWeight: FontWeight.w700, height: 1.2, color: t.acc)),
+                      SizedBox(height: compact ? 6 : 10),
                       Text(strings.welcomeDesc,
-                          style: TextStyle(fontSize: 15, height: 1.45, color: t.tx2)),
+                          style: TextStyle(fontSize: compact ? 13 : 15, height: 1.4, color: t.tx2)),
                       if (box.maxHeight >= _sheetMinHeight) ...[
                         const SizedBox(height: 22),
                         _sheet(),
                       ],
+                      if (!compact) ...[
                       const SizedBox(height: 22),
                       for (final (i, f) in strings.welcomeFeatures.indexed) ...[
                         if (i > 0) const SizedBox(height: 14),
                         _feature(_glyphs[i % _glyphs.length], f.$1, f.$2),
+                      ],
                       ],
                     ],
                   ),
@@ -66,13 +74,14 @@ class WelcomePanel extends StatelessWidget {
               ),
             ),
           ),
-        )),
+        );
+        }),
       ),
     ]);
   }
 
-  Widget _brand() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(strings.appTitle, style: TextStyle(fontSize: 52, fontWeight: FontWeight.w800,
+  Widget _brand(bool compact) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(strings.appTitle, style: TextStyle(fontSize: compact ? 36 : 52, fontWeight: FontWeight.w800,
         letterSpacing: -1.5, height: 1.05, color: t.tx)),
     const SizedBox(height: 6),
     RichText(text: TextSpan(

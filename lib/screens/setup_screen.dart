@@ -50,7 +50,7 @@ class SetupScreen extends StatelessWidget {
                 Container(width: 1, color: t.bdr),
                 Expanded(child: Center(child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 480),
-                  child: _form(showLogo: false),
+                  child: _form(showLogo: false, compact: true),
                 ))),
               ])
             : _form(showLogo: true),
@@ -58,116 +58,157 @@ class SetupScreen extends StatelessWidget {
     );
   }
 
-  Widget _form({required bool showLogo}) {
-    return SafeArea(
-          // Scrolls on short screens while the buttons stay pinned to the
-          // bottom whenever everything fits.
-          child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
-            child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: box.maxHeight),
-            child: IntrinsicHeight(
-            child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 28, 22, 30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (showLogo) ...[
-                Column(children: [
-                  Text(strings.appTitle, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w800,
-                      letterSpacing: -1, color: t.tx)),
-                  const SizedBox(height: 4),
-                  RichText(text: TextSpan(
-                    style: TextStyle(fontSize: 22, letterSpacing: 8, color: t.tx.withValues(alpha: 0.55)),
-                    children: const [
-                      TextSpan(text: '♠'),
-                      TextSpan(text: '♥', style: TextStyle(color: Color(0xFFE05252))),
-                      TextSpan(text: '♦', style: TextStyle(color: Color(0xFFE05252))),
-                      TextSpan(text: '♣'),
-                    ],
-                  )),
-                ]),
-                const SizedBox(height: 24),
-
-                ],
-
-                // how many play
-                if (rules.playerCounts.length > 1) ...[
-                _label(strings.howManyPlay),
-                Row(children: [
-                  for (final n in rules.playerCounts) ...[
-                    if (n != rules.playerCounts.first) const SizedBox(width: 8),
-                    Expanded(child: _segBtn(strings.playersOption(n), players == n, -1,
-                        () => onPlayersChanged(n), key: ValueKey('players.$n'))),
-                  ],
-                ]),
-                const SizedBox(height: 20),
-                ],
-
-                // team or player names
-                _label(players == 4 ? strings.teams : strings.players),
-                for (var i = 0; i < teamNames.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 8),
-                  _TeamInput(key: ValueKey('name.$players.$i'), theme: t, index: i, value: teamNames[i],
-                      hint: strings.nameHint(players, i),
-                      onChanged: (v) { final n = [...teamNames]; n[i] = v; onTeamNamesChanged(n); }),
-                ],
-                const SizedBox(height: 20),
-
-                // first dealer
-                _label(strings.whoDealsFirst),
-                Row(children: [
-                  for (var i = 0; i < teamNames.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 8),
-                    Expanded(child: _segBtn(shownNames[i], firstDealer == i, i, () => onFirstDealerChanged(i))),
-                  ],
-                ]),
-                const SizedBox(height: 20),
-
-                // score limit
-                _label(strings.playTo),
-                Row(children: [
-                  for (final limit in rules.scoreLimits) ...[
-                    if (limit != rules.scoreLimits.first) const SizedBox(width: 8),
-                    Expanded(child: _segBtn('$limit', scoreLimit == limit, -1, () => onScoreLimitChanged(limit))),
-                  ],
-                ]),
-                const SizedBox(height: 24),
-
-                const Spacer(),
-
-                // buttons
-                _ctaBtn(strings.newGame, onNewGame),
-                if (hasSavedGame) ...[
-                  const SizedBox(height: 9),
-                  _ghostBtn(strings.continuePrev, onContinue),
-                ],
-                const SizedBox(height: 10),
-                Wrap(alignment: WrapAlignment.center, children: [
-                  TextButton(
-                    onPressed: onRules,
-                    child: Text(strings.rulesBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-                  ),
-                  TextButton(
-                    onPressed: onSettings,
-                    child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-                  ),
-                ]),
-              ],
-            ),
-            ),
-            ),
-            ),
+  Widget _form({required bool showLogo, bool compact = false}) {
+    final gap = compact ? 10.0 : 20.0;
+    final fields = <Widget>[
+      if (showLogo) ...[
+        Column(children: [
+          Text(strings.appTitle, style: TextStyle(fontSize: 40, fontWeight: FontWeight.w800,
+              letterSpacing: -1, color: t.tx)),
+          const SizedBox(height: 4),
+          RichText(text: TextSpan(
+            style: TextStyle(fontSize: 22, letterSpacing: 8, color: t.tx.withValues(alpha: 0.55)),
+            children: const [
+              TextSpan(text: '♠'),
+              TextSpan(text: '♥', style: TextStyle(color: Color(0xFFE05252))),
+              TextSpan(text: '♦', style: TextStyle(color: Color(0xFFE05252))),
+              TextSpan(text: '♣'),
+            ],
           )),
+        ]),
+        const SizedBox(height: 24),
+      ],
+
+      // how many play
+      if (rules.playerCounts.length > 1) ...[
+        _label(strings.howManyPlay, compact),
+        Row(children: [
+          for (final n in rules.playerCounts) ...[
+            if (n != rules.playerCounts.first) const SizedBox(width: 8),
+            Expanded(child: _segBtn(strings.playersOption(n), players == n, -1,
+                () => onPlayersChanged(n), key: ValueKey('players.$n'), compact: compact)),
+          ],
+        ]),
+        SizedBox(height: gap),
+      ],
+
+      // team or player names; side by side when the screen is short
+      _label(players == 4 ? strings.teams : strings.players, compact),
+      if (compact)
+        Row(children: [
+          for (var i = 0; i < teamNames.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(child: _nameInput(i, compact)),
+          ],
+        ])
+      else
+        for (var i = 0; i < teamNames.length; i++) ...[
+          if (i > 0) const SizedBox(height: 8),
+          _nameInput(i, compact),
+        ],
+      SizedBox(height: gap),
+
+      // first dealer
+      _label(strings.whoDealsFirst, compact),
+      Row(children: [
+        for (var i = 0; i < teamNames.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(child: _segBtn(shownNames[i], firstDealer == i, i, () => onFirstDealerChanged(i), compact: compact)),
+        ],
+      ]),
+      SizedBox(height: gap),
+
+      // score limit
+      _label(strings.playTo, compact),
+      Row(children: [
+        for (final limit in rules.scoreLimits) ...[
+          if (limit != rules.scoreLimits.first) const SizedBox(width: 8),
+          Expanded(child: _segBtn('$limit', scoreLimit == limit, -1, () => onScoreLimitChanged(limit), compact: compact)),
+        ],
+      ]),
+    ];
+
+    final links = [
+      TextButton(
+        onPressed: onRules,
+        child: Text(strings.rulesBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
+      ),
+      TextButton(
+        onPressed: onSettings,
+        child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
+      ),
+    ];
+
+    if (compact) {
+      // The fields scroll if the screen is very short, but the buttons stay
+      // pinned below them, so starting a game never needs a scroll.
+      return SafeArea(
+        child: Column(children: [
+          Expanded(child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(22, 12, 22, 8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: fields),
+          )),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 6),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                Expanded(child: _ctaBtn(strings.newGame, onNewGame, compact: true)),
+                if (hasSavedGame) ...[
+                  const SizedBox(width: 8),
+                  Expanded(child: _ghostBtn(strings.continuePrev, onContinue, compact: true)),
+                ],
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: links),
+            ]),
+          ),
+        ]),
+      );
+    }
+
+    return SafeArea(
+      // Scrolls on short screens while the buttons stay pinned to the
+      // bottom whenever everything fits.
+      child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: box.maxHeight),
+          child: IntrinsicHeight(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(22, 28, 22, 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...fields,
+                  const SizedBox(height: 24),
+                  const Spacer(),
+                  _ctaBtn(strings.newGame, onNewGame),
+                  if (hasSavedGame) ...[
+                    const SizedBox(height: 9),
+                    _ghostBtn(strings.continuePrev, onContinue),
+                  ],
+                  const SizedBox(height: 10),
+                  Wrap(alignment: WrapAlignment.center, children: links),
+                ],
+              ),
+            ),
+          ),
+        ),
+      )),
     );
   }
 
-  Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
+  Widget _nameInput(int i, bool compact) => _TeamInput(
+    key: ValueKey('name.$players.$i'), theme: t, index: i, value: teamNames[i],
+    hint: strings.nameHint(players, i), compact: compact,
+    onChanged: (v) { final n = [...teamNames]; n[i] = v; onTeamNamesChanged(n); },
+  );
+
+  Widget _label(String text, [bool compact = false]) => Padding(
+    padding: EdgeInsets.only(bottom: compact ? 4 : 8),
     child: Text(text.toUpperCase(),
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1, color: t.tx2)),
   );
 
-  Widget _segBtn(String label, bool active, int teamIdx, VoidCallback onTap, {double fontSize = 15, Key? key}) {
+  Widget _segBtn(String label, bool active, int teamIdx, VoidCallback onTap, {double fontSize = 15, Key? key, bool compact = false}) {
     final color = teamIdx >= 0 ? t.teamColor(teamIdx) : t.acc;
     final dim   = teamIdx >= 0 ? t.teamDim(teamIdx)   : t.accDim;
     return GestureDetector(
@@ -175,7 +216,7 @@ class SetupScreen extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: EdgeInsets.symmetric(vertical: compact ? 7 : 11),
         decoration: BoxDecoration(
           color: active ? dim : Colors.transparent,
           border: Border.all(color: active ? color : t.bdr, width: 1.5),
@@ -188,20 +229,20 @@ class SetupScreen extends StatelessWidget {
     );
   }
 
-  Widget _ctaBtn(String label, VoidCallback onTap) => GestureDetector(
+  Widget _ctaBtn(String label, VoidCallback onTap, {bool compact = false}) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 17),
+      padding: EdgeInsets.symmetric(vertical: compact ? 11 : 17),
       decoration: BoxDecoration(gradient: t.ctaGradient, borderRadius: BorderRadius.circular(15)),
       alignment: Alignment.center,
       child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111111))),
     ),
   );
 
-  Widget _ghostBtn(String label, VoidCallback onTap) => GestureDetector(
+  Widget _ghostBtn(String label, VoidCallback onTap, {bool compact = false}) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 17),
+      padding: EdgeInsets.symmetric(vertical: compact ? 11 : 17),
       decoration: BoxDecoration(
         border: Border.all(color: t.bdr, width: 1.5),
         borderRadius: BorderRadius.circular(15),
@@ -218,10 +259,11 @@ class _TeamInput extends StatefulWidget {
   final String value;
   final String hint;
   final void Function(String) onChanged;
+  final bool compact;
 
   const _TeamInput({
     super.key, required this.theme, required this.index,
-    required this.value, required this.hint, required this.onChanged,
+    required this.value, required this.hint, required this.onChanged, this.compact = false,
   });
 
   @override
@@ -255,7 +297,7 @@ class _TeamInputState extends State<_TeamInput> {
     final t = widget.theme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: widget.compact ? 10 : 15, vertical: widget.compact ? 0 : 5),
       decoration: BoxDecoration(
         color: t.surf,
         border: Border.all(color: _focused ? t.accBdr : t.bdr, width: 1.5),
@@ -274,8 +316,9 @@ class _TeamInputState extends State<_TeamInput> {
               controller: _ctrl,
               onChanged: widget.onChanged,
               maxLength: 12,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: t.tx),
+              style: TextStyle(fontSize: widget.compact ? 14 : 16, fontWeight: FontWeight.w500, color: t.tx),
               decoration: InputDecoration(
+                isDense: widget.compact,
                 border: InputBorder.none,
                 counterText: '',
                 hintText: widget.hint,
