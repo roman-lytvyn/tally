@@ -379,17 +379,21 @@ class _EntryPanelState extends State<EntryPanel> {
     );
   }
 
-  Widget _hint(String icon, String text, Color color, Color bg) => Container(
-    decoration: BoxDecoration(color: bg,
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-        borderRadius: BorderRadius.circular(10)),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-    child: Row(children: [
-      Text(icon, style: TextStyle(fontSize: 15, color: color)),
-      const SizedBox(width: 8),
-      Expanded(child: Text(text, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color))),
-    ]),
-  );
+  Widget _hint(String icon, String text, Color color, Color bg) {
+    // Beside the keypad the window is short, so the note is set tighter.
+    final tight = widget.sideBySide;
+    return Container(
+      decoration: BoxDecoration(color: bg,
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+          borderRadius: BorderRadius.circular(10)),
+      padding: EdgeInsets.symmetric(horizontal: tight ? 10 : 12, vertical: tight ? 5 : 9),
+      child: Row(children: [
+        Text(icon, style: TextStyle(fontSize: tight ? 13 : 15, color: color)),
+        SizedBox(width: tight ? 6 : 8),
+        Expanded(child: Text(text, style: TextStyle(fontSize: tight ? 12 : 14, fontWeight: FontWeight.w700, color: color))),
+      ]),
+    );
+  }
 
   /// What the sides below are picked for, and the way to record a redeal
   /// when the rules allow one.
