@@ -59,7 +59,7 @@ class SetupScreen extends StatelessWidget {
   }
 
   Widget _form({required bool showLogo, bool compact = false}) {
-    final gap = compact ? 10.0 : 20.0;
+    final gap = compact ? 7.0 : 20.0;
     final fields = <Widget>[
       if (showLogo) ...[
         Column(children: [
@@ -145,7 +145,7 @@ class SetupScreen extends StatelessWidget {
       return SafeArea(
         child: Column(children: [
           Expanded(child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 12, 22, 8),
+            padding: const EdgeInsets.fromLTRB(22, 8, 22, 6),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: fields),
           )),
           Padding(
@@ -216,7 +216,7 @@ class SetupScreen extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: compact ? 7 : 11),
+        padding: EdgeInsets.symmetric(vertical: compact ? 5 : 11),
         decoration: BoxDecoration(
           color: active ? dim : Colors.transparent,
           border: Border.all(color: active ? color : t.bdr, width: 1.5),
