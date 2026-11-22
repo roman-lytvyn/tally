@@ -32,6 +32,9 @@ class SetupScreen extends StatelessWidget {
     required this.onContinue, required this.onSettings, required this.onRules,
   });
 
+  /// Below this window height the landscape form is laid out tightly.
+  static const double _shortHeight = 560;
+
   AppTheme get t => theme;
   List<String> get shownNames => strings.namesOrDefaults(teamNames, players);
 
@@ -39,7 +42,10 @@ class SetupScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // In landscape the form keeps its place on the right and the left half
     // presents the app, so the form leaves out the logo.
-    final wide = isWideLayout(MediaQuery.sizeOf(context));
+    final size = MediaQuery.sizeOf(context);
+    final wide = isWideLayout(size);
+    // A short window gets the tight form; a tall one keeps the roomy form.
+    final short = size.height < _shortHeight;
     return Scaffold(
       backgroundColor: t.bg,
       body: Container(
@@ -50,7 +56,7 @@ class SetupScreen extends StatelessWidget {
                 Container(width: 1, color: t.bdr),
                 Expanded(flex: 62, child: Center(child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
-                  child: _form(showLogo: false, compact: true),
+                  child: _form(showLogo: false, compact: short, showLinks: false),
                 ))),
               ])
             : _form(showLogo: true),
@@ -58,7 +64,7 @@ class SetupScreen extends StatelessWidget {
     );
   }
 
-  Widget _form({required bool showLogo, bool compact = false}) {
+  Widget _form({required bool showLogo, bool compact = false, bool showLinks = true}) {
     final gap = compact ? 7.0 : 20.0;
     final fields = <Widget>[
       if (showLogo) ...[
@@ -175,8 +181,10 @@ class SetupScreen extends StatelessWidget {
                     const SizedBox(height: 9),
                     _ghostBtn(strings.continuePrev, onContinue),
                   ],
-                  const SizedBox(height: 10),
-                  Wrap(alignment: WrapAlignment.center, children: links),
+                  if (showLinks) ...[
+                    const SizedBox(height: 10),
+                    Wrap(alignment: WrapAlignment.center, children: links),
+                  ],
                 ],
               ),
             ),
