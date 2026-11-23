@@ -481,7 +481,7 @@ class _GameScreenState extends State<GameScreen> {
                         key: ValueKey('divider.$index.$i'),
                         width: 1, color: t.bdr,
                         margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
-                    Expanded(child: _roundScore(r, earned, i, index)),
+                    Expanded(flex: sides > 2 && i == 0 ? 6 : 5, child: _roundScore(r, earned, i, index)),
                   ],
                   SizedBox(
                     width: _metaWidth,
