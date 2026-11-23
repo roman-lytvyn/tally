@@ -13,6 +13,7 @@ import 'package:deberc/layout.dart';
 import 'package:deberc/models.dart';
 import 'package:deberc/screens/about_screen.dart';
 import 'package:deberc/screens/settings_screen.dart';
+import 'package:deberc/screens/win_screen.dart';
 import 'package:deberc/theme.dart';
 import 'package:deberc/widgets/entry_panel.dart';
 import 'package:deberc/widgets/traditional_score.dart';
@@ -1456,4 +1457,23 @@ void main() {
       expect(await requested(tester, const Size(2560, 1600), 2), isEmpty);
     });
   });
+
+  for (final size in const [Size(914, 411), Size(412, 915), Size(1280, 800)]) {
+    testWidgets('the win screen fits a ${size.width.toInt()}x${size.height.toInt()} window', (tester) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        home: WinScreen(
+          theme: const AppTheme(true), strings: uk, teamNames: const ['A', 'B', 'C'],
+          scores: const [1035, 101, 250], winner: 0, players: 3, onUndo: () {}, onNewGame: () {},
+        ),
+      ));
+
+      expect(tester.takeException(), isNull);
+      final newGame = tester.getRect(find.text(uk.newGame));
+      expect(newGame.bottom, lessThanOrEqualTo(size.height));
+      expect(newGame.top, greaterThanOrEqualTo(0));
+    });
+  }
 }

@@ -278,14 +278,14 @@ class _EntryPanelState extends State<EntryPanel> {
           if (_debercBy != null) ...[
             const SizedBox(height: 6),
             _sideRow(s.debercBy, _debercBy!, '✦', (i) => setState(() => _debercBy = i)),
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('✦', s.debercWins(widget.teamNames[_debercBy!]), t.acc, t.accDim),
           ] else ...[
-          const SizedBox(height: 8),
+          SizedBox(height: widget.sideBySide ? 4 : 8),
           // score input row
           _fillIf(Container(
             decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(13)),
-            padding: const EdgeInsets.symmetric(horizontal: _scoreGap, vertical: 9),
+            padding: EdgeInsets.symmetric(horizontal: _scoreGap, vertical: widget.sideBySide ? 4 : 9),
             child: Row(
               crossAxisAlignment: widget.sideBySide ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
               children: [
@@ -301,26 +301,26 @@ class _EntryPanelState extends State<EntryPanel> {
             ),
           )),
           if (_yaytsia) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('🥚', s.eggsMsg(widget.tieRule, _hanging, _names(_round.opponents)), t.egg, t.eggDim),
           ],
           if (_baited) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('⚠', s.baitMsg(_names(_round.baitTakers), _baitValue), t.danger, t.dangerDim),
           ],
           if (_doubledWin) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint(s.doublingMark(_doubling), s.takesAllMsg(widget.teamNames[_taker], scoreRound(_round)[_taker]),
                 t.acc, t.accDim),
           ],
           if (_gahwa) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint(s.doublingMark(_doubling), s.gahwaWins(widget.teamNames[_round.countedWinner]), t.acc, t.accDim),
           ],
           // Card points are entered, so a deal scored in game points, or
           // with its bid added, shows what it adds to the score.
           if ((_c != null || _bid != null) && _complete && !_yaytsia && !_baited && !_doubledWin && !_gahwa) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('=', s.recordedMsg(scoreRound(_round)), t.acc, t.accDim),
           ],
           ],
@@ -752,7 +752,7 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(height: 2),
             Text(
               shown != null ? '$shown' : '—',
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.1,
+              style: TextStyle(fontSize: widget.sideBySide ? 26 : 30, fontWeight: FontWeight.w800, height: 1.1,
                   color: shown != null ? t.tx : t.tx3),
             ),
           ],

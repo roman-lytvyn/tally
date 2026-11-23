@@ -543,7 +543,7 @@ class _GameScreenState extends State<GameScreen> {
       decoration: lost ? TextDecoration.lineThrough : null,
     );
     final points = baited
-        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'))
+        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'), fontSize: 14)
         : Text(value, style: style);
     final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
     const gap = SizedBox(width: 4);
@@ -570,10 +570,10 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _badge(String text, Color color, Color bg, {Key? key}) => Container(
+  Widget _badge(String text, Color color, Color bg, {Key? key, double fontSize = 11}) => Container(
     key: key,
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-    child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
+    child: Text(text, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
   );
 }
