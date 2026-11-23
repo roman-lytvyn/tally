@@ -287,7 +287,7 @@ class _EntryPanelState extends State<EntryPanel> {
             decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(13)),
             padding: EdgeInsets.symmetric(horizontal: _scoreGap, vertical: widget.sideBySide ? 4 : 9),
             child: Row(
-              crossAxisAlignment: widget.sideBySide ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 for (var i = 0; i < _sides; i++) ...[
                   // The colon keeps the highlighted side as far away as the row's edges do.
@@ -745,6 +745,7 @@ class _EntryPanelState extends State<EntryPanel> {
           borderRadius: BorderRadius.circular(9),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(widget.teamNames[idx],
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.4,
