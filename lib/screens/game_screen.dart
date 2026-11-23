@@ -573,6 +573,36 @@ class _GameScreenState extends State<GameScreen> {
       if (noTricksPenalty > 0) ...[gap, _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim,
           key: ValueKey('noTricks.$index.$i'))],
     ];
+    if (sides > 2) {
+      // Badges go on a line of their own under the points, so the points keep
+      // the same size and position in every row.
+      final extras = <Widget>[
+        if (eggs) _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i')),
+        if (baitPenalty > 0)
+          _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i')),
+        if (noTricksPenalty > 0)
+          _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim, key: ValueKey('noTricks.$index.$i')),
+      ];
+      return Align(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              marked,
+              if (extras.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [for (var k = 0; k < extras.length; k++) ...[if (k > 0) gap, extras[k]]],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
     return Align(
       alignment: sides > 2 ? Alignment.center : first ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: FittedBox(
