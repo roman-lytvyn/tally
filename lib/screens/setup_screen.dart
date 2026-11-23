@@ -198,16 +198,19 @@ class SetupScreen extends StatelessWidget {
 
   /// The Rules and Settings links.
   List<Widget> _links() {
-    // Big enough to hit with a finger.
-    final style = TextButton.styleFrom(
-      minimumSize: const Size(96, 48),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    );
-    final text = TextStyle(fontSize: 15, color: t.tx2);
-    return [
-      TextButton(style: style, onPressed: onRules, child: Text(strings.rulesBtn, style: text)),
-      TextButton(style: style, onPressed: onSettings, child: Text(strings.settingsBtn, style: text)),
-    ];
+    Widget link(String label, VoidCallback onTap) => Builder(builder: (context) {
+      // Big enough to hit with a finger; bigger still on a tablet-sized screen.
+      final large = MediaQuery.sizeOf(context).shortestSide >= 600;
+      return TextButton(
+        style: TextButton.styleFrom(
+          minimumSize: Size(large ? 120 : 96, large ? 56 : 48),
+          padding: EdgeInsets.symmetric(horizontal: large ? 26 : 20, vertical: 12),
+        ),
+        onPressed: onTap,
+        child: Text(label, style: TextStyle(fontSize: large ? 20 : 15, color: t.tx2)),
+      );
+    });
+    return [link(strings.rulesBtn, onRules), link(strings.settingsBtn, onSettings)];
   }
 
   Widget _nameInput(int i, bool compact) => _TeamInput(
