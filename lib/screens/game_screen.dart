@@ -467,42 +467,22 @@ class _GameScreenState extends State<GameScreen> {
               border: Border.all(color: selected ? t.accBdr : t.bdr),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // The round number and the deal value get slots of the same
                   // width, so the sides' columns stay centred in the row.
                   SizedBox(width: _metaWidth,
                       child: Align(alignment: AlignmentDirectional.centerStart, child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)))),
-                  // Two sides get equal columns, as wide as the fuller one needs; more sides
-                  // take only the room they need and spread out evenly. When that is more
-                  // than the row holds, the whole group scales as one, so
-                  // every side keeps the same size and nothing shrinks while it fits.
-                  Expanded(
-                    child: LayoutBuilder(builder: (context, box) => FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(minWidth: box.maxWidth),
-                        child: IntrinsicWidth(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              for (var i = 0; i < sides; i++) ...[
-                                if (i > 0) Container(
-                                    key: ValueKey('divider.$index.$i'),
-                                    width: 1, height: 24, color: t.bdr,
-                                    margin: const EdgeInsets.symmetric(horizontal: 5)),
-                                if (sides > 2) _roundScore(r, earned, i, index)
-                                else Expanded(child: _roundScore(r, earned, i, index)),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    )),
-                  ),
+                  for (var i = 0; i < sides; i++) ...[
+                    if (i > 0) Container(
+                        key: ValueKey('divider.$index.$i'),
+                        width: 1, color: t.bdr,
+                        margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
+                    Expanded(child: _roundScore(r, earned, i, index)),
+                  ],
                   SizedBox(
                     width: _metaWidth,
                     child: Align(
@@ -512,13 +492,14 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ],
               ),
+            ),
           ),
         );
       },
     );
   }
 
-  double get _metaWidth => sides > 2 ? 54 : 76;
+  double get _metaWidth => sides > 2 ? 62 : 76;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -563,13 +544,25 @@ class _GameScreenState extends State<GameScreen> {
     );
     final points = baited
         ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'),
-            fontSize: 14)
+            fontSize: 14, hPad: sides > 2 ? 4 : 8)
         : Text(value, style: style);
     final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
     const gap = SizedBox(width: 4);
+    // With three sides the points are centred in their column so they line up from
+    // row to row, and the ♠ hangs beside them without taking width. A bait badge
+    // already marks the taker, so it needs no ♠.
+    final marked = taker && sides > 2 && !baited
+        ? Stack(
+            clipBehavior: Clip.none,
+            children: [
+              points,
+              PositionedDirectional(start: null, end: -15, top: 0, bottom: 0, child: Center(child: spade)),
+            ],
+          )
+        : points;
     final parts = <Widget>[
-      points,
-      if (taker) ...[gap, spade],
+      marked,
+      if (taker && sides <= 2) ...[gap, spade],
       if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
       // Penalties are taken off the side's score, so they follow its points.
       if (baitPenalty > 0)
@@ -579,17 +572,20 @@ class _GameScreenState extends State<GameScreen> {
     ];
     return Align(
       alignment: sides > 2 ? Alignment.center : first ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        // The left column reads towards the divider, so its parts run in reverse.
-        children: first ? parts.reversed.toList() : parts,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          // The left column reads towards the divider, so its parts run in reverse.
+          children: first ? parts.reversed.toList() : parts,
+        ),
       ),
     );
   }
 
-  Widget _badge(String text, Color color, Color bg, {Key? key, double fontSize = 11}) => Container(
+  Widget _badge(String text, Color color, Color bg, {Key? key, double fontSize = 11, double hPad = 8}) => Container(
     key: key,
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 2),
     decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
     child: Text(text, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
   );
