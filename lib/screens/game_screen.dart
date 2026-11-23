@@ -475,8 +475,9 @@ class _GameScreenState extends State<GameScreen> {
                   SizedBox(width: _metaWidth,
                       child: Align(alignment: AlignmentDirectional.centerStart, child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)))),
-                  // The sides get equal columns, as wide as the fullest side needs. When
-                  // that is more than the row holds, the whole group scales as one, so
+                  // Two sides get equal columns, as wide as the fuller one needs; more sides
+                  // take only the room they need and spread out evenly. When that is more
+                  // than the row holds, the whole group scales as one, so
                   // every side keeps the same size and nothing shrinks while it fits.
                   Expanded(
                     child: LayoutBuilder(builder: (context, box) => FittedBox(
@@ -486,13 +487,15 @@ class _GameScreenState extends State<GameScreen> {
                         child: IntrinsicWidth(
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               for (var i = 0; i < sides; i++) ...[
                                 if (i > 0) Container(
                                     key: ValueKey('divider.$index.$i'),
                                     width: 1, height: 24, color: t.bdr,
                                     margin: const EdgeInsets.symmetric(horizontal: 5)),
-                                Expanded(child: _roundScore(r, earned, i, index)),
+                                if (sides > 2) _roundScore(r, earned, i, index)
+                                else Expanded(child: _roundScore(r, earned, i, index)),
                               ],
                             ],
                           ),
@@ -515,7 +518,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  static const double _metaWidth = 76;
+  double get _metaWidth => sides > 2 ? 54 : 76;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
