@@ -499,7 +499,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  static const double _metaWidth = 76;
+  double get _metaWidth => sides > 2 ? 62 : 76;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -545,23 +545,13 @@ class _GameScreenState extends State<GameScreen> {
     final points = baited
         ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'), fontSize: 14)
         : Text(value, style: style);
-    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
-    const gap = SizedBox(width: 4);
-    // With three sides the columns are narrow, so the ♠ sits at the corner of the points
-    // without taking width and the points keep the size the other columns use.
-    final marked = taker && sides > 2
-        ? Stack(
-            clipBehavior: Clip.none,
-            children: [
-              points,
-              PositionedDirectional(end: -7, top: -6, child: Text('♠', style: style.copyWith(
-                  decoration: TextDecoration.none, fontSize: 11))),
-            ],
-          )
-        : points;
+    // With three sides the columns are narrow, so the ♠ is smaller and sits close to the points.
+    final spade = Text('♠', style: style.copyWith(
+        decoration: TextDecoration.none, fontSize: sides > 2 ? 12 : null));
+    final gap = SizedBox(width: sides > 2 ? 1 : 4);
     final parts = <Widget>[
-      marked,
-      if (taker && sides <= 2) ...[gap, spade],
+      points,
+      if (taker) ...[gap, spade],
       if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
       // Penalties are taken off the side's score, so they follow its points.
       if (baitPenalty > 0)
