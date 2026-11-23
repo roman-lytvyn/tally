@@ -27,6 +27,7 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final large = MediaQuery.sizeOf(context).shortestSide >= 600;
     final size = MediaQuery.sizeOf(context);
     final wide = isWideLayout(size);
     return Scaffold(
@@ -43,17 +44,17 @@ class AboutScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: onBack,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                      padding: EdgeInsets.symmetric(horizontal: large ? 22 : 13, vertical: large ? 14 : 7),
                       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(10)),
                       child: Text(strings.backBtn,
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.tx2)),
+                          style: TextStyle(fontSize: large ? 20 : 13, fontWeight: FontWeight.w600, color: t.tx2)),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Flexible(child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(strings.aboutTitle,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: t.tx)),
+                        style: TextStyle(fontSize: large ? 26 : 20, fontWeight: FontWeight.w800, color: t.tx)),
                   )),
                 ]),
               ),
