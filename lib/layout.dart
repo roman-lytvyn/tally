@@ -30,4 +30,4 @@ double bigScreenScale(Size size) {
 
 /// The phone-sized layout is designed for about this window.
 const _portraitDesignWidth = 560.0;
-const _portraitDesignHeight = 860.0;
+const _portraitDesignHeight = 960.0;
