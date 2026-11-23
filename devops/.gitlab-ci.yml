@@ -468,8 +468,9 @@ publish-web:
       - "*-web.zip"
 
 # The iPhone and Mac apps build on a self-hosted macOS runner tagged "macos",
-# as only Xcode on macOS builds them. That machine is not always on, so before
-# building, apple-runner asks GitLab whether the runner has been in touch in
+# as only Xcode on macOS builds them. The runner powers its macOS machine on
+# when a build arrives and off again once it has been idle for a while, but the
+# computer it runs on is not always on, so before building, apple-runner asks GitLab whether the runner has been in touch in
 # the last few minutes, and only then does apple start devops/apple/ci.yml as a
 # child pipeline; otherwise the Apple builds are skipped. Either way the rest
 # of the pipeline neither waits for the Apple builds nor fails because of them.
