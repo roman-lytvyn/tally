@@ -290,7 +290,7 @@ class _EntryPanelState extends State<EntryPanel> {
                   // The colon keeps the highlighted side as far away as the row's edges do.
                   if (i > 0) Padding(
                     padding: EdgeInsets.symmetric(horizontal: widget.sideBySide ? 4 : 9),
-                    child: Text(':', style: TextStyle(fontSize: 18, color: t.tx3, fontWeight: FontWeight.w700)),
+                    child: Center(child: Text(':', style: TextStyle(fontSize: 18, color: t.tx3, fontWeight: FontWeight.w700))),
                   ),
                   Expanded(child: _teamInput(i, score[i])),
                 ],
