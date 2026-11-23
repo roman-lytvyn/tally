@@ -545,13 +545,22 @@ class _GameScreenState extends State<GameScreen> {
     final points = baited
         ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'), fontSize: 14)
         : Text(value, style: style);
-    // With three sides the columns are narrow, so the ♠ shrinks to keep the points at full size.
-    final spade = Text('♠', style: style.copyWith(
-        decoration: TextDecoration.none, fontSize: sides > 2 ? 11 : null));
-    final gap = SizedBox(width: sides > 2 ? 2 : 4);
+    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
+    const gap = SizedBox(width: 4);
+    // With three sides the columns are narrow, so the ♠ hangs beside the points
+    // without taking width and the points keep the size the other columns use.
+    final marked = taker && sides > 2
+        ? Stack(
+            clipBehavior: Clip.none,
+            children: [
+              points,
+              PositionedDirectional(end: -16, top: 0, bottom: 0, child: Center(child: spade)),
+            ],
+          )
+        : points;
     final parts = <Widget>[
-      points,
-      if (taker) ...[gap, spade],
+      marked,
+      if (taker && sides <= 2) ...[gap, spade],
       if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
       // Penalties are taken off the side's score, so they follow its points.
       if (baitPenalty > 0)
