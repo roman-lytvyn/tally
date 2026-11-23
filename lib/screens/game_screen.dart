@@ -558,7 +558,7 @@ class _GameScreenState extends State<GameScreen> {
             clipBehavior: Clip.none,
             children: [
               points,
-              PositionedDirectional(start: null, end: -12, top: 1, child: spade),
+              PositionedDirectional(start: null, end: -14, top: 1, child: spade),
             ],
           )
         : points;
