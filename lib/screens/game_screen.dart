@@ -471,6 +471,8 @@ class _GameScreenState extends State<GameScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Keeps every row the same height whatever its marks are.
+                  const SizedBox(height: 30),
                   // With two sides the round number and the deal value get slots of the
                   // same width, so the columns stay centred in the row.
                   SizedBox(width: _numberWidth,
@@ -481,7 +483,7 @@ class _GameScreenState extends State<GameScreen> {
                         key: ValueKey('divider.$index.$i'),
                         width: 1, color: t.bdr,
                         margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
-                    Expanded(flex: sides > 2 && i == 0 ? 6 : 5, child: _roundScore(r, earned, i, index)),
+                    Expanded(child: _roundScore(r, earned, i, index)),
                   ],
                   SizedBox(
                     width: _metaWidth,
@@ -549,7 +551,7 @@ class _GameScreenState extends State<GameScreen> {
         ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'),
             fontSize: 14, hPad: sides > 2 ? 4 : 8)
         : Text(value, style: style);
-    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
+    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none, fontSize: sides > 2 ? 15 : null, height: sides > 2 ? 1 : null));
     const gap = SizedBox(width: 4);
     // With three sides the points are centred in their column so they line up from
     // row to row, and the ♠ hangs beside them without taking width. A bait badge
@@ -559,7 +561,7 @@ class _GameScreenState extends State<GameScreen> {
             clipBehavior: Clip.none,
             children: [
               points,
-              PositionedDirectional(start: null, end: -20, top: 0, bottom: 0, child: Center(child: spade)),
+              PositionedDirectional(start: null, end: -17, top: 0, bottom: 0, child: Center(child: spade)),
             ],
           )
         : points;
