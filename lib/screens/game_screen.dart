@@ -471,9 +471,9 @@ class _GameScreenState extends State<GameScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // The round number and the deal value get slots of the same
-                  // width, so the sides' columns stay centred in the row.
-                  SizedBox(width: _metaWidth,
+                  // With two sides the round number and the deal value get slots of the
+                  // same width, so the columns stay centred in the row.
+                  SizedBox(width: _numberWidth,
                       child: Align(alignment: AlignmentDirectional.centerStart, child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)))),
                   for (var i = 0; i < sides; i++) ...[
@@ -499,7 +499,10 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  double get _metaWidth => sides > 2 ? 62 : 76;
+  // With three sides the round number and the deal value get only what they need,
+  // so the sides' columns take the rest of the row.
+  double get _numberWidth => sides > 2 ? 34 : 76;
+  double get _metaWidth => sides > 2 ? 54 : 76;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -556,7 +559,7 @@ class _GameScreenState extends State<GameScreen> {
             clipBehavior: Clip.none,
             children: [
               points,
-              PositionedDirectional(start: null, end: -15, top: 0, bottom: 0, child: Center(child: spade)),
+              PositionedDirectional(start: null, end: -20, top: 0, bottom: 0, child: Center(child: spade)),
             ],
           )
         : points;
