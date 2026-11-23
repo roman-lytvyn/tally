@@ -197,16 +197,18 @@ class SetupScreen extends StatelessWidget {
   }
 
   /// The Rules and Settings links.
-  List<Widget> _links() => [
-    TextButton(
-      onPressed: onRules,
-      child: Text(strings.rulesBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-    ),
-    TextButton(
-      onPressed: onSettings,
-      child: Text(strings.settingsBtn, style: TextStyle(fontSize: 13, color: t.tx2)),
-    ),
-  ];
+  List<Widget> _links() {
+    // Big enough to hit with a finger.
+    final style = TextButton.styleFrom(
+      minimumSize: const Size(96, 48),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    );
+    final text = TextStyle(fontSize: 15, color: t.tx2);
+    return [
+      TextButton(style: style, onPressed: onRules, child: Text(strings.rulesBtn, style: text)),
+      TextButton(style: style, onPressed: onSettings, child: Text(strings.settingsBtn, style: text)),
+    ];
+  }
 
   Widget _nameInput(int i, bool compact) => _TeamInput(
     key: ValueKey('name.$players.$i'), theme: t, index: i, value: teamNames[i],
