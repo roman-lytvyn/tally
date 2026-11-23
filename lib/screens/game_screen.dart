@@ -543,7 +543,8 @@ class _GameScreenState extends State<GameScreen> {
       decoration: lost ? TextDecoration.lineThrough : null,
     );
     final points = baited
-        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'), fontSize: 14)
+        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'),
+            fontSize: 14, hPad: sides > 2 ? 4 : 8)
         : Text(value, style: style);
     // With three sides the columns are narrow, so the ♠ is smaller and sits close to the points.
     final spade = Text('♠', style: style.copyWith(
@@ -551,7 +552,8 @@ class _GameScreenState extends State<GameScreen> {
     final gap = SizedBox(width: sides > 2 ? 1 : 4);
     final parts = <Widget>[
       points,
-      if (taker) ...[gap, spade],
+      // The bait badge already marks the taker in a narrow column.
+      if (taker && !(baited && sides > 2)) ...[gap, spade],
       if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
       // Penalties are taken off the side's score, so they follow its points.
       if (baitPenalty > 0)
@@ -572,9 +574,9 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _badge(String text, Color color, Color bg, {Key? key, double fontSize = 11}) => Container(
+  Widget _badge(String text, Color color, Color bg, {Key? key, double fontSize = 11, double hPad = 8}) => Container(
     key: key,
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 2),
     decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
     child: Text(text, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
   );
