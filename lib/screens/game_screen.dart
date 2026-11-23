@@ -266,7 +266,7 @@ class _GameScreenState extends State<GameScreen> {
         alignment: Alignment.center,
         decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(22)),
         child: Text('#${rounds.length + 1}',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.tx2)),
+            style: TextStyle(fontSize: _largeScreen ? 18 : 15, fontWeight: FontWeight.w700, color: t.tx2)),
       ),
       const SizedBox(width: 8),
       _iconBtn('⚙', widget.onSettings),
@@ -278,17 +278,19 @@ class _GameScreenState extends State<GameScreen> {
 
   /// A short window gets a slimmer top bar, which leaves the entry panel more height.
   bool get _shortWindow => MediaQuery.sizeOf(context).height < _shortHeight && isWideLayout(MediaQuery.sizeOf(context));
-  double get _buttonHeight => _shortWindow ? 36 : _tallButtonHeight;
+  /// A tablet-sized window gets bigger top-bar buttons, easier to hit.
+  bool get _largeScreen => MediaQuery.sizeOf(context).shortestSide >= 600;
+  double get _buttonHeight => _largeScreen ? 56 : _shortWindow ? 36 : _tallButtonHeight;
 
   Widget _iconBtn(String label, VoidCallback onTap) => GestureDetector(
     onTap: onTap,
     child: Container(
       height: _buttonHeight,
       constraints: BoxConstraints(minWidth: _buttonHeight),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: EdgeInsets.symmetric(horizontal: _largeScreen ? 20 : 14),
       alignment: Alignment.center,
       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(12)),
-      child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: t.tx2)),
+      child: Text(label, style: TextStyle(fontSize: _largeScreen ? 20 : 16, fontWeight: FontWeight.w600, color: t.tx2)),
     ),
   );
 
