@@ -28,21 +28,20 @@ class EntryPanel extends StatefulWidget {
   /// Sits in its own column beside the score instead of rising over it, so
   /// it has no rounded top edge.
   final bool docked;
+  /// Lays the keypad and buttons beside the form instead of below it.
+  final bool sideBySide;
 
   const EntryPanel({
     super.key, required this.theme, required this.strings, required this.rules,
     required this.teamNames, required this.dealer, required this.firstToBid,
     required this.dealerMustPlay, required this.tieRule,
-    this.valueWheel = false, this.initial, this.number, this.docked = false,
+    this.valueWheel = false, this.initial, this.number, this.docked = false, this.sideBySide = false,
     required this.onCancel, required this.onSave, this.onDelete,
   });
 
   @override
   State<EntryPanel> createState() => _EntryPanelState();
 }
-
-/// Space between a score and the edge of the score row or the colon.
-const _scoreGap = 14.0;
 
 class _EntryPanelState extends State<EntryPanel> {
   late Declarations _decl;
@@ -231,17 +230,7 @@ class _EntryPanelState extends State<EntryPanel> {
   Widget build(BuildContext context) {
     final score = _score;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: t.bg,
-        border: widget.docked ? null : Border(top: BorderSide(color: t.bdr)),
-        borderRadius: widget.docked ? null : const BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      padding: EdgeInsets.fromLTRB(18, widget.docked ? 12 : 10, 18, widget.docked ? 12 : 18),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    final upper = <Widget>[
           // An earlier round names itself and who dealt in it; for a new one the
           // badge above the score already shows who deals.
           if (widget.number != null) ...[
@@ -286,55 +275,57 @@ class _EntryPanelState extends State<EntryPanel> {
           if (_debercBy != null) ...[
             const SizedBox(height: 6),
             _sideRow(s.debercBy, _debercBy!, '✦', (i) => setState(() => _debercBy = i)),
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('✦', s.debercWins(widget.teamNames[_debercBy!]), t.acc, t.accDim),
           ] else ...[
-          const SizedBox(height: 8),
+          SizedBox(height: widget.sideBySide ? 4 : 8),
           // score input row
-          Container(
+          _fillIf(Container(
             decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(13)),
-            padding: const EdgeInsets.symmetric(horizontal: _scoreGap, vertical: 9),
+            padding: EdgeInsets.all(widget.sideBySide ? 4 : 9),
             child: Row(
+              crossAxisAlignment: widget.sideBySide ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
               children: [
                 for (var i = 0; i < _sides; i++) ...[
                   // The colon keeps the highlighted side as far away as the row's edges do.
                   if (i > 0) Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: _scoreGap),
-                    child: Text(':', style: TextStyle(fontSize: 18, color: t.tx3, fontWeight: FontWeight.w700)),
+                    padding: EdgeInsets.symmetric(horizontal: widget.sideBySide ? 4 : 9),
+                    child: Center(child: Text(':', style: TextStyle(fontSize: 18, color: t.tx3, fontWeight: FontWeight.w700))),
                   ),
                   Expanded(child: _teamInput(i, score[i])),
                 ],
               ],
             ),
-          ),
+          )),
           if (_yaytsia) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('🥚', s.eggsMsg(widget.tieRule, _hanging, _names(_round.opponents)), t.egg, t.eggDim),
           ],
           if (_baited) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('⚠', s.baitMsg(_names(_round.baitTakers), _baitValue), t.danger, t.dangerDim),
           ],
           if (_doubledWin) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint(s.doublingMark(_doubling), s.takesAllMsg(widget.teamNames[_taker], scoreRound(_round)[_taker]),
                 t.acc, t.accDim),
           ],
           if (_gahwa) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint(s.doublingMark(_doubling), s.gahwaWins(widget.teamNames[_round.countedWinner]), t.acc, t.accDim),
           ],
           // Card points are entered, so a deal scored in game points, or
           // with its bid added, shows what it adds to the score.
           if ((_c != null || _bid != null) && _complete && !_yaytsia && !_baited && !_doubledWin && !_gahwa) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: widget.sideBySide ? 4 : 6),
             _hint('=', s.recordedMsg(scoreRound(_round)), t.acc, t.accDim),
           ],
           ],
-          const SizedBox(height: 8),
+    ];
+    final lower = <Widget>[
           // The keypad stays in place while a deberc is recorded, so the
           // Deberc key beside 0 can switch it off again.
-          _buildNumpad(),
+          _fillNumpad ? Expanded(child: _buildNumpad()) : _buildNumpad(),
           const SizedBox(height: 8),
           // actions
           Row(children: [
@@ -352,27 +343,62 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(width: 6),
             Expanded(child: _saveBtn()),
           ]),
-        ],
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        color: t.bg,
+        border: widget.docked ? null : Border(top: BorderSide(color: t.bdr)),
+        borderRadius: widget.docked ? null : const BorderRadius.vertical(top: Radius.circular(18)),
       ),
+      padding: EdgeInsets.fromLTRB(18, widget.docked ? 12 : 10, 18, widget.docked ? 12 : 18),
+      // On a short wide window the keypad sits beside the form, so the panel
+      // fits the height at its natural size.
+      child: widget.sideBySide
+          ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              // The form takes the full height: the score box grows into what
+              // the rows above it leave free, and scrolls only if they do not fit.
+              Expanded(child: LayoutBuilder(builder: (context, box) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: box.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: upper),
+                  ),
+                ),
+              ))),
+              const SizedBox(width: 16),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: lower)),
+            ])
+          : Column(
+              mainAxisSize: widget.docked ? MainAxisSize.max : MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [...upper, const SizedBox(height: 8), ...lower],
+            ),
     );
   }
 
-  Widget _hint(String icon, String text, Color color, Color bg) => Container(
-    decoration: BoxDecoration(color: bg,
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-        borderRadius: BorderRadius.circular(10)),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-    child: Row(children: [
-      Text(icon, style: TextStyle(fontSize: 15, color: color)),
-      const SizedBox(width: 8),
-      Expanded(child: Text(text, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color))),
-    ]),
-  );
+  Widget _hint(String icon, String text, Color color, Color bg) {
+    // Beside the keypad the window is short, so the note is set tighter.
+    final tight = widget.sideBySide;
+    return Container(
+      decoration: BoxDecoration(color: bg,
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+          borderRadius: BorderRadius.circular(10)),
+      padding: EdgeInsets.symmetric(horizontal: tight ? 10 : 12, vertical: tight ? 5 : 9),
+      child: Row(children: [
+        Text(icon, style: TextStyle(fontSize: tight ? 13 : 15, color: color)),
+        SizedBox(width: tight ? 6 : 8),
+        Expanded(child: Text(text, style: TextStyle(fontSize: tight ? 12 : 14, fontWeight: FontWeight.w700, color: color))),
+      ]),
+    );
+  }
 
   /// What the sides below are picked for, and the way to record a redeal
   /// when the rules allow one.
+  double get _takerHeaderHeight => widget.dealerMustPlay ? 20 : _headerHeight;
+
+  // Without the redeal button the label alone sets the height, so it sits at the top edge.
   Widget _takerHeader() => SizedBox(
-        height: _headerHeight,
+        height: _takerHeaderHeight,
         child: Row(children: [
           Text(s.trumpTakenBy, style: TextStyle(fontSize: 14, color: t.tx2, fontWeight: FontWeight.w600)),
           const SizedBox(width: 10),
@@ -446,7 +472,7 @@ class _EntryPanelState extends State<EntryPanel> {
     ])),
     const SizedBox(width: _gap),
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SizedBox(height: _headerHeight, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
+      SizedBox(height: _takerHeaderHeight, child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(s.dealValue(_gv),
           key: const ValueKey('dealValue'), maxLines: 1,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: t.acc))))),
       const SizedBox(height: 4),
@@ -716,6 +742,8 @@ class _EntryPanelState extends State<EntryPanel> {
           borderRadius: BorderRadius.circular(9),
         ),
         child: Column(
+          mainAxisSize: widget.sideBySide ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(widget.teamNames[idx],
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.4,
@@ -723,7 +751,7 @@ class _EntryPanelState extends State<EntryPanel> {
             const SizedBox(height: 2),
             Text(
               shown != null ? '$shown' : '—',
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, height: 1.1,
+              style: TextStyle(fontSize: widget.sideBySide ? 26 : 30, fontWeight: FontWeight.w800, height: 1.1,
                   color: shown != null ? t.tx : t.tx3),
             ),
           ],
@@ -732,35 +760,55 @@ class _EntryPanelState extends State<EntryPanel> {
     );
   }
 
+  /// The docked panel gives its keypad the height the column leaves free.
+  bool get _fillNumpad => widget.sideBySide || widget.docked;
+
+  /// In the two-pane layout [child] grows to the height the pane leaves free.
+  Widget _fillIf(Widget child) => widget.sideBySide ? Expanded(child: child) : child;
+
   Widget _buildNumpad() {
     const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
     // Points are not typed while a deberc is recorded.
     final typing = _debercBy == null;
+    Widget key(String k) {
+      if (k.isEmpty) return widget.rules.hasDebercWin ? _debercKey() : const SizedBox();
+      final isDel = k == '⌫';
+      return GestureDetector(
+        onTap: typing ? () => _tap(k) : null,
+        child: Opacity(
+          opacity: typing ? 1 : 0.35,
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDel ? t.nkDel : t.nk,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Text(k, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600,
+                color: isDel ? t.danger : t.tx)),
+          ),
+        ),
+      );
+    }
+    if (_fillNumpad) {
+      return Column(children: [
+        for (var r = 0; r < 4; r++) ...[
+          if (r > 0) const SizedBox(height: _gap),
+          Expanded(child: Row(children: [
+            for (var c = 0; c < 3; c++) ...[
+              if (c > 0) const SizedBox(width: _gap),
+              Expanded(child: key(keys[r * 3 + c])),
+            ],
+          ])),
+        ],
+      ]);
+    }
     return GridView(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, mainAxisSpacing: _gap, crossAxisSpacing: _gap, mainAxisExtent: _rowHeight),
       shrinkWrap: true,
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
-      children: keys.map((k) {
-        if (k.isEmpty) return widget.rules.hasDebercWin ? _debercKey() : const SizedBox();
-        final isDel = k == '⌫';
-        return GestureDetector(
-          onTap: typing ? () => _tap(k) : null,
-          child: Opacity(
-            opacity: typing ? 1 : 0.35,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDel ? t.nkDel : t.nk,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: Text(k, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w600,
-                  color: isDel ? t.danger : t.tx)),
-            ),
-          ),
-        );
-      }).toList(),
+      children: keys.map(key).toList(),
     );
   }
 

@@ -99,10 +99,14 @@ class _GameScreenState extends State<GameScreen> {
       body: SafeArea(
         // The popup lies over the game, which stays in place underneath.
         child: wide
-            ? Row(children: [
-                Expanded(child: _buildScoreColumn(newRoundButton: false)),
-                Container(width: 1, color: t.bdr),
-                _buildDockedEntry(editing),
+            ? Column(children: [
+                // The top bar spans both columns.
+                _buildHeader(),
+                Expanded(child: Row(children: [
+                  Expanded(child: _buildScoreColumn(newRoundButton: false)),
+                  Container(width: 1, color: t.bdr),
+                  _buildDockedEntry(editing),
+                ])),
               ])
             : Stack(children: [
                 _buildScoreColumn(newRoundButton: true),
@@ -114,12 +118,12 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildScoreColumn({required bool newRoundButton}) => LayoutBuilder(builder: (context, box) {
-    // On a tall landscape window the score block is drawn larger, so the
-    // column is filled rather than left with gaps around small figures.
-    final grow = newRoundButton ? 1.0 : ((box.maxHeight - 430) / 370 * 0.8 + 1).clamp(1.0, isTraditional ? 1.4 : 1.8);
+    // On a tall landscape window the score block is drawn slightly larger, but
+    // never so much that its type outgrows the entry panel beside it.
+    final grow = newRoundButton ? 1.0 : ((box.maxHeight + 64 - 430) / 370 * 0.8 + 1).clamp(1.0, 1.15);
     return Column(
       children: [
-        _buildHeader(),
+        if (newRoundButton) _buildHeader(),
         _enlarged(grow, Column(children: [
           _buildScoreSection(),
           if (!isTraditional) _buildProgressBars(),
@@ -147,21 +151,34 @@ class _GameScreenState extends State<GameScreen> {
   /// The permanent entry column of the landscape layout. Like the popup it
   /// shrinks whole on a short screen rather than scrolling.
   Widget _buildDockedEntry(int? editing) {
-    final width = (math.min(MediaQuery.sizeOf(context).width, maxWideAppWidth) * 0.44).clamp(_entryMinWidth, 560.0);
+    // On a short window the panel is laid out in two panes and gets more width.
+    final short = MediaQuery.sizeOf(context).height < _shortHeight;
+    final screenWidth = math.min(MediaQuery.sizeOf(context).width, maxWideAppWidth);
+    final width = short
+        ? (screenWidth * 0.66).clamp(_entryMinWidth, 800.0)
+        : (screenWidth * 0.44).clamp(_entryMinWidth, 560.0);
     return SizedBox(
       width: width,
       child: ColoredBox(
         color: t.bg,
         child: SizedBox.expand(
-          // The panel is laid out at a fixed width and scaled to the column,
-          // larger on a roomy window and smaller on a short one.
-          child: FittedBox(
-            fit: BoxFit.contain,
+          // The panel is laid out at the column width, so it fills the column
+          // at its natural type size, and shrinks whole only on a short screen.
+          child: LayoutBuilder(builder: (context, area) => FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topCenter,
             child: SizedBox(
-              width: _entryMinWidth + 40,
+              width: math.max(area.maxWidth, short ? _entryTwoPaneWidth : _entryMinWidth),
+              // A short window gets the panel's full height at any scale: it is
+              // laid out as tall as the column is after scaling to fit.
+              height: short
+                  ? area.maxHeight * math.max(area.maxWidth, _entryTwoPaneWidth) / area.maxWidth
+                  : math.max(area.maxHeight * math.max(area.maxWidth, _entryMinWidth) / area.maxWidth,
+                      _entryMinHeight),
               child: EntryPanel(
                 key: ValueKey(_session),
                 docked: true,
+                sideBySide: short,
                 theme: t, strings: strings, rules: widget.rules, teamNames: teamNames, dealer: dealer,
                 firstToBid: (dealer + 1) % sides, dealerMustPlay: widget.dealerMustPlay, tieRule: widget.tieRule,
                 valueWheel: widget.valueInput == 'wheel',
@@ -172,7 +189,7 @@ class _GameScreenState extends State<GameScreen> {
                 onDelete: editing != null ? _deleteEntry : null,
               ),
             ),
-          ),
+          )),
         ),
       ),
     );
@@ -196,6 +213,15 @@ class _GameScreenState extends State<GameScreen> {
 
   /// The narrowest the entry panel is laid out; its rows need this much.
   static const double _entryMinWidth = 360;
+
+  /// The least height the docked panel is laid out at before it shrinks whole.
+  static const double _entryMinHeight = 600;
+
+  /// The narrowest the two-pane entry panel is laid out; each pane needs about half.
+  static const double _entryTwoPaneWidth = 690;
+
+  /// Below this window height the docked entry panel is laid out in two panes.
+  static const double _shortHeight = 560;
 
   /// The panel for entering a deal, at the bottom over a dimmed game. It takes
   /// the height it needs, and on a screen too small for that it shrinks whole,
@@ -224,7 +250,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildHeader() => Container(
     decoration: BoxDecoration(gradient: t.headerGradient),
-    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+    padding: EdgeInsets.fromLTRB(14, _shortWindow ? 4 : 10, 14, _shortWindow ? 4 : 10),
     child: Row(children: [
       _iconBtn(strings.exitBtn, widget.onBack),
       Expanded(child: Text(strings.appTitle.toUpperCase(), textAlign: TextAlign.center,
@@ -240,7 +266,7 @@ class _GameScreenState extends State<GameScreen> {
         alignment: Alignment.center,
         decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(22)),
         child: Text('#${rounds.length + 1}',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: t.tx2)),
+            style: TextStyle(fontSize: _largeScreen ? 18 : 15, fontWeight: FontWeight.w700, color: t.tx2)),
       ),
       const SizedBox(width: 8),
       _iconBtn('⚙', widget.onSettings),
@@ -248,17 +274,23 @@ class _GameScreenState extends State<GameScreen> {
   );
 
   /// The height of the buttons on the top bar, the size of a fingertip.
-  static const double _buttonHeight = 44;
+  static const double _tallButtonHeight = 44;
+
+  /// A short window gets a slimmer top bar, which leaves the entry panel more height.
+  bool get _shortWindow => MediaQuery.sizeOf(context).height < _shortHeight && isWideLayout(MediaQuery.sizeOf(context));
+  /// A tablet-sized window gets bigger top-bar buttons, easier to hit.
+  bool get _largeScreen => MediaQuery.sizeOf(context).shortestSide >= 600;
+  double get _buttonHeight => _largeScreen ? 56 : _shortWindow ? 36 : _tallButtonHeight;
 
   Widget _iconBtn(String label, VoidCallback onTap) => GestureDetector(
     onTap: onTap,
     child: Container(
       height: _buttonHeight,
-      constraints: const BoxConstraints(minWidth: _buttonHeight),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      constraints: BoxConstraints(minWidth: _buttonHeight),
+      padding: EdgeInsets.symmetric(horizontal: _largeScreen ? 20 : 14),
       alignment: Alignment.center,
       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(12)),
-      child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: t.tx2)),
+      child: Text(label, style: TextStyle(fontSize: _largeScreen ? 20 : 16, fontWeight: FontWeight.w600, color: t.tx2)),
     ),
   );
 
@@ -282,7 +314,7 @@ class _GameScreenState extends State<GameScreen> {
                 duration: const Duration(milliseconds: 200),
                 opacity: dealer == i ? 1.0 : 0.0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 1),
                   decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
                   child: Text(strings.deals, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
                       color: t.teamColor(i), letterSpacing: 0.5)),
@@ -326,7 +358,7 @@ class _GameScreenState extends State<GameScreen> {
             duration: const Duration(milliseconds: 200),
             opacity: dealer == i ? 1.0 : 0.0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 1),
               decoration: BoxDecoration(color: t.teamDim(i), borderRadius: BorderRadius.circular(20)),
               child: Text(strings.deals, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: t.teamColor(i))),
             ),
@@ -441,9 +473,11 @@ class _GameScreenState extends State<GameScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // The round number and the deal value get slots of the same
-                  // width, so the sides' columns stay centred in the row.
-                  SizedBox(width: _metaWidth,
+                  // Keeps every row the same height whatever its marks are.
+                  const SizedBox(height: 30),
+                  // With two sides the round number and the deal value get slots of the
+                  // same width, so the columns stay centred in the row.
+                  SizedBox(width: _numberWidth,
                       child: Align(alignment: AlignmentDirectional.centerStart, child: Text('#${index + 1}',
                           style: TextStyle(fontSize: 14, color: t.tx3, fontWeight: FontWeight.w700)))),
                   for (var i = 0; i < sides; i++) ...[
@@ -469,7 +503,10 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  static const double _metaWidth = 76;
+  // With three sides the round number and the deal value get only what they need,
+  // so the sides' columns take the rest of the row.
+  double get _numberWidth => sides > 2 ? 34 : 54;
+  double get _metaWidth => 54;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -498,13 +535,10 @@ class _GameScreenState extends State<GameScreen> {
     final held = r.contract != null ? widget.tally.heldIn[index] : r.score[i];
     final lost = r.isTie && r.taker == i &&
         (r.contract != null ? held > 0 : earned[i] < r.score[i]);
-    // The trump-taker's points carry a ♠ on the side facing away from the divider.
     final value = r.isRedeal ? '—' : '${lost ? held : earned[i]}';
-    // With three sides every column is centred and the ♠ follows the points.
-    final first = i == 0 && sides == 2;
     final taker = r.taker == i && !r.isRedeal;
     // Bait and eggs belong to the side that took the trump, so their marks sit
-    // in its column: bait in place of its zero, eggs on the outer side.
+    // in its column: bait in place of its zero, eggs under the points.
     final baited = taker && r.isBaited;
     final eggs = taker && r.isTie;
     final style = TextStyle(
@@ -513,37 +547,57 @@ class _GameScreenState extends State<GameScreen> {
       decoration: lost ? TextDecoration.lineThrough : null,
     );
     final points = baited
-        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'))
+        ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'),
+            fontSize: 14, hPad: 4)
         : Text(value, style: style);
-    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
+    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none, fontSize: 11, height: 1));
     const gap = SizedBox(width: 4);
-    final parts = <Widget>[
-      points,
-      if (taker) ...[gap, spade],
-      if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
-      // Penalties are taken off the side's score, so they follow its points.
+    // The points are centred in their column so they line up from row to row, and a
+    // small ♠ sits at their top corner without taking width. A bait badge already
+    // marks the taker, so it needs no ♠.
+    final marked = taker && !baited
+        ? Stack(
+            clipBehavior: Clip.none,
+            children: [
+              points,
+              PositionedDirectional(start: null, end: -14, top: 1, child: spade),
+            ],
+          )
+        : points;
+    // Badges go on a line of their own under the points, so the points keep
+    // the same size and position in every row.
+    final extras = <Widget>[
+      if (eggs) _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i')),
       if (baitPenalty > 0)
-        ...[gap, _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i'))],
-      if (noTricksPenalty > 0) ...[gap, _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim,
-          key: ValueKey('noTricks.$index.$i'))],
+        _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i')),
+      if (noTricksPenalty > 0)
+        _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim, key: ValueKey('noTricks.$index.$i')),
     ];
     return Align(
-      alignment: sides > 2 ? Alignment.center : first ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          // The left column reads towards the divider, so its parts run in reverse.
-          children: first ? parts.reversed.toList() : parts,
+          children: [
+            marked,
+            if (extras.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [for (var k = 0; k < extras.length; k++) ...[if (k > 0) gap, extras[k]]],
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _badge(String text, Color color, Color bg, {Key? key}) => Container(
+  Widget _badge(String text, Color color, Color bg, {Key? key, double fontSize = 11, double hPad = 8}) => Container(
     key: key,
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 2),
     decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-    child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
+    child: Text(text, style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.4)),
   );
 }

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show Size;
 
 /// The width from which a landscape screen is laid out in two panes.
@@ -17,3 +18,16 @@ bool isWideLayout(Size size) => size.width >= kWideWidth && size.width > size.he
 
 /// Whether a screen of [size] is big enough to be turned to landscape.
 bool canTurnToLandscape(Size size) => size.longestSide >= kLandscapeLongestSide;
+
+/// How much to enlarge the whole app on a screen far bigger than the layouts
+/// are designed for. 1 on phones and ordinary tablets.
+double bigScreenScale(Size size) {
+  final fit = isWideLayout(size)
+      ? math.min(size.width / maxWideAppWidth, size.height / 780)
+      : math.min(size.width / _portraitDesignWidth, size.height / _portraitDesignHeight);
+  return fit.clamp(1.0, 2.2);
+}
+
+/// The phone-sized layout is designed for about this window.
+const _portraitDesignWidth = 560.0;
+const _portraitDesignHeight = 960.0;

@@ -311,21 +311,41 @@ class _AppRootState extends State<AppRoot> {
           child: DecoratedBox(
             decoration: BoxDecoration(color: theme.bg, gradient: theme.setupGradient),
             child: LayoutBuilder(builder: (context, box) {
-              // The start, game and settings screens use two columns when the
+              // The start, game, settings and rules screens use two columns when the
               // window is wide and short; the others stay phone-sized.
               final split = isWideLayout(Size(box.maxWidth, box.maxHeight)) &&
-                  (_screen == AppScreen.setup || _screen == AppScreen.game || _screen == AppScreen.settings);
+                  (_screen == AppScreen.setup || _screen == AppScreen.game || _screen == AppScreen.settings ||
+                      _screen == AppScreen.rules || _screen == AppScreen.about || _screen == AppScreen.win);
               final limit = split ? maxWideAppWidth : maxAppWidth;
-              final edge = box.maxWidth > limit ? BorderSide(color: theme.bdr) : BorderSide.none;
-              return Center(
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: limit),
-                  decoration: BoxDecoration(border: Border(left: edge, right: edge)),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: _buildScreen(theme, strings),
+              // On a very large screen everything is drawn bigger instead of
+              // leaving the space empty: the layout runs at a smaller virtual
+              // size and is scaled up to fill the window.
+              final scale = bigScreenScale(Size(box.maxWidth, box.maxHeight));
+              final virtual = Size(box.maxWidth / scale, box.maxHeight / scale);
+              final edge = virtual.width > limit ? BorderSide(color: theme.bdr) : BorderSide.none;
+              final media = MediaQuery.of(context);
+              final content = MediaQuery(
+                data: media.copyWith(
+                  size: virtual,
+                  padding: media.padding / scale,
+                  viewPadding: media.viewPadding / scale,
+                  viewInsets: media.viewInsets / scale,
+                ),
+                child: Center(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: limit),
+                    decoration: BoxDecoration(border: Border(left: edge, right: edge)),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: _buildScreen(theme, strings),
+                    ),
                   ),
                 ),
+              );
+              if (scale == 1) return content;
+              return FittedBox(
+                fit: BoxFit.fill,
+                child: SizedBox(width: virtual.width, height: virtual.height, child: content),
               );
             }),
           ),

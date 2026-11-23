@@ -13,6 +13,7 @@ import 'package:deberc/layout.dart';
 import 'package:deberc/models.dart';
 import 'package:deberc/screens/about_screen.dart';
 import 'package:deberc/screens/settings_screen.dart';
+import 'package:deberc/screens/win_screen.dart';
 import 'package:deberc/theme.dart';
 import 'package:deberc/widgets/entry_panel.dart';
 import 'package:deberc/widgets/traditional_score.dart';
@@ -91,7 +92,7 @@ void main() {
     expect(row.right - them.right, edge);
   });
 
-  testWidgets('keeps the width of a large phone in a tall window, centred', (tester) async {
+  testWidgets('scales the phone layout up to fill a tall portrait window', (tester) async {
     tester.view.physicalSize = const Size(1080, 1920);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -99,8 +100,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final screen = tester.getRect(find.byType(Scaffold).first);
-    // Less the thin edge drawn on each side.
-    expect(screen.width, closeTo(maxAppWidth, 2));
+    // The phone-sized layout is enlarged to the full width.
+    expect(screen.width, closeTo(maxAppWidth * bigScreenScale(const Size(1080, 1920)), 2));
     expect(screen.height, 1920);
     expect(screen.center.dx, 540);
   });
@@ -113,7 +114,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final screen = tester.getRect(find.byType(Scaffold).first);
-    expect(screen.width, closeTo(maxWideAppWidth, 2));
+    // A screen this large draws everything bigger, so the capped width is scaled too.
+    expect(screen.width, closeTo(maxWideAppWidth * bigScreenScale(const Size(1920, 1080)), 4));
     expect(screen.center.dx, 960);
     expect(find.byKey(const ValueKey('welcome.tagline')), findsOneWidget);
     // The form keeps its place on the right and drops the logo it shares with the left.
@@ -1341,8 +1343,51 @@ void main() {
     });
   });
 
-  group('landscape game screen', () {
+  group('landscape layout', () {
     const sizes = [Size(932, 430), Size(830, 411), Size(1280, 800)];
+
+    Future<void> open(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const DebertsApp());
+      await tester.pumpAndSettle();
+    }
+
+    for (final size in sizes) {
+      testWidgets('start screen at ${size.width}x${size.height} shows the start button without scrolling', (tester) async {
+        await open(tester, size);
+
+        final button = tester.getRect(find.text(uk.newGame));
+        expect(button.top, greaterThanOrEqualTo(0));
+        expect(button.bottom, lessThanOrEqualTo(size.height + 0.01));
+      });
+
+      testWidgets('rules at ${size.width}x${size.height} use two columns', (tester) async {
+        await open(tester, size);
+        await tapText(tester, uk.rulesBtn);
+
+        final titles = [for (final s in rulesContent(uk.lang, uk.game)) s.title.toUpperCase()];
+        final lefts = <double>{
+          for (final title in titles)
+            if (find.text(title).evaluate().isNotEmpty) tester.getRect(find.text(title)).left.roundToDouble(),
+        };
+        expect(lefts.length, 2);
+      });
+
+      testWidgets('settings at ${size.width}x${size.height} keep the language in the left column', (tester) async {
+        await open(tester, size);
+        await tapText(tester, uk.settingsBtn);
+
+        final language = tester.getRect(find.text(uk.language.toUpperCase()));
+        final appearance = tester.getRect(find.text(uk.appearance.toUpperCase()));
+        expect((language.left - appearance.left).abs(), lessThan(1));
+      });
+    }
+  });
+
+  group('landscape game screen', () {
+    const sizes = [Size(932, 430), Size(914, 411), Size(830, 411), Size(1280, 800)];
 
     for (final rules in GameRules.all) {
       for (final size in sizes) {
@@ -1363,7 +1408,12 @@ void main() {
           expect(panel.top, greaterThanOrEqualTo(0));
           expect(panel.bottom, lessThanOrEqualTo(size.height + 0.01));
           expect(panel.right, lessThanOrEqualTo(size.width + 0.01));
-          expect(panel.left, greaterThan(size.width / 2 - 1));
+          expect(panel.left, greaterThan(size.width * 0.3));
+          // On a short window the keypad sits beside the form and nothing is scaled down.
+          if (size.height < 560) {
+            expect(tester.widget<EntryPanel>(find.byType(EntryPanel)).sideBySide, isTrue);
+            expect(find.descendant(of: find.byType(EntryPanel), matching: find.byType(FittedBox)).evaluate().isNotEmpty ? tester.getSize(find.byType(EntryPanel)).width : 0, greaterThan(size.width * 0.5));
+          }
 
           await tester.tap(find.byKey(const ValueKey('taker.0')));
           await tester.pumpAndSettle();
@@ -1407,4 +1457,23 @@ void main() {
       expect(await requested(tester, const Size(2560, 1600), 2), isEmpty);
     });
   });
+
+  for (final size in const [Size(914, 411), Size(412, 915), Size(1280, 800)]) {
+    testWidgets('the win screen fits a ${size.width.toInt()}x${size.height.toInt()} window', (tester) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        home: WinScreen(
+          theme: const AppTheme(true), strings: uk, teamNames: const ['A', 'B', 'C'],
+          scores: const [1035, 101, 250], winner: 0, players: 3, onUndo: () {}, onNewGame: () {},
+        ),
+      ));
+
+      expect(tester.takeException(), isNull);
+      final newGame = tester.getRect(find.text(uk.newGame));
+      expect(newGame.bottom, lessThanOrEqualTo(size.height));
+      expect(newGame.top, greaterThanOrEqualTo(0));
+    });
+  }
 }

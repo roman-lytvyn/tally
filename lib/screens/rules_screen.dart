@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../l10n.dart';
 import '../rules_content.dart';
+import '../layout.dart';
 
 class RulesScreen extends StatelessWidget {
   final AppTheme theme;
@@ -14,6 +15,7 @@ class RulesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final large = MediaQuery.sizeOf(context).shortestSide >= 600;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -28,17 +30,17 @@ class RulesScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: onBack,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                      padding: EdgeInsets.symmetric(horizontal: large ? 22 : 13, vertical: large ? 14 : 7),
                       decoration: BoxDecoration(color: t.surf, borderRadius: BorderRadius.circular(10)),
                       child: Text(strings.backBtn,
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: t.tx2)),
+                          style: TextStyle(fontSize: large ? 20 : 13, fontWeight: FontWeight.w600, color: t.tx2)),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Flexible(child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(strings.rulesTitle,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: t.tx)),
+                        style: TextStyle(fontSize: large ? 26 : 20, fontWeight: FontWeight.w800, color: t.tx)),
                   )),
                 ]),
               ),
@@ -49,13 +51,37 @@ class RulesScreen extends StatelessWidget {
               top: false,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-                children: [for (final s in rulesContent(strings.lang, strings.game)) _section(s)],
+                children: _body(rulesContent(strings.lang, strings.game), isWideLayout(MediaQuery.sizeOf(context))),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// One column, or two of about equal length when the screen is wide.
+  List<Widget> _body(List<RulesSection> sections, bool wide) {
+    if (!wide || sections.length < 2) return [for (final s in sections) _section(s)];
+    int weight(RulesSection s) =>
+        80 + s.paragraphs.fold<int>(0, (n, p) => n + p.length) + s.table.length * 60;
+    final total = sections.fold<int>(0, (n, s) => n + weight(s));
+    final left = <Widget>[], right = <Widget>[];
+    var sum = 0;
+    for (final s in sections) {
+      final w = weight(s);
+      // A section goes left while that keeps the left half closer to half the total.
+      final toLeft = left.isEmpty || (sum + w / 2) < total / 2;
+      (toLeft ? left : right).add(_section(s));
+      if (toLeft) sum += w;
+    }
+    return [
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: left)),
+        const SizedBox(width: 28),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: right)),
+      ]),
+    ];
   }
 
   Widget _section(RulesSection s) => Padding(
