@@ -503,8 +503,8 @@ class _GameScreenState extends State<GameScreen> {
 
   // With three sides the round number and the deal value get only what they need,
   // so the sides' columns take the rest of the row.
-  double get _numberWidth => sides > 2 ? 34 : 76;
-  double get _metaWidth => sides > 2 ? 54 : 76;
+  double get _numberWidth => sides > 2 ? 34 : 54;
+  double get _metaWidth => 54;
 
   Widget _roundMeta(Round r) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -533,13 +533,10 @@ class _GameScreenState extends State<GameScreen> {
     final held = r.contract != null ? widget.tally.heldIn[index] : r.score[i];
     final lost = r.isTie && r.taker == i &&
         (r.contract != null ? held > 0 : earned[i] < r.score[i]);
-    // The trump-taker's points carry a ♠ on the side facing away from the divider.
     final value = r.isRedeal ? '—' : '${lost ? held : earned[i]}';
-    // With three sides every column is centred and the ♠ follows the points.
-    final first = i == 0 && sides == 2;
     final taker = r.taker == i && !r.isRedeal;
     // Bait and eggs belong to the side that took the trump, so their marks sit
-    // in its column: bait in place of its zero, eggs on the outer side.
+    // in its column: bait in place of its zero, eggs under the points.
     final baited = taker && r.isBaited;
     final eggs = taker && r.isTie;
     final style = TextStyle(
@@ -549,14 +546,14 @@ class _GameScreenState extends State<GameScreen> {
     );
     final points = baited
         ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'),
-            fontSize: 14, hPad: sides > 2 ? 4 : 8)
+            fontSize: 14, hPad: 4)
         : Text(value, style: style);
-    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none, fontSize: sides > 2 ? 11 : null, height: sides > 2 ? 1 : null));
+    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none, fontSize: 11, height: 1));
     const gap = SizedBox(width: 4);
-    // With three sides the points are centred in their column so they line up from
-    // row to row, and the ♠ hangs beside them without taking width. A bait badge
-    // already marks the taker, so it needs no ♠.
-    final marked = taker && sides > 2 && !baited
+    // The points are centred in their column so they line up from row to row, and a
+    // small ♠ sits at their top corner without taking width. A bait badge already
+    // marks the taker, so it needs no ♠.
+    final marked = taker && !baited
         ? Stack(
             clipBehavior: Clip.none,
             children: [
@@ -565,54 +562,31 @@ class _GameScreenState extends State<GameScreen> {
             ],
           )
         : points;
-    final parts = <Widget>[
-      marked,
-      if (taker && sides <= 2) ...[gap, spade],
-      if (eggs) ...[gap, _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i'))],
-      // Penalties are taken off the side's score, so they follow its points.
+    // Badges go on a line of their own under the points, so the points keep
+    // the same size and position in every row.
+    final extras = <Widget>[
+      if (eggs) _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i')),
       if (baitPenalty > 0)
-        ...[gap, _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i'))],
-      if (noTricksPenalty > 0) ...[gap, _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim,
-          key: ValueKey('noTricks.$index.$i'))],
+        _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i')),
+      if (noTricksPenalty > 0)
+        _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim, key: ValueKey('noTricks.$index.$i')),
     ];
-    if (sides > 2) {
-      // Badges go on a line of their own under the points, so the points keep
-      // the same size and position in every row.
-      final extras = <Widget>[
-        if (eggs) _badge(strings.badgeEggs, t.egg, t.eggDim, key: ValueKey('eggs.$i')),
-        if (baitPenalty > 0)
-          _badge('−$baitPenalty', t.danger, t.dangerDim, key: ValueKey('baitPenalty.$index.$i')),
-        if (noTricksPenalty > 0)
-          _badge(strings.badgeNoTricks(noTricksPenalty), t.danger, t.dangerDim, key: ValueKey('noTricks.$index.$i')),
-      ];
-      return Align(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              marked,
-              if (extras.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [for (var k = 0; k < extras.length; k++) ...[if (k > 0) gap, extras[k]]],
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
     return Align(
-      alignment: sides > 2 ? Alignment.center : first ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          // The left column reads towards the divider, so its parts run in reverse.
-          children: first ? parts.reversed.toList() : parts,
+          children: [
+            marked,
+            if (extras.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [for (var k = 0; k < extras.length; k++) ...[if (k > 0) gap, extras[k]]],
+                ),
+              ),
+          ],
         ),
       ),
     );
