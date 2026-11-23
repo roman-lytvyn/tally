@@ -545,8 +545,10 @@ class _GameScreenState extends State<GameScreen> {
     final points = baited
         ? _badge(strings.badgeBait, t.danger, t.dangerDim, key: ValueKey('bait.$i'), fontSize: 14)
         : Text(value, style: style);
-    final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
-    const gap = SizedBox(width: 4);
+    // With three sides the columns are narrow, so the ♠ shrinks to keep the points at full size.
+    final spade = Text('♠', style: style.copyWith(
+        decoration: TextDecoration.none, fontSize: sides > 2 ? 11 : null));
+    final gap = SizedBox(width: sides > 2 ? 2 : 4);
     final parts = <Widget>[
       points,
       if (taker) ...[gap, spade],
