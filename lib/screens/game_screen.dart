@@ -547,14 +547,15 @@ class _GameScreenState extends State<GameScreen> {
         : Text(value, style: style);
     final spade = Text('♠', style: style.copyWith(decoration: TextDecoration.none));
     const gap = SizedBox(width: 4);
-    // With three sides the columns are narrow, so the ♠ hangs beside the points
+    // With three sides the columns are narrow, so the ♠ sits at the corner of the points
     // without taking width and the points keep the size the other columns use.
     final marked = taker && sides > 2
         ? Stack(
             clipBehavior: Clip.none,
             children: [
               points,
-              PositionedDirectional(end: -16, top: 0, bottom: 0, child: Center(child: spade)),
+              PositionedDirectional(end: -7, top: -6, child: Text('♠', style: style.copyWith(
+                  decoration: TextDecoration.none, fontSize: 11))),
             ],
           )
         : points;
