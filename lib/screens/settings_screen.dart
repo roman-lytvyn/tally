@@ -85,20 +85,23 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(18),
-              children: [
-                if (wide)
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: _stack([_appearanceBlock(showLandscape), _scoreBlock(), _languageBlock()]))),
-                    const SizedBox(width: 18),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: _stack([_rulesBlock(), _aboutBlock()]))),
-                  ])
-                else
-                  ..._stack([_appearanceBlock(showLandscape), _scoreBlock(), _rulesBlock(), _languageBlock(), _aboutBlock()]),
-              ],
+            child: SafeArea(
+              top: false,
+              child: ListView(
+                padding: const EdgeInsets.all(18),
+                children: [
+                  if (wide)
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _stack([_appearanceBlock(showLandscape), _scoreBlock(), _languageBlock()]))),
+                      const SizedBox(width: 18),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _stack([_rulesBlock(), _aboutBlock()]))),
+                    ])
+                  else
+                    ..._stack([_appearanceBlock(showLandscape), _scoreBlock(), _rulesBlock(), _languageBlock(), _aboutBlock()]),
+                ],
+              ),
             ),
           ),
         ],
