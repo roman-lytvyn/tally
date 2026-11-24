@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -247,11 +248,25 @@ class _AppRootState extends State<AppRoot> {
   /// Whether the screen is held in portrait only, as last requested.
   bool? _portraitOnly;
 
+  /// The size in logical pixels of the screen the app runs on, never smaller
+  /// than the app's own window.
+  Size _screenSize(BuildContext context) {
+    final window = MediaQuery.sizeOf(context);
+    final view = View.maybeOf(context);
+    final display = view?.display;
+    if (display == null || display.devicePixelRatio <= 0) return window;
+    final screen = display.size / display.devicePixelRatio;
+    return Size(math.max(screen.width, window.width), math.max(screen.height, window.height));
+  }
+
   /// Keeps a small phone in portrait. A screen whose longer side is large
   /// enough for two columns (a big phone, a tablet, an unfolded phone) turns
   /// freely unless the user switched landscape off in the settings.
   void _fitOrientation(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
+    // The device screen decides, not the window: a tablet may show the app in
+    // a narrow window in the middle of its landscape screen, and holding that
+    // window in portrait would keep it there.
+    final size = _screenSize(context);
     final portraitOnly = size.shortestSide < 600 && !(_landscapeAllowed && canTurnToLandscape(size));
     if (portraitOnly == _portraitOnly) return;
     _portraitOnly = portraitOnly;

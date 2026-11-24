@@ -1425,7 +1425,7 @@ void main() {
 
   group('the screen orientation', () {
     /// The orientations the app last asked the system for.
-    Future<List<dynamic>?> requested(WidgetTester tester, Size size, double ratio) async {
+    Future<List<dynamic>?> requested(WidgetTester tester, Size size, double ratio, {Size? display}) async {
       List<dynamic>? last;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
         if (call.method == 'SystemChrome.setPreferredOrientations') last = call.arguments as List<dynamic>;
@@ -1434,6 +1434,8 @@ void main() {
       addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = ratio;
+      tester.view.display.size = display ?? size;
+      tester.view.display.devicePixelRatio = ratio;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const DebertsApp());
       await tester.pumpAndSettle();
@@ -1451,6 +1453,10 @@ void main() {
     testWidgets('stays portrait on a large phone once landscape is switched off', (tester) async {
       SharedPreferences.setMockInitialValues({'deberc_landscape': false});
       expect(await requested(tester, const Size(1290, 2796), 3), ['DeviceOrientation.portraitUp']);
+    });
+
+    testWidgets('follows the device in a narrowed window on a tablet', (tester) async {
+      expect(await requested(tester, const Size(800, 1600), 2, display: const Size(2560, 1600)), isEmpty);
     });
 
     testWidgets('follows the device on a tablet', (tester) async {
