@@ -376,6 +376,15 @@ void main() {
       expect(find.text(en.winLabel), findsOneWidget);
     });
 
+    testWidgets('the settings list stays clear of the system navigation bar', (tester) async {
+      tester.view.padding = const FakeViewPadding(bottom: 144);
+      addTearDown(tester.view.reset);
+      await openApp(tester);
+      await tapText(tester, uk.settingsBtn);
+      final list = tester.getRect(find.byType(ListView));
+      expect(list.bottom, lessThanOrEqualTo(tester.view.physicalSize.height / tester.view.devicePixelRatio - 144 / tester.view.devicePixelRatio));
+    });
+
     testWidgets('can be switched in the settings and is remembered', (tester) async {
       await openApp(tester);
       await tapText(tester, uk.settingsBtn);

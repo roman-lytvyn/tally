@@ -97,16 +97,21 @@ class _GameScreenState extends State<GameScreen> {
       child: Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
+        // In two panes the top bar's colour runs to the screen edges, so the
+        // sides are kept clear of cutouts and buttons inside the bar and the
+        // panes instead.
+        left: !wide,
+        right: !wide,
         // The popup lies over the game, which stays in place underneath.
         child: wide
             ? Column(children: [
                 // The top bar spans both columns.
-                _buildHeader(),
-                Expanded(child: Row(children: [
+                _buildHeader(sideInset: MediaQuery.paddingOf(context)),
+                Expanded(child: Padding(padding: EdgeInsets.only(left: MediaQuery.paddingOf(context).left, right: MediaQuery.paddingOf(context).right), child: Row(children: [
                   Expanded(child: _buildScoreColumn(newRoundButton: false)),
                   Container(width: 1, color: t.bdr),
                   _buildDockedEntry(editing),
-                ])),
+                ]))),
               ])
             : Stack(children: [
                 _buildScoreColumn(newRoundButton: true),
@@ -248,9 +253,9 @@ class _GameScreenState extends State<GameScreen> {
     )),
   );
 
-  Widget _buildHeader() => Container(
+  Widget _buildHeader({EdgeInsets sideInset = EdgeInsets.zero}) => Container(
     decoration: BoxDecoration(gradient: t.headerGradient),
-    padding: EdgeInsets.fromLTRB(14, _shortWindow ? 4 : 10, 14, _shortWindow ? 4 : 10),
+    padding: EdgeInsets.fromLTRB(14 + sideInset.left, _shortWindow ? 4 : 10, 14 + sideInset.right, _shortWindow ? 4 : 10),
     child: Row(children: [
       _iconBtn(strings.exitBtn, widget.onBack),
       Expanded(child: Text(strings.appTitle.toUpperCase(), textAlign: TextAlign.center,
